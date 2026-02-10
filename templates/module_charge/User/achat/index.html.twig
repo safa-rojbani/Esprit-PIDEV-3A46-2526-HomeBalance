@@ -1,0 +1,677 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Liste des Achats{% endblock %}
+{% block page_title %}Liste des Achats{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Mes Achats</h2>
+            <div class="text-muted" style="font-size:.95rem;">
+                Gère ta liste de courses et tes achats quotidiens.
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn-modern btn-modern-primary"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNewAchat"
+                    aria-controls="offcanvasNewAchat">
+                <i class="bi bi-plus-circle"></i>
+                <span>Nouvel achat</span>
+            </button>
+        </div>
+    </div>
+
+    {# Card #}
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 py-3 px-4">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted" style="font-size:.95rem;">Total</span>
+                    <span class="badge-modern">{{ achats|length }}</span>
+                </div>
+
+                {# Statistiques rapides #}
+                <div class="d-flex gap-3">
+                    {% set achetes = achats|filter(a => a.estAchete)|length %}
+                    {% set nonAchetes = achats|length - achetes %}
+                    
+                    <div class="stat-pill stat-pill-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>{{ achetes }} acheté{{ achetes > 1 ? 's' : '' }}</span>
+                    </div>
+                    
+                    <div class="stat-pill stat-pill-warning">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ nonAchetes }} en attente</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:80px;">ID</th>
+                        <th>Article</th>
+                        <th style="width:120px;">Statut</th>
+                        <th style="width:180px;">Date</th>
+                        <th class="text-end pe-4" style="width:400px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="achatTable">
+                {% for achat in achats %}
+                    <tr class="achat-row">
+                        <td class="text-muted ps-4">#{{ achat.id }}</td>
+                        
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                {# Icône de l'article #}
+                                <div class="article-icon {% if achat.estAchete %}article-icon-success{% else %}article-icon-pending{% endif %}">
+                                    <i class="bi {% if achat.estAchete %}bi-check2{% else %}bi-cart{% endif %}"></i>
+                                </div>
+                                
+                                <div>
+                                    <div class="fw-semibold article-name">{{ achat.nomArticle }}</div>
+                                    {% if achat.categorie %}
+                                        <div class="text-muted" style="font-size:.85rem;">
+                                            <i class="bi bi-tag"></i> {{ achat.categorie.nomCategorie }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <td>
+                            {% if achat.estAchete %}
+                                <span class="status-badge status-badge-success">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    Acheté
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-badge-pending">
+                                    <i class="bi bi-clock-fill"></i>
+                                    En attente
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <div class="text-muted" style="font-size:.9rem;">
+                                <i class="bi bi-calendar3"></i>
+                                {{ achat.createdAt ? achat.createdAt|date('d/m/Y') : '-' }}
+                            </div>
+                            <div class="text-muted" style="font-size:.8rem;">
+                                {{ achat.createdAt ? achat.createdAt|date('H:i') : '' }}
+                            </div>
+                        </td>
+                        
+                        <td class="text-end pe-4">
+                            <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                <a href="{{ path('app_achat_show', {'id': achat.id}) }}"
+                                   class="btn-modern btn-modern-info btn-modern-sm"
+                                   data-bs-toggle="tooltip" 
+                                   title="Voir les détails">
+                                    <i class="bi bi-eye"></i>
+                                    <span>Voir</span>
+                                </a>
+
+                                <a href="{{ path('app_achat_edit', {'id': achat.id}) }}"
+                                   class="btn-modern btn-modern-warning btn-modern-sm"
+                                   data-bs-toggle="tooltip" 
+                                   title="Modifier l'achat">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span>Modifier</span>
+                                </a>
+
+                                {% if not achat.estAchete %}
+                                    <a href="{{ path('app_achat_confirmer', {'id': achat.id}) }}"
+                                       class="btn-modern btn-modern-success btn-modern-sm"
+                                       data-bs-toggle="tooltip" 
+                                       title="Marquer comme acheté">
+                                        <i class="bi bi-check-circle"></i>
+                                        <span>Acheté</span>
+                                    </a>
+                                {% else %}
+                                    <form method="post"
+                                          action="{{ path('app_achat_annuler', {'id': achat.id}) }}"
+                                          style="display:inline-block;"
+                                          class="form-annuler"
+                                          data-achat-name="{{ achat.nomArticle }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ achat.id) }}">
+                                        <button class="btn-modern btn-modern-secondary btn-modern-sm"
+                                                data-bs-toggle="tooltip" 
+                                                title="Annuler l'achat">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                            <span>Annuler</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <form method="post"
+                                      action="{{ path('app_achat_delete', {'id': achat.id}) }}"
+                                      style="display:inline-block;"
+                                      class="form-delete"
+                                      data-achat-name="{{ achat.nomArticle }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ achat.id) }}">
+                                    <button class="btn-modern btn-modern-danger btn-modern-sm"
+                                            data-bs-toggle="tooltip" 
+                                            title="Supprimer l'achat">
+                                        <i class="bi bi-trash"></i>
+                                        <span>Supprimer</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center gap-3 py-4">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-cart"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-5 mb-1">Aucun achat trouvé</div>
+                                    <div class="text-muted" style="max-width: 420px;">
+                                        Commence par créer ton premier achat pour suivre tes courses.
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-modern btn-modern-primary mt-2"
+                                        data-bs-toggle="offcanvas"
+                                        data-bs-target="#offcanvasNewAchat">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <span>Créer un achat</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{# Offcanvas moderne pour créer un achat #}
+<div class="offcanvas offcanvas-end offcanvas-modern" tabindex="-1" id="offcanvasNewAchat" aria-labelledby="offcanvasNewAchatLabel">
+    <div class="offcanvas-header-modern">
+        <div class="d-flex align-items-center gap-3">
+            <div class="offcanvas-icon">
+                <i class="bi bi-plus-circle"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold" id="offcanvasNewAchatLabel">Nouvel achat</h5>
+                <small class="text-muted">Ajoute un article à ta liste de courses</small>
+            </div>
+        </div>
+        <button type="button" class="btn-close-modern" data-bs-dismiss="offcanvas" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="offcanvas-divider"></div>
+
+    <div class="offcanvas-body-modern">
+        {{ form_start(formNew, {'action': path('app_achat_new'), 'method': 'POST', 'attr': {'class': 'form-modern'}}) }}
+
+        <div class="form-group-modern">
+            {{ form_label(formNew.nomArticle, 'Nom de l\'article', {'label_attr': {'class': 'form-label-modern'}}) }}
+            <div class="input-icon-wrapper">
+                <i class="bi bi-cart input-icon"></i>
+                {{ form_widget(formNew.nomArticle, {'attr': {'class': 'form-control-modern', 'placeholder': 'Ex: Lait, Pain, Shampooing...'}}) }}
+            </div>
+            {{ form_errors(formNew.nomArticle) }}
+        </div>
+
+        <div class="form-group-modern">
+            {{ form_label(formNew.categorie, 'Catégorie', {'label_attr': {'class': 'form-label-modern'}}) }}
+            <div class="input-icon-wrapper">
+                <i class="bi bi-tag input-icon"></i>
+                {{ form_widget(formNew.categorie, {'attr': {'class': 'form-select-modern'}}) }}
+            </div>
+            {{ form_errors(formNew.categorie) }}
+        </div>
+
+        <div class="offcanvas-footer-modern">
+            <button type="button" class="btn-modern btn-modern-secondary flex-fill" data-bs-dismiss="offcanvas">
+                <i class="bi bi-x-circle"></i>
+                <span>Annuler</span>
+            </button>
+            <button type="submit" class="btn-modern btn-modern-primary flex-fill">
+                <i class="bi bi-check-circle"></i>
+                <span>Enregistrer</span>
+            </button>
+        </div>
+
+        {{ form_end(formNew) }}
+    </div>
+</div>
+
+{# Scripts #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Confirmation annulation
+    const formsAnnuler = document.querySelectorAll('.form-annuler');
+    formsAnnuler.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const achatName = this.dataset.achatName;
+            if (!confirm(`Annuler l'achat "${achatName}" ?\n\nCela supprimera l'historique associé.`)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Confirmation suppression
+    const formsDelete = document.querySelectorAll('.form-delete');
+    formsDelete.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const achatName = this.dataset.achatName;
+            if (!confirm(`Supprimer définitivement l'achat "${achatName}" ?\n\nCette action est irréversible.`)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+
+{# Styles modernes #}
+<style>
+    /* === BADGE MODERNE === */
+    .badge-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+    }
+
+    /* === STAT PILLS === */
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .stat-pill-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .stat-pill-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .stat-pill i {
+        font-size: 12px;
+    }
+
+    /* === ARTICLE ICON === */
+    .article-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .article-icon-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .article-icon-pending {
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        color: white;
+    }
+
+    /* === STATUS BADGE === */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge i {
+        font-size: 12px;
+    }
+
+    /* === BOUTONS MODERNES === */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-modern-sm {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .btn-modern i {
+        font-size: 16px;
+    }
+
+    .btn-modern-sm i {
+        font-size: 14px;
+    }
+
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-modern:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-modern:active {
+        transform: scale(0.95);
+    }
+
+    /* Variantes */
+    .btn-modern-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-modern-primary:hover {
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-modern-info {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+    }
+
+    .btn-modern-info:hover {
+        box-shadow: 0 6px 25px rgba(14, 165, 233, 0.5);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-modern-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-modern-warning:hover {
+        box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-modern-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-modern-success:hover {
+        box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-modern-secondary {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-modern-secondary:hover {
+        background: #e5e7eb;
+        color: #1f2937;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-modern-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-modern-danger:hover {
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    /* === EMPTY STATE === */
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    }
+
+    .empty-state-icon i {
+        font-size: 36px;
+        color: white;
+    }
+
+    /* === TABLE === */
+    .achat-row {
+        transition: all 0.3s ease;
+    }
+
+    .achat-row:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        transform: translateX(4px);
+    }
+
+    /* === OFFCANVAS MODERNE === */
+    .offcanvas-modern {
+        width: 480px !important;
+        border: none;
+    }
+
+    .offcanvas-header-modern {
+        padding: 24px 28px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .offcanvas-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .btn-close-modern {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-close-modern:hover {
+        background: #fee2e2;
+        border-color: #ef4444;
+    }
+
+    .btn-close-modern i {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .btn-close-modern:hover i {
+        color: #ef4444;
+    }
+
+    .offcanvas-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+    }
+
+    .offcanvas-body-modern {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-modern {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group-modern {
+        flex: 0 0 auto;
+    }
+
+    .form-label-modern {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+        font-size: 14px;
+        display: block;
+    }
+
+    .input-icon-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 16px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .form-control-modern,
+    .form-select-modern {
+        width: 100%;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 16px 12px 44px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-control-modern:focus,
+    .form-select-modern:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .form-control-modern::placeholder {
+        color: #9ca3af;
+    }
+
+    .offcanvas-footer-modern {
+        margin-top: auto;
+        padding-top: 20px;
+        display: flex;
+        gap: 12px;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+        .btn-modern span {
+            display: none;
+        }
+        
+        .btn-modern,
+        .btn-modern-sm {
+            padding: 10px 14px;
+        }
+
+        .stat-pill span {
+            display: none;
+        }
+
+        .offcanvas-modern {
+            width: 100% !important;
+        }
+    }
+</style>
+{% endblock %}

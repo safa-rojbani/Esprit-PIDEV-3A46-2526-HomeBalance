@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Entity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Repository\AchatRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +15,13 @@ class Achat
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+     #[Assert\NotBlank(message: "Le nom de l'article est obligatoire.")]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le nom ne doit pas dépasser {{ limit }} caractères."
+    )]
     private ?string $nomArticle = null;
 
     #[ORM\Column]
@@ -21,9 +29,9 @@ class Achat
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
-
+    #[Assert\NotNull(message: "Veuillez choisir une catégorie.")]
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?CategorieAchat $categorie = null;
 
     #[ORM\ManyToOne]

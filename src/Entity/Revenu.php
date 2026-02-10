@@ -27,10 +27,12 @@ class Revenu
     private ?\DateTimeImmutable $dateRevenu = null;
 
     #[ORM\ManyToOne]
-    private ?Family $family = null;
+#[ORM\JoinColumn(nullable: true)]
+private ?Family $family = null;
 
-    #[ORM\ManyToOne]
-    private ?User $createdBy = null;
+#[ORM\ManyToOne]
+#[ORM\JoinColumn(nullable: true)]
+private ?User $createdBy = null;
 
     public function getId(): ?int
     {

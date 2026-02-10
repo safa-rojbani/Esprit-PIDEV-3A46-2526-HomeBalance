@@ -1,0 +1,161 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Détails historique{% endblock %}
+{% block page_title %}Historique d’achat{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+        {# Header moderne #}
+        <div class="p-4" style="background: linear-gradient(135deg, rgba(102,126,234,.08) 0%, rgba(118,75,162,.08) 100%);">
+          <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+
+            <div class="d-flex align-items-start gap-3">
+              <div class="article-icon article-icon-success">
+                <i class="bi bi-receipt"></i>
+              </div>
+
+              <div>
+                <h3 class="fw-bold mb-1">
+                  {{ historique_achat.achat ? historique_achat.achat.nomArticle : 'Détails de l’achat' }}
+                </h3>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <span class="status-badge status-badge-success">
+                    <i class="bi bi-check-circle-fill"></i> Confirmé
+                  </span>
+
+                  <span class="text-muted" style="font-size:.9rem;">
+                    <i class="bi bi-calendar3"></i>
+                    {{ historique_achat.dateAchat ? historique_achat.dateAchat|date('d/m/Y à H:i') : '—' }}
+                  </span>
+                </div>
+
+                {# Optionnel : info "payé" #}
+                <div class="text-muted mt-2" style="font-size:.9rem;">
+                  <i class="bi bi-credit-card"></i>
+                  {% if historique_achat.paidBy %}
+                    Payé
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <a href="{{ path('app_historique_achat_index') }}"
+               class="btn-modern btn-modern-secondary btn-modern-sm">
+              <i class="bi bi-arrow-left"></i><span>Retour</span>
+            </a>
+
+          </div>
+        </div>
+
+        <div class="px-4">
+          <div class="divider-modern my-3"></div>
+        </div>
+
+        {# Infos principales #}
+        <div class="p-4">
+          {% set qte = historique_achat.quantiteAchete ?? 1 %}
+          {% set total = (historique_achat.montantAchete * qte) %}
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-label">Montant (unité)</div>
+                <div class="info-value">
+                  {{ historique_achat.montantAchete }} <span class="text-muted fw-normal">TND</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-label">Quantité</div>
+                <div class="info-value">{{ qte }}</div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="info-card">
+                <div class="info-label">Total</div>
+                <div class="info-value">
+                  {{ total|number_format(2, '.', '') }} <span class="text-muted fw-normal">TND</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="info-card">
+                <div class="info-label">Date d’achat</div>
+                <div class="info-value">
+                  {{ historique_achat.dateAchat ? historique_achat.dateAchat|date('d/m/Y H:i') : '—' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            {{ include('module_charge/User/historique_achat/_delete_form.html.twig') }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Styles (même palette que tes achats) #}
+<style>
+  .divider-modern{
+    height:1px;
+    background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+  }
+
+  .article-icon{
+    width:48px;height:48px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0;
+  }
+  .article-icon-success{background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;}
+
+  .status-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;border-radius:12px;
+    font-size:13px;font-weight:600;
+  }
+  .status-badge-success{background:#d1fae5;color:#065f46;}
+  .status-badge i{font-size:12px;}
+
+  .info-card{
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    padding:14px 16px;
+  }
+  .info-label{color:#6b7280;font-size:.85rem;margin-bottom:4px;}
+  .info-value{font-weight:800;color:#111827;font-size:1.05rem;}
+
+  /* Boutons (même esprit que ton index) */
+  .btn-modern{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 18px;font-size:14px;font-weight:600;
+    border:none;border-radius:12px;cursor:pointer;
+    transition:all .2s ease;text-decoration:none;
+  }
+  .btn-modern-sm{padding:8px 14px;font-size:13px;}
+  .btn-modern i{font-size:16px;}
+  .btn-modern-sm i{font-size:14px;}
+  .btn-modern:hover{transform:translateY(-1px);filter:brightness(1.02);}
+
+  .btn-modern-secondary{
+    background:#f3f4f6;color:#374151;
+  }
+  .btn-modern-secondary:hover{background:#e5e7eb;color:#1f2937;}
+</style>
+{% endblock %}
