@@ -1,13 +1,21 @@
 {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
 
 <div class="mb-3">
-  {{ form_label(form.nomCategorie, "Nom de la catégorie") }}
-  {{ form_widget(form.nomCategorie, {'attr': {'class': 'form-control'}}) }}
-  <div class="text-danger small mt-1">
-    {{ form_errors(form.nomCategorie) }}
-  </div>
+  {{ form_label(form.nomCategorie, "Nom de la catégorie", {'label_attr': {'class': 'form-label'}}) }}
+
+  {{ form_widget(form.nomCategorie, {
+    'attr': {
+      'class': 'form-control ' ~ (form.nomCategorie.vars.errors|length ? 'is-invalid' : '')
+    }
+  }) }}
+
+  {% if form.nomCategorie.vars.errors|length %}
+    <div class="invalid-feedback d-block">
+      {{ form_errors(form.nomCategorie) }}
+    </div>
+  {% endif %}
 </div>
 
-<button type="submit" class="btn btn-primary">Enregistrer</button>
+<button type="submit" class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
 
 {{ form_end(form) }}

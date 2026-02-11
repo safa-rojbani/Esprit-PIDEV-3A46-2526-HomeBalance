@@ -18,8 +18,12 @@ class CategorieAchatType extends AbstractType
            ->add('nomCategorie', TextType::class, [
                 'label' => 'Nom de la catégorie',
                 'attr' => [
-                    'placeholder' => 'Ex : Alimentaire, Transport, Santé…',
-                ],
+        'placeholder' => 'Ex : Alimentaire, Transport, Santé…',
+        'required' => true,
+        'minlength' => 2,
+        'maxlength' => 255,
+        'pattern' => '.{2,255}', // simple
+    ],
             ]);
             
         ;

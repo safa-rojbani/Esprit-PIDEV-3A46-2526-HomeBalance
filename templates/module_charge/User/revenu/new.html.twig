@@ -4,17 +4,18 @@
 
 {% block body %}
 <div class="container mt-4">
-  <!-- Breadcrumb / Navigation -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{{ path('app_revenu_index') }}" class="text-decoration-none">Revenus</a></li>
+      <li class="breadcrumb-item">
+        <a href="{{ path('app_revenu_index') }}" class="text-decoration-none">Revenus</a>
+      </li>
       <li class="breadcrumb-item active" aria-current="page">Nouveau revenu</li>
     </ol>
   </nav>
 
   <div class="row justify-content-center">
     <div class="col-lg-8">
-      <!-- Header Card -->
+
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body text-center py-4">
           <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
@@ -25,39 +26,54 @@
         </div>
       </div>
 
-      <!-- Form Card -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-light border-bottom py-3">
           <h5 class="mb-0 fw-semibold">
             <i class="bi bi-pencil-square me-2"></i>Informations du revenu
           </h5>
         </div>
+
         <div class="card-body p-4">
           {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-          
+
+          {# ✅ erreurs globales (ex: type choisi ou type libre obligatoire) #}
+          {% if form.vars.errors|length %}
+            <div class="alert alert-danger">
+              {{ form_errors(form) }}
+            </div>
+          {% endif %}
+
           <div class="row">
-            <!-- Type de revenu avec option de création -->
+
+            {# ================= TYPE REVENU ================= #}
             <div class="col-12 mb-4">
               <label class="form-label fw-semibold">
-                <i class="bi bi-tag me-1"></i>Type de revenu
-                <span class="text-danger">*</span>
+                <i class="bi bi-tag me-1"></i>Type de revenu <span class="text-danger">*</span>
               </label>
-              
+
               <div id="type-select-mode">
                 <div class="input-group input-group-lg">
-                  {{ form_widget(form.typeRevenu, {'attr': {'class': 'form-select', 'id': 'typeRevenuSelect'}}) }}
-                  <button type="button" class="btn btn-outline-primary" id="btnCreateNewType" title="Créer un nouveau type">
+                  {{ form_widget(form.typeRevenu, {'attr': {
+                    'class': 'form-select ' ~ (form.typeRevenu.vars.errors|length ? 'is-invalid' : ''),
+                    'id': 'typeRevenuSelect'
+                  }}) }}
+                  <button type="button" class="btn btn-outline-primary" id="btnCreateNewType">
                     <i class="bi bi-plus-lg"></i> Créer
                   </button>
                 </div>
-                {{ form_errors(form.typeRevenu) }}
+
+                {% if form.typeRevenu.vars.errors|length %}
+                  <div class="invalid-feedback d-block">
+                    {{ form_errors(form.typeRevenu) }}
+                  </div>
+                {% endif %}
+
                 <div class="form-text">
                   <i class="bi bi-info-circle me-1"></i>Sélectionnez un type existant ou créez-en un nouveau
                 </div>
               </div>
 
-              <!-- Mode création de nouveau type (caché par défaut) -->
-              <div id="type-create-mode" style="display: none;">
+              <div id="type-create-mode" style="display:none;">
                 <div class="card border-primary bg-primary bg-opacity-10">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -68,15 +84,21 @@
                         <i class="bi bi-x"></i> Annuler
                       </button>
                     </div>
-                    
+
                     <label class="form-label small fw-semibold mb-2">Nom du nouveau type</label>
+
                     {{ form_widget(form.typeRevenuLibre, {'attr': {
-                      'class': 'form-control form-control-lg', 
+                      'class': 'form-control form-control-lg ' ~ (form.typeRevenuLibre.vars.errors|length ? 'is-invalid' : ''),
                       'placeholder': 'Ex: Freelance, Prime annuelle, Dividendes, Revenus locatifs...',
                       'id': 'typeRevenuLibreInput'
                     }}) }}
-                    {{ form_errors(form.typeRevenuLibre) }}
-                    
+
+                    {% if form.typeRevenuLibre.vars.errors|length %}
+                      <div class="invalid-feedback d-block">
+                        {{ form_errors(form.typeRevenuLibre) }}
+                      </div>
+                    {% endif %}
+
                     <div class="alert alert-info border-0 bg-white mt-3 mb-0" role="alert">
                       <div class="d-flex">
                         <i class="bi bi-lightbulb-fill text-warning me-2"></i>
@@ -88,37 +110,55 @@
               </div>
             </div>
 
-            <!-- Montant -->
+            {# ================= MONTANT ================= #}
             <div class="col-md-6 mb-4">
               <label class="form-label fw-semibold">
-                <i class="bi bi-cash-stack me-1"></i>Montant
-                <span class="text-danger">*</span>
+                <i class="bi bi-cash-stack me-1"></i>Montant <span class="text-danger">*</span>
               </label>
+
               <div class="input-group input-group-lg">
-                {{ form_widget(form.montant, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'step': '0.01', 'min': '0'}}) }}
+                {{ form_widget(form.montant, {'attr': {
+                  'class': 'form-control ' ~ (form.montant.vars.errors|length ? 'is-invalid' : ''),
+                  'placeholder': '0.00',
+                  'step': '0.01',
+                  'min': '0'
+                }}) }}
                 <span class="input-group-text bg-light fw-semibold">TND</span>
               </div>
-              {{ form_errors(form.montant) }}
+
+              {% if form.montant.vars.errors|length %}
+                <div class="invalid-feedback d-block">
+                  {{ form_errors(form.montant) }}
+                </div>
+              {% endif %}
+
               <div class="form-text">
                 <i class="bi bi-info-circle me-1"></i>Montant en dinars tunisiens
               </div>
             </div>
 
-            <!-- Date -->
+            {# ================= DATE ================= #}
             <div class="col-md-6 mb-4">
               <label class="form-label fw-semibold">
-                <i class="bi bi-calendar-event me-1"></i>Date du revenu
-                <span class="text-danger">*</span>
+                <i class="bi bi-calendar-event me-1"></i>Date du revenu <span class="text-danger">*</span>
               </label>
-              {{ form_widget(form.dateRevenu, {'attr': {'class': 'form-control form-control-lg'}}) }}
-              {{ form_errors(form.dateRevenu) }}
+
+              {{ form_widget(form.dateRevenu, {'attr': {
+                'class': 'form-control form-control-lg ' ~ (form.dateRevenu.vars.errors|length ? 'is-invalid' : '')
+              }}) }}
+
+              {% if form.dateRevenu.vars.errors|length %}
+                <div class="invalid-feedback d-block">
+                  {{ form_errors(form.dateRevenu) }}
+                </div>
+              {% endif %}
+
               <div class="form-text">
                 <i class="bi bi-info-circle me-1"></i>Date à laquelle le revenu est reçu
               </div>
             </div>
           </div>
 
-          <!-- Info Box -->
           <div class="alert alert-info border-0 bg-info bg-opacity-10 mb-4" role="alert">
             <div class="d-flex">
               <div class="flex-shrink-0">
@@ -127,19 +167,18 @@
               <div class="flex-grow-1 ms-3">
                 <h6 class="alert-heading fw-semibold mb-1">Astuce</h6>
                 <p class="mb-0 small">
-                  Enregistrez régulièrement vos revenus pour un meilleur suivi de votre budget. 
+                  Enregistrez régulièrement vos revenus pour un meilleur suivi de votre budget.
                   Les champs marqués d'une <span class="text-danger">*</span> sont obligatoires.
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Action Buttons -->
           <div class="d-flex gap-2 justify-content-end pt-3 border-top">
             <a href="{{ path('app_revenu_index') }}" class="btn btn-lg btn-light">
               <i class="bi bi-x-circle me-1"></i>Annuler
             </a>
-            <button type="submit" class="btn btn-lg btn-primary" id="btnSubmit">
+            <button type="submit" class="btn btn-lg btn-primary">
               <i class="bi bi-check-circle me-1"></i>Enregistrer le revenu
             </button>
           </div>
@@ -147,202 +186,58 @@
           {{ form_end(form) }}
         </div>
       </div>
-
-      <!-- Help Card -->
-      <div class="card border-0 shadow-sm mt-4 bg-light">
-        <div class="card-body">
-          <h6 class="fw-semibold mb-3">
-            <i class="bi bi-question-circle me-2"></i>Exemples de types de revenus
-          </h6>
-          <div class="row g-3">
-            <div class="col-md-3">
-              <div class="d-flex align-items-start">
-                <i class="bi bi-briefcase text-primary me-2 mt-1"></i>
-                <div>
-                  <small class="fw-semibold d-block">Professionnel</small>
-                  <small class="text-muted">Salaire, Prime</small>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="d-flex align-items-start">
-                <i class="bi bi-laptop text-success me-2 mt-1"></i>
-                <div>
-                  <small class="fw-semibold d-block">Indépendant</small>
-                  <small class="text-muted">Freelance, Consulting</small>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="d-flex align-items-start">
-                <i class="bi bi-building text-warning me-2 mt-1"></i>
-                <div>
-                  <small class="fw-semibold d-block">Investissement</small>
-                  <small class="text-muted">Loyer, Dividendes</small>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="d-flex align-items-start">
-                <i class="bi bi-gift text-danger me-2 mt-1"></i>
-                <div>
-                  <small class="fw-semibold d-block">Autres</small>
-                  <small class="text-muted">Don, Remboursement</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
 
 <style>
-  .form-control:focus,
-  .form-select:focus {
+  .form-control:focus, .form-select:focus {
     border-color: #0d6efd;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-  }
-  
-  .form-label {
-    color: #495057;
-    margin-bottom: 0.5rem;
-  }
-  
-  .card {
-    transition: all 0.3s ease;
-  }
-  
-  .btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-  }
-
-  .input-group-text {
-    font-weight: 600;
-    color: #495057;
-  }
-
-  .breadcrumb-item a:hover {
-    color: #0d6efd;
-  }
-
-  #type-create-mode {
-    animation: slideDown 0.3s ease-out;
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  #btnCreateNewType {
-    white-space: nowrap;
   }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Éléments du DOM
   const typeSelectMode = document.getElementById('type-select-mode');
   const typeCreateMode = document.getElementById('type-create-mode');
   const btnCreateNewType = document.getElementById('btnCreateNewType');
   const btnCancelCreate = document.getElementById('btnCancelCreate');
   const typeRevenuSelect = document.getElementById('typeRevenuSelect');
   const typeRevenuLibreInput = document.getElementById('typeRevenuLibreInput');
-  const form = document.querySelector('.needs-validation');
 
-  // Basculer vers le mode création
+  // init
+  if (typeRevenuLibreInput) {
+    typeRevenuLibreInput.disabled = true;
+  }
+
+  // switch to create mode
   if (btnCreateNewType) {
     btnCreateNewType.addEventListener('click', function(e) {
       e.preventDefault();
       typeSelectMode.style.display = 'none';
       typeCreateMode.style.display = 'block';
-      
-      // Désactiver le select et vider sa valeur
+
       typeRevenuSelect.disabled = true;
       typeRevenuSelect.value = '';
-      
-      // Activer et focus sur l'input de création
+
       typeRevenuLibreInput.disabled = false;
-      typeRevenuLibreInput.required = true;
       typeRevenuLibreInput.focus();
     });
   }
 
-  // Annuler la création et revenir au mode sélection
+  // cancel create mode
   if (btnCancelCreate) {
     btnCancelCreate.addEventListener('click', function(e) {
       e.preventDefault();
       typeSelectMode.style.display = 'block';
       typeCreateMode.style.display = 'none';
-      
-      // Réactiver le select
+
       typeRevenuSelect.disabled = false;
-      
-      // Désactiver l'input de création et vider sa valeur
+
       typeRevenuLibreInput.disabled = true;
-      typeRevenuLibreInput.required = false;
       typeRevenuLibreInput.value = '';
     });
-  }
-
-  // Validation du formulaire
-  if (form) {
-    form.addEventListener('submit', function(event) {
-      // Vérifier si on est en mode création et que le champ est vide
-      if (typeCreateMode.style.display === 'block' && !typeRevenuLibreInput.value.trim()) {
-        event.preventDefault();
-        event.stopPropagation();
-        typeRevenuLibreInput.classList.add('is-invalid');
-        
-        // Créer un message d'erreur si nécessaire
-        if (!typeRevenuLibreInput.nextElementSibling || !typeRevenuLibreInput.nextElementSibling.classList.contains('invalid-feedback')) {
-          const errorDiv = document.createElement('div');
-          errorDiv.className = 'invalid-feedback';
-          errorDiv.textContent = 'Veuillez saisir un nom pour le nouveau type de revenu';
-          typeRevenuLibreInput.parentNode.insertBefore(errorDiv, typeRevenuLibreInput.nextSibling);
-        }
-        return false;
-      }
-
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      form.classList.add('was-validated');
-    });
-  }
-
-  // Retirer l'erreur lors de la saisie
-  if (typeRevenuLibreInput) {
-    typeRevenuLibreInput.addEventListener('input', function() {
-      this.classList.remove('is-invalid');
-    });
-  }
-
-  // Animation de focus sur les champs
-  const formControls = document.querySelectorAll('.form-control, .form-select');
-  formControls.forEach(control => {
-    control.addEventListener('focus', function() {
-      this.closest('.col-md-6, .col-12, .mb-4')?.classList.add('focused');
-    });
-    control.addEventListener('blur', function() {
-      this.closest('.col-md-6, .col-12, .mb-4')?.classList.remove('focused');
-    });
-  });
-
-  // Initialisation : désactiver l'input de création par défaut
-  if (typeRevenuLibreInput) {
-    typeRevenuLibreInput.disabled = true;
-    typeRevenuLibreInput.required = false;
   }
 });
 </script>

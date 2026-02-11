@@ -19,7 +19,10 @@
         Ajoute un article à acheter. Tu pourras le marquer comme “Acheté” plus tard.
       </div>
 
-      {{ include('module_charge/achat/_form.html.twig', {'button_label': 'Enregistrer'}) }}
+     {{ include('module_charge/User/achat/_form.html.twig', {
+  form: form,
+  button_label: 'Enregistrer'
+}) }}
     </div>
 
   </div>

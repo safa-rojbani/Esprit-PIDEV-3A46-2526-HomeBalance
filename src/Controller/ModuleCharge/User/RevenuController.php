@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
+use Symfony\Component\Form\FormError;
 #[Route('/app/revenu')]
 final class RevenuController extends AbstractController
 {
@@ -22,7 +22,7 @@ final class RevenuController extends AbstractController
             'revenus' => $repo->findBy([], ['dateRevenu' => 'DESC']),
         ]);
     }
-
+#calcul budget 
     #[Route('/budget', name: 'app_revenu_budget', methods: ['GET'])]
     public function budget(RevenuService $budgetService): Response
     {
@@ -44,31 +44,31 @@ final class RevenuController extends AbstractController
         $form = $this->createForm(RevenuType::class, $revenu, ['types' => $types]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+if ($form->isSubmitted()) {
 
-            $typeLibre = trim((string) $form->get('typeRevenuLibre')->getData());
-            if ($typeLibre !== '') {
-                $revenu->setTypeRevenu($typeLibre);
-            }
+    $typeLibre = trim((string) $form->get('typeRevenuLibre')->getData());
+    if ($typeLibre !== '') {
+        $revenu->setTypeRevenu($typeLibre);
+    }
 
-            if (!$revenu->getTypeRevenu()) {
-                $this->addFlash('danger', 'Veuillez choisir un type ou saisir un nouveau type.');
-                return $this->redirectToRoute('app_revenu_new');
-            }
+    if (!$revenu->getTypeRevenu()) {
+        $form->addError(new FormError('Veuillez choisir un type ou saisir un nouveau type.'));
+    }
 
-            // TEMP sans auth
-            $revenu->setCreatedBy($this->getUser()); // peut être null
-            $revenu->setFamily(null);
+    if ($form->isValid()) {
+        $revenu->setCreatedBy($this->getUser());
+        $revenu->setFamily(null);
 
-            if (!$revenu->getDateRevenu()) {
-                $revenu->setDateRevenu(new \DateTimeImmutable());
-            }
-
-            $em->persist($revenu);
-            $em->flush();
-
-            return $this->redirectToRoute('app_revenu_index');
+        if (!$revenu->getDateRevenu()) {
+            $revenu->setDateRevenu(new \DateTimeImmutable());
         }
+
+        $em->persist($revenu);
+        $em->flush();
+
+        return $this->redirectToRoute('app_revenu_index');
+    }
+}
 
         return $this->render('module_charge/User/revenu/new.html.twig', [
             'form' => $form->createView(),
@@ -89,23 +89,33 @@ final class RevenuController extends AbstractController
         $types = $repo->findDistinctTypesAll();
 
         $form = $this->createForm(RevenuType::class, $revenu, ['types' => $types]);
-        $form->handleRequest($request);
+       $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+if ($form->isSubmitted()) {
 
-            $typeLibre = trim((string) $form->get('typeRevenuLibre')->getData());
-            if ($typeLibre !== '') {
-                $revenu->setTypeRevenu($typeLibre);
-            }
+    $typeLibre = trim((string) $form->get('typeRevenuLibre')->getData());
+    if ($typeLibre !== '') {
+        $revenu->setTypeRevenu($typeLibre);
+    }
 
-            if (!$revenu->getTypeRevenu()) {
-                $this->addFlash('danger', 'Veuillez choisir un type ou saisir un nouveau type.');
-                return $this->redirectToRoute('app_revenu_edit', ['id' => $revenu->getId()]);
-            }
+    if (!$revenu->getTypeRevenu()) {
+        $form->addError(new FormError('Veuillez choisir un type ou saisir un nouveau type.'));
+    }
 
-            $em->flush();
-            return $this->redirectToRoute('app_revenu_index');
+    if ($form->isValid()) {
+        $revenu->setCreatedBy($this->getUser());
+        $revenu->setFamily(null);
+
+        if (!$revenu->getDateRevenu()) {
+            $revenu->setDateRevenu(new \DateTimeImmutable());
         }
+
+        $em->persist($revenu);
+        $em->flush();
+
+        return $this->redirectToRoute('app_revenu_index');
+    }
+}
 
         return $this->render('module_charge/User/revenu/edit.html.twig', [
             'form' => $form->createView(),

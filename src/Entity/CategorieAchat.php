@@ -37,7 +37,7 @@ class CategorieAchat
         return $this->nomCategorie;
     }
 
-    public function setNomCategorie(string $nomCategorie): static
+    public function setNomCategorie(?string $nomCategorie): static
     {
         $this->nomCategorie = $nomCategorie;
 

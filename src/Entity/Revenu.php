@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Repository\RevenuRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: RevenuRepository::class)]
 class Revenu
 {
@@ -15,15 +15,26 @@ class Revenu
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le type de revenu est obligatoire.')]
+     #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le type doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le type ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $typeRevenu = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+     #[Assert\NotBlank(message: 'Le montant est obligatoire.')]
+      #[Assert\Positive(message: 'Le montant doit être supérieur à 0.')]
     private ?string $montant = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $montantTotal = null;
 
     #[ORM\Column(nullable: true)]
+     #[Assert\NotNull(message: 'La date du revenu est obligatoire.')]
+         #[Assert\LessThanOrEqual('today', message: 'La date ne peut pas être dans le futur.')]
     private ?\DateTimeImmutable $dateRevenu = null;
 
     #[ORM\ManyToOne]
@@ -44,7 +55,7 @@ private ?User $createdBy = null;
         return $this->typeRevenu;
     }
 
-    public function setTypeRevenu(string $typeRevenu): static
+    public function setTypeRevenu(?string $typeRevenu): static
     {
         $this->typeRevenu = $typeRevenu;
 
@@ -56,7 +67,7 @@ private ?User $createdBy = null;
         return $this->montant;
     }
 
-    public function setMontant(string $montant): static
+    public function setMontant(?string $montant): static
     {
         $this->montant = $montant;
 

@@ -219,7 +219,8 @@
     <div class="offcanvas-divider"></div>
 
     <div class="offcanvas-body-modern">
-        {{ form_start(formNew, {'action': path('app_achat_new'), 'method': 'POST', 'attr': {'class': 'form-modern'}}) }}
+        {{ form_start(formNew, {'action': path('app_achat_index'), 'method': 'POST', 'attr': {'class': 'form-modern', novalidate: 'novalidate'}}) }}
+
 
         <div class="form-group-modern">
             {{ form_label(formNew.nomArticle, 'Nom de l\'article', {'label_attr': {'class': 'form-label-modern'}}) }}
@@ -227,7 +228,9 @@
                 <i class="bi bi-cart input-icon"></i>
                 {{ form_widget(formNew.nomArticle, {'attr': {'class': 'form-control-modern', 'placeholder': 'Ex: Lait, Pain, Shampooing...'}}) }}
             </div>
-            {{ form_errors(formNew.nomArticle) }}
+           <div class="text-danger small mt-1">
+  {{ form_errors(formNew.nomArticle) }}
+</div>
         </div>
 
         <div class="form-group-modern">
@@ -674,4 +677,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 </style>
+{% if openOffcanvas %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const offcanvasEl = document.getElementById('offcanvasNewAchat');
+  const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+  offcanvas.show();
+});
+</script>
+{% endif %}
 {% endblock %}

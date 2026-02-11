@@ -22,7 +22,7 @@ class Achat
         minMessage: "Le nom doit contenir au moins {{ limit }} caractères.",
         maxMessage: "Le nom ne doit pas dépasser {{ limit }} caractères."
     )]
-    private ?string $nomArticle = null;
+    private ?string $nomArticle = null  ;
 
     #[ORM\Column]
     private ?bool $estAchete = null;

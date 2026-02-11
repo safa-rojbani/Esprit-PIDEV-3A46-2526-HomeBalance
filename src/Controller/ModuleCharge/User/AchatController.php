@@ -18,17 +18,31 @@ use App\Repository\UserRepository;
 #[Route('/achat')]
 final class AchatController extends AbstractController
 {
- #[Route(name: 'app_achat_index', methods: ['GET'])]
-public function index(AchatRepository $achatRepository): Response
+ #[Route('/achat', name: 'app_achat_index', methods: ['GET','POST'])]
+public function index(Request $request, AchatRepository $achatRepository, EntityManagerInterface $entityManager): Response
 {
     $achat = new Achat();
     $formNew = $this->createForm(AchatType::class, $achat);
+    $formNew->handleRequest($request);
+
+    if ($formNew->isSubmitted() && $formNew->isValid()) {
+        $achat->setCreatedAt(new \DateTimeImmutable());
+        $achat->setCreatedBy($this->getUser());
+        $achat->setEstAchete(false);
+
+        $entityManager->persist($achat);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_achat_index');
+    }
 
     return $this->render('module_charge/User/achat/index.html.twig', [
-        'achats' => $achatRepository->findBy([], ['createdAt' => 'DESC']), // temp sans auth
+        'achats' => $achatRepository->findBy([], ['createdAt' => 'DESC']),
         'formNew' => $formNew->createView(),
+        'openOffcanvas' => $formNew->isSubmitted() && !$formNew->isValid(), // pour rouvrir si erreur
     ]);
 }
+
 #----------------------------new
     #[Route('/new', name: 'app_achat_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response

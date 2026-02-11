@@ -16,12 +16,14 @@ class AchatType extends AbstractType
         $builder
             ->add('nomArticle', null, [
                   'required' => false,
+                   'empty_data' => '',
     'label' => false,
     'attr' => [
         'placeholder' => 'Ex: Lait, Pain, Shampooing...',
         'minlength' => 2,
         'maxlength' => 255,
     ],
+    
 ])
             ->add('categorie', EntityType::class, [
                 'class' => CategorieAchat::class,
