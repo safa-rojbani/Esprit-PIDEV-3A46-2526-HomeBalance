@@ -21,40 +21,54 @@ class EvenementAdminType extends AbstractType
     {
         $builder
             ->add('titre', null, [
+                'label' => 'Titre',
                 'constraints' => [new Assert\NotBlank()],
+                'attr' => ['placeholder' => 'Ex: Réunion famille'],
             ])
-            ->add('description')
+            ->add('description', null, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => ['placeholder' => 'Détails de l\'événement'],
+            ])
             ->add('dateDebut', null, [
+                'label' => 'Date de début',
                 'widget' => 'single_text',
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('dateFin', null, [
+                'label' => 'Date de fin',
                 'widget' => 'single_text',
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('lieu', null, [
+                'label' => 'Lieu',
                 'constraints' => [new Assert\NotBlank()],
+                'attr' => ['placeholder' => 'Ex: Maison'],
             ])
             ->add('typeEvenement', EntityType::class, [
+                'label' => 'Type d\'événement',
                 'class' => TypeEvenement::class,
                 'choice_label' => 'nom',
                 'constraints' => [new Assert\NotNull()],
+                'placeholder' => 'Choisir un type',
             ])
             ->add('shareWithFamily', CheckboxType::class, [
                 'required' => false,
-                'label' => 'Share with family',
+                'label' => 'Partager avec la famille',
             ])
             ->add('family', EntityType::class, [
                 'class' => Family::class,
                 'choice_label' => 'id',
                 'required' => false,
-                'placeholder' => 'None',
+                'placeholder' => 'Aucune',
+                'label' => 'Famille',
             ])
             ->add('createdBy', EntityType::class, [
                 'class' => User::class,
                 'choice_label' => 'email',
                 'required' => false,
-                'placeholder' => 'None',
+                'placeholder' => 'Aucun',
+                'label' => 'Créé par',
             ]);
     }
 
@@ -74,7 +88,7 @@ class EvenementAdminType extends AbstractType
         $end = $evenement->getDateFin();
 
         if ($start !== null && $end !== null && $end <= $start) {
-            $context->buildViolation('End date must be after start date.')
+            $context->buildViolation('La date de fin doit être après la date de début.')
                 ->atPath('dateFin')
                 ->addViolation();
         }

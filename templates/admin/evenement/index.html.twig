@@ -1,11 +1,11 @@
 {% extends 'base_back.html.twig' %}
 
-{% block title %}Events{% endblock %}
+{% block title %}Événements{% endblock %}
 
 {% block body %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="d-flex align-items-center gap-3 flex-wrap">
-    <h4 class="fw-semibold m-0">Event List (Admin)</h4>
+    <h4 class="fw-semibold m-0">Liste des événements</h4>
     <form id="eventFiltersAdmin" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('admin_evenement_index') }}">
       <div>
         <select class="form-select" name="type">
@@ -25,10 +25,10 @@
 
   <div>
     <a href="{{ path('app_calendar') }}" class="btn btn-outline-secondary me-2">
-      Calendar 
+      Calendrier
     </a>
     <a href="{{ path('admin_evenement_new') }}" class="btn btn-primary">
-      + Add Event
+      + Ajouter un événement
     </a>
   </div>
 </div>
@@ -39,8 +39,8 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Title</th>
-          <th>Location</th>
+          <th>Titre</th>
+          <th>Lieu</th>
           <th class="text-end">Actions</th>
         </tr>
       </thead>
@@ -55,22 +55,22 @@
           <td class="text-end">
             <a class="btn btn-sm btn-outline-info"
                href="{{ path('admin_evenement_show', { id: e.id }) }}">
-              View
+              Voir
             </a>
 
             <a class="btn btn-sm btn-outline-warning"
                href="{{ path('admin_evenement_edit', { id: e.id }) }}">
-              Edit
+              Modifier
             </a>
 
             <form method="post"
                   action="{{ path('admin_evenement_delete', { id: e.id }) }}"
                   style="display:inline-block"
-                  onsubmit="return confirm('Delete this event?');">
+                  onsubmit="return confirm('Supprimer cet événement ?');">
               <input type="hidden" name="_token"
                      value="{{ csrf_token('delete' ~ e.id) }}">
               <button class="btn btn-sm btn-outline-danger">
-                Delete
+                Supprimer
               </button>
             </form>
           </td>
@@ -78,7 +78,7 @@
       {% else %}
         <tr>
           <td colspan="4" class="text-center text-muted">
-            No events found
+            Aucun événement trouvé
           </td>
         </tr>
       {% endfor %}

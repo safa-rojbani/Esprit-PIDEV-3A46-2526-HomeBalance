@@ -17,17 +17,25 @@ class TypeEvenementType extends AbstractType
     {
         $builder
             ->add('nom', null, [
+                'label' => 'Nom',
                 'constraints' => [new Assert\NotBlank()],
+                'attr' => ['placeholder' => 'Ex: Anniversaire'],
             ])
             ->add('couleur', ColorType::class, [
+                'label' => 'Couleur',
                 'required' => false,
             ])
-            ->add('description')
+            ->add('description', null, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => ['placeholder' => 'Description du type'],
+            ])
             ->add('family', EntityType::class, [
                 'class' => Family::class,
                 'choice_label' => 'id',
                 'required' => false,
-                'placeholder' => 'None',
+                'placeholder' => 'Aucune',
+                'label' => 'Famille',
             ]);
     }
 

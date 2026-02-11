@@ -1,4 +1,19 @@
 {{ form_start(form) }}
-  {{ form_widget(form) }}
-  <button class="btn btn-primary mt-2">{{ button_label|default('Save') }}</button>
+  <div class="row g-3">
+    <div class="col-md-6">
+      {{ form_row(form.nom) }}
+    </div>
+    <div class="col-md-6">
+      {{ form_row(form.couleur) }}
+    </div>
+    <div class="col-12">
+      {{ form_row(form.description) }}
+    </div>
+    <div class="col-md-6">
+      {{ form_row(form.family) }}
+    </div>
+  </div>
+  <div class="mt-3">
+    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+  </div>
 {{ form_end(form) }}

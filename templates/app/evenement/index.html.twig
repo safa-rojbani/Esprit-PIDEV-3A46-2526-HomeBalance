@@ -1,11 +1,11 @@
 {% extends 'base_front.html.twig' %}
 
-{% block title %}Events{% endblock %}
+{% block title %}Événements{% endblock %}
 
 {% block body %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="d-flex align-items-center gap-3 flex-wrap">
-    <h4 class="fw-semibold m-0">My Events</h4>
+    <h4 class="fw-semibold m-0">Mes événements</h4>
     <form id="eventFilters" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('app_evenement_index') }}">
       <div>
         <select class="form-select" name="type">
@@ -25,10 +25,10 @@
 
   <div>
     <a href="{{ path('app_calendar') }}" class="btn btn-outline-secondary me-2">
-      Calendar
+      Calendrier
     </a>
     <a href="{{ path('app_evenement_new') }}" class="btn btn-primary">
-      + Add Event
+      + Ajouter un événement
     </a>
   </div>
 </div>
@@ -39,9 +39,9 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Title</th>
-          <th>Location</th>
-          <th>Shared</th>
+          <th>Titre</th>
+          <th>Lieu</th>
+          <th>Partagé</th>
           <th class="text-end">Actions</th>
         </tr>
       </thead>
@@ -51,38 +51,38 @@
           <td>{{ e.id }}</td>
           <td class="fw-semibold">{{ e.titre }}</td>
           <td>{{ e.lieu }}</td>
-          <td>{{ e.shareWithFamily ? 'Yes' : 'No' }}</td>
+          <td>{{ e.shareWithFamily ? 'Oui' : 'Non' }}</td>
           <td class="text-end">
             <a class="btn btn-sm btn-outline-info"
                href="{{ path('app_evenement_show', { id: e.id }) }}">
-              View
+              Voir
             </a>
             {% if e.createdBy == app.user %}
               <a class="btn btn-sm btn-outline-warning"
                  href="{{ path('app_evenement_edit', { id: e.id }) }}">
-                Edit
+                Modifier
               </a>
               <form method="post"
                     action="{{ path('app_evenement_delete', { id: e.id }) }}"
                     style="display:inline-block"
-                    onsubmit="return confirm('Delete this event?');">
+                    onsubmit="return confirm('Supprimer cet événement ?');">
                 <input type="hidden" name="_token"
                        value="{{ csrf_token('delete' ~ e.id) }}">
                 <button class="btn btn-sm btn-outline-danger">
-                  Delete
+                  Supprimer
                 </button>
               </form>
             {% endif %}
             <a class="btn btn-sm btn-outline-secondary"
                href="{{ path('app_evenement_rappels', { id: e.id }) }}">
-              Reminders
+              Rappels
             </a>
           </td>
         </tr>
       {% else %}
         <tr>
           <td colspan="5" class="text-center text-muted">
-            No events found
+            Aucun événement trouvé
           </td>
         </tr>
       {% endfor %}

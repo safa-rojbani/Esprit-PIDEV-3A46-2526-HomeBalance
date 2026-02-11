@@ -27,10 +27,10 @@
       {% for row in rows %}
         {% set r = row.rappel %}
         <tr>
-          <td>{{ row.eventTitle ?? 'Deleted event' }}</td>
+          <td>{{ row.eventTitle ?? 'Événement supprimé' }}</td>
           <td>{{ r.scheduledAt ? r.scheduledAt|date('Y-m-d H:i') : '' }}</td>
           <td>{{ r.canal ?? '' }}</td>
-          <td>{{ r.estLu ? 'Yes' : 'No' }}</td>
+          <td>{{ r.estLu ? 'Oui' : 'Non' }}</td>
           <td>{{ r.readAt ? r.readAt|date('Y-m-d H:i') : '' }}</td>
         </tr>
       {% else %}

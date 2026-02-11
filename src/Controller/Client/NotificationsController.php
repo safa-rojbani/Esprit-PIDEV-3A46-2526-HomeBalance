@@ -23,10 +23,15 @@ class NotificationsController extends AbstractController
             ]);
         }
 
+        $rappelRepository->cleanupOrphanedAndPast();
         $filter = $request->query->get('filter', 'all');
+        $now = new \DateTimeImmutable();
         $qb = $rappelRepository->createQueryBuilder('r')
+            ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
             ->setParameter('user', $user)
+            ->andWhere('e.dateFin >= :now')
+            ->setParameter('now', $now)
             ->orderBy('r.scheduledAt', 'DESC');
 
         if ($filter === 'unread') {

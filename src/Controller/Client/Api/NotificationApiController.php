@@ -4,6 +4,7 @@ namespace App\Controller\Client\Api;
 
 use App\Entity\Rappel;
 use App\Repository\RappelRepository;
+use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,13 +22,16 @@ class NotificationApiController extends AbstractController
             return $this->json([]);
         }
 
+        $rappelRepository->cleanupOrphanedAndPast();
         $now = new \DateTimeImmutable();
 
         $qb = $rappelRepository->createQueryBuilder('r')
+            ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
-            ->andWhere('r.actif = true')
-            ->andWhere('r.estLu = false')
+            ->andWhere('(r.actif = true OR r.actif IS NULL)')
+            ->andWhere('(r.estLu = false OR r.estLu IS NULL)')
             ->andWhere('r.scheduledAt <= :now')
+            ->andWhere('e.dateFin >= :now')
             ->setParameter('user', $user)
             ->setParameter('now', $now)
             ->orderBy('r.scheduledAt', 'DESC');
@@ -36,8 +40,19 @@ class NotificationApiController extends AbstractController
 
         $data = [];
         foreach ($rappels as $rappel) {
-            $event = $rappel->getEvenement();
-            $title = $event ? $event->getTitre() : 'Événement';
+            $event = null;
+            $eventTitle = null;
+            $eventId = null;
+            try {
+                $event = $rappel->getEvenement();
+                if ($event !== null) {
+                    $eventTitle = $event->getTitre();
+                    $eventId = $event->getId();
+                }
+            } catch (EntityNotFoundException $exception) {
+                $event = null;
+            }
+            $title = $eventTitle ?? 'Evenement';
             $offset = $rappel->getOffsetMinutes();
             $message = $offset > 0
                 ? sprintf('Rappel : %s (dans %d min)', $title, $offset)
@@ -47,7 +62,7 @@ class NotificationApiController extends AbstractController
                 'id' => $rappel->getId(),
                 'message' => $message,
                 'scheduledAt' => $rappel->getScheduledAt()?->format('c'),
-                'eventId' => $event?->getId(),
+                'eventId' => $eventId,
                 'eventTitle' => $title,
                 'canal' => $rappel->getCanal(),
             ];

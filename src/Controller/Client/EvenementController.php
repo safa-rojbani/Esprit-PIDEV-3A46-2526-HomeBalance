@@ -78,17 +78,24 @@ class EvenementController extends AbstractController
             $evenement->setDateModification($now);
 
             $entityManager->persist($evenement);
-            // Default reminder: 1 day before (1440 minutes)
-            $defaultRappel = new Rappel();
-            $defaultRappel->setEvenement($evenement);
-            $defaultRappel->setUser($user);
-            $defaultRappel->setFamily($user?->getFamily());
-            $defaultRappel->setOffsetMinutes(1440);
-            $defaultRappel->setCanal('popup');
-            $defaultRappel->setActif(true);
-            $defaultRappel->setEstLu(false);
-            $defaultRappel->setScheduledAt($evenement->getDateDebut()->sub(new \DateInterval('PT1440M')));
-            $entityManager->persist($defaultRappel);
+            // Default reminder: 1 day before (1440 minutes) only if event is >= 24h away
+            $now = new \DateTimeImmutable();
+            $evenement->setDateCreation($now);
+            $evenement->setDateModification($now);
+
+            $hoursUntil = ($evenement->getDateDebut()->getTimestamp() - $now->getTimestamp()) / 3600;
+            if ($hoursUntil >= 24) {
+                $defaultRappel = new Rappel();
+                $defaultRappel->setEvenement($evenement);
+                $defaultRappel->setUser($user);
+                $defaultRappel->setFamily($user?->getFamily());
+                $defaultRappel->setOffsetMinutes(1440);
+                $defaultRappel->setCanal('popup');
+                $defaultRappel->setActif(true);
+                $defaultRappel->setEstLu(false);
+                $defaultRappel->setScheduledAt($evenement->getDateDebut()->sub(new \DateInterval('PT1440M')));
+                $entityManager->persist($defaultRappel);
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('app_evenement_index', [], Response::HTTP_SEE_OTHER);

@@ -40,6 +40,25 @@
       background: #1f1f1f;
       border-radius: 50%;
     }
+    .toast-container {
+      right: 1.25rem;
+      bottom: 1.25rem;
+      top: auto;
+    }
+    .toast-notif {
+      background: #ffffff;
+      border-left: 4px solid #6366f1;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.16);
+      min-width: 280px;
+    }
+    .toast-notif .toast-body {
+      color: #1f2937;
+      font-weight: 600;
+    }
+    .toast-notif .btn-close {
+      opacity: 0.6;
+    }
   </style>
 
   {% block stylesheets %}{% endblock %}
@@ -66,26 +85,26 @@
         <li class="menu-item">
           <a href="{{ path('app_calendar') }}" class="menu-link">
             <i class="menu-icon iconify" data-icon="mdi:calendar-blank-outline"></i>
-            <div>Calendar</div>
+            <div>Calendrier</div>
           </a>
         </li>
 
         <li class="menu-item">
           <a href="{{ path('app_evenement_index') }}" class="menu-link">
             <i class="menu-icon iconify" data-icon="mdi:format-list-bulleted"></i>
-            <div>My Events</div>
+            <div>Mes événements</div>
           </a>
         </li>
         <li class="menu-item">
           <a href="{{ path('app_type_evenement_index') }}" class="menu-link">
             <i class="menu-icon iconify" data-icon="mdi:tag-outline"></i>
-            <div>Event Types</div>
+            <div>Types d'événements</div>
           </a>
         </li>
         <li class="menu-item">
           <a href="{{ path('app_rappel_history') }}" class="menu-link">
             <i class="menu-icon iconify" data-icon="mdi:bell-outline"></i>
-            <div>Reminders</div>
+            <div>Rappels</div>
           </a>
         </li>
       </ul>
@@ -104,7 +123,7 @@
           <div class="navbar-nav align-items-center">
             <div class="nav-item d-flex align-items-center">
               <i class="iconify mdi-24px lh-0" data-icon="mdi:magnify"></i>
-              <input type="text" class="form-control border-0 shadow-none bg-body" placeholder="Search..." />
+              <input type="text" class="form-control border-0 shadow-none bg-body" placeholder="Rechercher..." />
             </div>
           </div>
 
@@ -163,11 +182,11 @@
 <script src="{{ asset('materio/js/main.js') }}"></script>
 
 <!-- Notification Toast Container -->
-  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
-    <div id="notifToast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="toast-container position-fixed p-3" style="z-index: 1080;">
+    <div id="notifToast" class="toast toast-notif align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
         <div class="toast-body" id="notifToastText"></div>
-        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
       </div>
     </div>
   </div>

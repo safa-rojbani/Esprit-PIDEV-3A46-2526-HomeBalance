@@ -27,10 +27,17 @@ class RappelController extends AbstractController
             ]);
         }
 
-        $rappels = $rappelRepository->findBy(
-            ['user' => $user],
-            ['id' => 'DESC']
-        );
+        $rappelRepository->cleanupOrphanedAndPast();
+        $now = new \DateTimeImmutable();
+        $rappels = $rappelRepository->createQueryBuilder('r')
+            ->innerJoin('r.evenement', 'e')
+            ->andWhere('r.user = :user')
+            ->andWhere('e.dateFin >= :now')
+            ->setParameter('user', $user)
+            ->setParameter('now', $now)
+            ->orderBy('r.id', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('app/rappel/history.html.twig', [
             'rows' => array_map(static function (Rappel $rappel): array {

@@ -15,12 +15,19 @@ class TypeEvenementClientType extends AbstractType
     {
         $builder
             ->add('nom', null, [
+                'label' => 'Nom',
                 'constraints' => [new Assert\NotBlank()],
+                'attr' => ['placeholder' => 'Ex: Anniversaire'],
             ])
             ->add('couleur', ColorType::class, [
+                'label' => 'Couleur',
                 'required' => false,
             ])
-            ->add('description');
+            ->add('description', null, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => ['placeholder' => 'Description du type'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
