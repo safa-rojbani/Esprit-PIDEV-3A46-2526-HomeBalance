@@ -16,6 +16,34 @@ class ScoreRepository extends ServiceEntityRepository
         parent::__construct($registry, Score::class);
     }
 
+    /**
+     * @return Score[]
+     */
+    public function findAllWithRelations(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('u', 'f')
+            ->join('s.user', 'u')
+            ->join('s.family', 'f')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Score[]
+     */
+    public function findAllWithRelationsForFamily(\App\Entity\Family $family): array
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('u', 'f')
+            ->join('s.user', 'u')
+            ->join('s.family', 'f')
+            ->andWhere('s.family = :family')
+            ->setParameter('family', $family)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Score[] Returns an array of Score objects
     //     */

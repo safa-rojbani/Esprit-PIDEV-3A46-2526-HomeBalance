@@ -1,0 +1,15 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+  <p>Hi {{ name }},</p>
+  <p>Your HomeBalance household has been updated.</p>
+  {% if payload.familyName is defined and payload.familyName %}
+    <p class="muted">Household: {{ payload.familyName }}</p>
+  {% endif %}
+  {% if payload.joinCode is defined and payload.joinCode %}
+    <p class="muted">Join code: {{ payload.joinCode }}</p>
+  {% endif %}
+  {% if cta %}
+    <p><a class="cta" href="{{ cta }}">View family settings</a></p>
+  {% endif %}
+{% endblock %}

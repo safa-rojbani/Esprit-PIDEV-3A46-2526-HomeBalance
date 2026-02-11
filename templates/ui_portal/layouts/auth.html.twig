@@ -1,0 +1,100 @@
+<!doctype html>
+<html
+  lang="en"
+  class="auth-html"
+  data-assets-path="{{ asset('') }}"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+
+    <title>{% block title %}Sign in · HomeBalance{% endblock %}</title>
+
+    <meta name="description" content="Secure access to the HomeBalance family portal" />
+    <meta name="robots" content="index, follow" />
+    {% if app.request is defined and app.request is not null %}
+      <link rel="canonical" href="{{ app.request.uri }}" />
+    {% endif %}
+
+    <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=Newsreader:wght@500;600&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
+    <link
+      rel="preload"
+      href="{{ asset('vendor/css/core.css') }}"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" /></noscript>
+    <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
+
+    {% block extra_stylesheets %}{% endblock %}
+
+    {{ importmap('app') }}
+  </head>
+
+  <body class="auth-body">
+    <div
+      class="auth-shell"
+      data-controller="auth-shell"
+      data-auth-shell-theme-value="{{ auth_theme|default('dawn') }}">
+      <div class="auth-shell__gradient"></div>
+      <div class="auth-shell__orbs">
+        <div class="orb orb--one"></div>
+        <div class="orb orb--two"></div>
+        <div class="orb orb--three"></div>
+      </div>
+      <div class="auth-shell__noise"></div>
+
+      <div class="container-xxl auth-grid">
+        <section class="auth-hero">
+          {% block hero %}
+            <p class="eyebrow">HomeBalance Portal</p>
+            <h1>Bring calm to household coordination.</h1>
+            <p class="lead">
+              Track tasks, share documents, and keep everyone synced from one secure hub.
+            </p>
+            <ul class="hero-points">
+              <li>Personalized insights refreshed daily</li>
+              <li>Advanced notification routing with smart fallbacks</li>
+              <li>Audit-ready trail for every account update</li>
+            </ul>
+          {% endblock %}
+        </section>
+
+        <section class="auth-panel card shadow-lg">
+          <div class="brand-mark">
+            <a href="{{ path('portal_dashboard') }}" class="app-brand-link gap-2">
+              <span class="app-brand-logo demo">
+                <span class="text-primary">
+                  {% include 'ui_portal/partials/logo.svg.twig' %}
+                </span>
+              </span>
+              <span class="app-brand-text demo text-heading fw-bold">HomeBalance</span>
+            </a>
+            <p class="brand-mark__subtitle">{% block panel_subtitle %}Secure portal access{% endblock %}</p>
+          </div>
+
+          {% for label, messages in app.flashes %}
+            {% for message in messages %}
+              <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : label) }}" role="alert">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endfor %}
+
+          {% block panel %}{% endblock %}
+        </section>
+      </div>
+    </div>
+
+    <script src="{{ asset('js/main.js') }}" defer></script>
+
+    {% block extra_javascripts %}{% endblock %}
+  </body>
+</html>

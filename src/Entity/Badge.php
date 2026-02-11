@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\BadgeScope;
 use App\Repository\BadgeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,6 +16,12 @@ class Badge
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(length: 64, unique: true)]
+    private ?string $code = null;
+
+    #[ORM\Column(length: 32)]
+    private ?string $scope = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
@@ -38,6 +45,30 @@ class Badge
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(string $code): static
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function getScope(): ?BadgeScope
+    {
+        return $this->scope ? BadgeScope::from($this->scope) : null;
+    }
+
+    public function setScope(BadgeScope $scope): static
+    {
+        $this->scope = $scope->value;
 
         return $this;
     }

@@ -1,0 +1,67 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Account Settings · Notifications{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'notifications' } %}
+
+  <form class="card" method="post" action="{{ path('portal_account_notifications') }}" novalidate>
+    <input type="hidden" name="_token" value="{{ csrf_token('notifications_update') }}" />
+    <div class="card-body">
+      <h5 class="mb-1">Household notifications</h5>
+      <span class="card-subtitle">
+        Choose how each kind of update reaches you. Balance isn&apos;t about doing everything — it&apos;s about knowing what needs care.
+      </span>
+      <div class="error"></div>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-nowrap">Type</th>
+            <th class="text-nowrap text-center">Email</th>
+            <th class="text-nowrap text-center">Browser</th>
+            <th class="text-nowrap text-center">App</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in notificationRows %}
+            {% set matrix = notificationMatrix[row.key]|default({}) %}
+            <tr>
+              <td class="text-nowrap text-heading">{{ row.label }}</td>
+              {% for channel in ['email', 'browser', 'app'] %}
+                <td>
+                  <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="{{ row.key }}-{{ channel }}"
+                      name="notifications[{{ row.key }}][{{ channel }}]"
+                      value="1"
+                      {{ matrix[channel]|default(false) ? 'checked' }} />
+                  </div>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-body">
+      <h6 class="text-body mb-6">When should we nudge you?</h6>
+      <div class="row">
+        <div class="col-sm-6">
+          <select id="sendNotification" class="form-select" name="sendNotification">
+            <option value="online" {{ notificationDelivery == 'online' ? 'selected' }}>Only when I'm online</option>
+            <option value="anytime" {{ notificationDelivery == 'anytime' ? 'selected' }}>Anytime</option>
+          </select>
+          <small class="text-muted d-block mt-2">Change this whenever your family&apos;s rhythm shifts.</small>
+        </div>
+        <div class="mt-6">
+          <button type="submit" class="btn btn-primary me-3">Save my preferences</button>
+          <button type="reset" class="btn btn-outline-secondary">Reset</button>
+        </div>
+      </div>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}HomeBalance · Home{% endblock %}
+
+{% block content %}
+  {% set familyCount = metrics.familyMembers|default(1) %}
+  {% set soloAccount = familyCount <= 1 %}
+  <div class="row g-4 mb-4">
+    <div class="col-xl-7">
+      <div class="card gradient-card orbit-card h-100" data-controller="orbit-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-uppercase fw-medium text-white-50 mb-1">Your household today</p>
+              <h4 class="text-white mb-1">Welcome home, {{ user.firstName ?? user.username }}.</h4>
+              <p class="text-white-75 mb-0">
+                {% if soloAccount %}
+                  Here&apos;s a snapshot of your day so nothing sneaks up on you.
+                {% else %}
+                  Here&apos;s what&apos;s happening in your household today so everyone stays on the same page.
+                {% endif %}
+              </p>
+            </div>
+            <span class="orbit-chip">
+              <small>Today</small>
+              <strong>{{ "now"|date('M d') }}</strong>
+            </span>
+          </div>
+          <div class="orbit-strip mt-4" data-controller="streak-meter" data-streak-meter-count-value="{{ metrics.badgeCount }}">
+            <div>
+              <h5 class="text-white mb-0">{{ metrics.badgeCount }}</h5>
+              <small class="text-white-50">Your contributions</small>
+            </div>
+            <div>
+              <h5 class="text-white mb-0">{{ metrics.familyMembers }}</h5>
+              <small class="text-white-50">People in your space</small>
+            </div>
+            <div>
+              <h5 class="text-white mb-0">{{ recentActivity|length }}</h5>
+              <small class="text-white-50">Highlights saved</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-5">
+      <div class="card pulse-card h-100" data-controller="pulse-card" data-pulse-card-score-value="{{ engagement.score }}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <p class="text-uppercase text-muted mb-1">Your contributions</p>
+              <h4 class="mb-0">{{ engagement.score }}%</h4>
+            </div>
+            <span class="badge bg-label-primary">{{ engagement.delivery|title }} delivery</span>
+          </div>
+          <div class="pulse-ring" data-pulse-card-target="ring">
+            <div class="pulse-ring__value" data-pulse-card-target="value">{{ engagement.score }}%</div>
+          </div>
+          <ul class="pulse-meta list-unstyled mb-0 mt-4">
+            <li>
+              <span class="text-muted">Family</span>
+              <strong>{{ engagement.familyName ?? 'Solo account' }}</strong>
+            </li>
+            <li>
+              <span class="text-muted">Last check-in</span>
+              <strong>{{ engagement.lastLogin ? engagement.lastLogin|date('M d, H:i') : 'Not recorded yet' }}</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if metrics.badges is not empty or metrics.familyBadges is not empty %}
+    <div class="row g-4 mb-4">
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="mb-0">Your badges</h5>
+              <small class="text-muted">Personal milestones earned through your contributions.</small>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if metrics.badges is empty %}
+              <p class="text-muted mb-0">No badges yet. Keep logging highlights to unlock them.</p>
+            {% else %}
+              <div class="d-flex flex-wrap gap-3">
+                {% for badge in metrics.badges %}
+                  <div class="badge-tile border rounded p-3 flex-grow-1" style="min-width: 180px;">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <i class="icon-base bx bx-award text-primary"></i>
+                      <strong>{{ badge.name }}</strong>
+                    </div>
+                    <small class="text-muted">{{ badge.description ?? 'Unlocked via household activity.' }}</small>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="mb-0">Family badges</h5>
+              <small class="text-muted">Shared achievements unlocked with your household.</small>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if metrics.familyBadges is empty %}
+              <p class="text-muted mb-0">Once multiple members team up, family badges appear here.</p>
+            {% else %}
+              <div class="d-flex flex-column gap-3">
+                {% for badge in metrics.familyBadges %}
+                  <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+                    <div>
+                      <div class="fw-semibold">{{ badge.name }}</div>
+                      <small class="text-muted">{{ badge.description ?? 'Shared household recognition.' }}</small>
+                    </div>
+                    {% if badge.awardedAt %}
+                      <small class="text-muted">{{ badge.awardedAt|date('M d') }}</small>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row g-4 mb-4">
+    <div class="col-xl-6">
+      <div
+        class="card heatmap-card h-100"
+        data-controller="notification-heatmap"
+        data-notification-heatmap-matrix-value="{{ notificationMatrix|json_encode|e('html_attr') }}"
+        data-notification-heatmap-endpoint-value="{{ path('portal_account_notifications_quick') }}"
+        data-notification-heatmap-csrf-value="{{ csrf_token('notifications_quick') }}">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h5 class="mb-0">Household notifications</h5>
+            <small class="text-muted">Small actions add up. Here&apos;s what needs attention today.</small>
+          </div>
+          <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-primary">Tidy alerts</a>
+        </div>
+        <div class="card-body">
+          <div class="heatmap-grid">
+            <div class="heatmap-grid__corner">Channel</div>
+            {% for channel, channelMeta in notificationChannels %}
+              <div class="heatmap-grid__column">
+                <i class="icon-base bx {{ channelMeta.icon }}"></i>
+                <span>{{ channelMeta.label }}</span>
+              </div>
+            {% endfor %}
+
+            {% for row in notificationRows %}
+              <div class="heatmap-grid__row-label">
+                <strong>{{ row.label }}</strong>
+                <small>{{ row.key|replace({'_': ' '})|title }}</small>
+              </div>
+              {% for channel, channelMeta in notificationChannels %}
+                {% set active = notificationMatrix[row.key][channel]|default(false) %}
+                <button
+                  class="heatmap-cell {{ active ? 'is-active' : '' }}"
+                  type="button"
+                  data-notification-heatmap-target="cell"
+                  data-channel="{{ channel }}"
+                  data-type="{{ row.key }}"
+                  data-enabled="{{ active ? 'true' : 'false' }}">
+                  <span>{{ active ? 'On' : 'Off' }}</span>
+                </button>
+              {% endfor %}
+            {% endfor %}
+          </div>
+          <div class="heatmap-legend mt-3">
+            <span class="dot dot--on"></span>
+            <small>Active delivery</small>
+            <span class="dot dot--off ms-4"></span>
+            <small>Muted</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-6">
+      <div class="card quick-list h-100" data-controller="focus-queue">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0">Today&apos;s tasks</h5>
+            <small class="text-muted">Small actions add up. Here&apos;s what needs attention.</small>
+          </div>
+          <span class="badge bg-label-info">Live</span>
+        </div>
+        <div class="card-body">
+          <ol class="focus-queue mb-0" data-focus-queue-target="list">
+            <li>
+              <div>
+                <h6 class="mb-1">Check today&apos;s highlights</h6>
+                <p class="text-muted mb-0">{{ recentActivity|length }} new moments were captured in the last day.</p>
+              </div>
+              <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">Review</a>
+            </li>
+            <li>
+              <div>
+                <h6 class="mb-1">Confirm how alerts arrive</h6>
+                <p class="text-muted mb-0">Currently set to {{ engagement.delivery|title }} — adjust if family habits changed.</p>
+              </div>
+              <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-secondary">Update</a>
+            </li>
+            <li>
+              <div>
+                <h6 class="mb-1">Invite someone to help</h6>
+                <p class="text-muted mb-0">Sharing the load keeps things fair. Send a code when you&apos;re ready.</p>
+              </div>
+              <a href="{{ path('portal_account') }}#family" class="btn btn-sm btn-outline-secondary">Share code</a>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-controller="timeline-peek">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Moments from your household</h5>
+        <small class="text-muted">A gentle record of how everyone&apos;s contributing.</small>
+      </div>
+      <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">View full history</a>
+    </div>
+    <div class="card-body">
+      {% if recentActivity is empty %}
+        <p class="text-muted mb-0">No activity recorded yet. That&apos;s okay — every organized home starts somewhere.</p>
+      {% else %}
+        <ul class="timeline timeline-center mt-3" data-timeline-peek-target="timeline">
+          {% for event in recentActivity %}
+            <li class="timeline-item ps-4">
+              <span class="timeline-point-{{ event.type }}"></span>
+              <div class="timeline-event">
+                <div class="timeline-header">
+                  <h6 class="mb-0">{{ event.title }}</h6>
+                  <small class="text-muted">{{ event.occurredAt|date('M d, H:i') }}</small>
+                </div>
+                <p class="mb-0 text-muted">{{ event.description }}</p>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
