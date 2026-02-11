@@ -6,6 +6,7 @@ use App\Repository\TaskAssignmentRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\TaskAssignmentStatus;
 
+
 #[ORM\Entity(repositoryClass: TaskAssignmentRepository::class)]
 class TaskAssignment
 {
@@ -14,40 +15,20 @@ class TaskAssignment
     #[ORM\Column]
     private ?int $id = null;
 
-    // Date d’assignation
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $assignedAt = null;
 
-    // Date limite (optionnelle)
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $dueDate = null;
 
-    // Date de refus (si l’enfant refuse)
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $refusedAt = null;
-
-    // Tâche concernée
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
-    // Utilisateur assigné (enfant)
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    // Famille concernée
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Family $family = null;
-
-    // Statut de l’assignation
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $status = null;
-
-    /* ==========================
-        GETTERS & SETTERS
-    ========================== */
 
     public function getId(): ?int
     {
@@ -59,9 +40,10 @@ class TaskAssignment
         return $this->assignedAt;
     }
 
-    public function setAssignedAt(\DateTimeImmutable $assignedAt): static
+    public function setAssignedAt(?\DateTimeImmutable $assignedAt): static
     {
         $this->assignedAt = $assignedAt;
+
         return $this;
     }
 
@@ -73,17 +55,7 @@ class TaskAssignment
     public function setDueDate(?\DateTimeImmutable $dueDate): static
     {
         $this->dueDate = $dueDate;
-        return $this;
-    }
 
-    public function getRefusedAt(): ?\DateTimeImmutable
-    {
-        return $this->refusedAt;
-    }
-
-    public function setRefusedAt(?\DateTimeImmutable $refusedAt): static
-    {
-        $this->refusedAt = $refusedAt;
         return $this;
     }
 
@@ -92,9 +64,10 @@ class TaskAssignment
         return $this->task;
     }
 
-    public function setTask(Task $task): static
+    public function setTask(?Task $task): static
     {
         $this->task = $task;
+
         return $this;
     }
 
@@ -103,20 +76,10 @@ class TaskAssignment
         return $this->user;
     }
 
-    public function setUser(User $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
-        return $this;
-    }
 
-    public function getFamily(): ?Family
-    {
-        return $this->family;
-    }
-
-    public function setFamily(Family $family): static
-    {
-        $this->family = $family;
         return $this;
     }
 
@@ -125,9 +88,10 @@ class TaskAssignment
         return $this->status ? TaskAssignmentStatus::from($this->status) : null;
     }
 
-    public function setStatus(TaskAssignmentStatus $status): static
+    public function setStatus(?TaskAssignmentStatus $status): static
     {
         $this->status = $status->value;
+
         return $this;
     }
 }

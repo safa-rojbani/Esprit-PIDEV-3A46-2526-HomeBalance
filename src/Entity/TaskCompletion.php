@@ -13,44 +13,25 @@ class TaskCompletion
     #[ORM\Column]
     private ?int $id = null;
 
-    // Quand l’enfant soumet la tâche
     #[ORM\Column]
     private ?\DateTimeImmutable $completedAt = null;
 
-    // Chemin de la photo
     #[ORM\Column(length: 255)]
     private ?string $proof = null;
 
-    // Décision du parent
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column]
     private ?bool $isValidated = null;
 
-    // Quand le parent décide
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $validatedAt = null;
-
-    // Tâche concernée
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
-    // Enfant
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    // Parent validateur
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
     private ?User $validatedBy = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-private ?string $parentComment = null;
-
-
-    /* =====================
-        GETTERS / SETTERS
-    ====================== */
 
     public function getId(): ?int
     {
@@ -65,6 +46,7 @@ private ?string $parentComment = null;
     public function setCompletedAt(\DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
+
         return $this;
     }
 
@@ -76,6 +58,7 @@ private ?string $parentComment = null;
     public function setProof(string $proof): static
     {
         $this->proof = $proof;
+
         return $this;
     }
 
@@ -84,20 +67,10 @@ private ?string $parentComment = null;
         return $this->isValidated;
     }
 
-    public function setIsValidated(?bool $isValidated): static
+    public function setIsValidated(bool $isValidated): static
     {
         $this->isValidated = $isValidated;
-        return $this;
-    }
 
-    public function getValidatedAt(): ?\DateTimeImmutable
-    {
-        return $this->validatedAt;
-    }
-
-    public function setValidatedAt(?\DateTimeImmutable $validatedAt): static
-    {
-        $this->validatedAt = $validatedAt;
         return $this;
     }
 
@@ -106,9 +79,10 @@ private ?string $parentComment = null;
         return $this->task;
     }
 
-    public function setTask(Task $task): static
+    public function setTask(?Task $task): static
     {
         $this->task = $task;
+
         return $this;
     }
 
@@ -117,9 +91,10 @@ private ?string $parentComment = null;
         return $this->user;
     }
 
-    public function setUser(User $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -131,17 +106,7 @@ private ?string $parentComment = null;
     public function setValidatedBy(?User $validatedBy): static
     {
         $this->validatedBy = $validatedBy;
+
         return $this;
     }
-    public function getParentComment(): ?string
-{
-    return $this->parentComment;
-}
-
-public function setParentComment(?string $parentComment): static
-{
-    $this->parentComment = $parentComment;
-    return $this;
-}
-
 }

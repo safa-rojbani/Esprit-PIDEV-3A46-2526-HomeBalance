@@ -1,0 +1,79 @@
+<div id="profilePanel" class="profile-panel">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {{ activeUser.firstName|slice(0, 1)|upper }}{{ activeUser.lastName|slice(0, 1)|upper }}
+        </div>
+        <div class="profile-name">{{ activeUser.firstName }} {{ activeUser.lastName }}</div>
+        <span class="profile-role">{{ activeUser.familyRole.value }}</span>
+    </div>
+    
+    <div class="status-section">
+        <h4>Status</h4>
+        <div class="status-options">
+            <div class="status-option {% if onlineStatus == 'online' %}active{% endif %}" 
+                 onclick="updateStatus('online')">
+                <span class="status-dot" style="background: #4caf50;"></span>
+                <span>Online</span>
+            </div>
+            <div class="status-option {% if onlineStatus == 'away' %}active{% endif %}" 
+                 onclick="updateStatus('away')">
+                <span class="status-dot" style="background: #ff9800;"></span>
+                <span>Away</span>
+            </div>
+            <div class="status-option {% if onlineStatus == 'do_not_disturb' %}active{% endif %}" 
+                 onclick="updateStatus('do_not_disturb')">
+                <span class="status-dot" style="background: #f44336;"></span>
+                <span>Do Not Disturb</span>
+            </div>
+            <div class="status-option {% if onlineStatus == 'offline' %}active{% endif %}" 
+                 onclick="updateStatus('offline')">
+                <span class="status-dot" style="background: #9e9e9e;"></span>
+                <span>Offline</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="settings-section">
+        <h4>Settings</h4>
+        <div class="setting-toggle">
+            <span>Notifications</span>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+        </div>
+        <div class="setting-toggle">
+            <span>Sound</span>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+        </div>
+        <div class="setting-toggle">
+            <span>Auto-read</span>
+            <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(status) {
+    fetch('{{ path('messaging_update_status') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'status=' + status
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              // Update UI
+              document.querySelectorAll('.status-option').forEach(opt => {
+                  opt.classList.remove('active');
+              });
+              event.target.closest('.status-option').classList.add('active');
+              
+              // Update status indicator
+              const indicator = document.querySelector('.status-indicator');
+              indicator.className = 'status-indicator ' + status;
+              
+              // Reload to update status
+              setTimeout(() => location.reload(), 500);
+          }
+      });
+}
+</script>

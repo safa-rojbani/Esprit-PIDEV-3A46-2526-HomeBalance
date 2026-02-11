@@ -1,0 +1,177 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Select User - HomeBalance{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .user-selection-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+    
+    .user-selection-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+    }
+    
+    .user-selection-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .user-selection-subtitle {
+        color: #666;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .user-list {
+        display: grid;
+        gap: 15px;
+    }
+    
+    .user-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .user-card:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .user-card.active {
+        border-color: #667eea;
+        background: #f0f3ff;
+    }
+    
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .user-info {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    
+    .user-role {
+        font-size: 14px;
+        color: #666;
+        display: inline-block;
+        padding: 4px 12px;
+        background: #e0e0e0;
+        border-radius: 12px;
+    }
+    
+    .user-role.parent {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .user-role.child {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .select-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 30px;
+        transition: all 0.3s ease;
+    }
+    
+    .select-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .select-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="user-selection-container">
+    <div class="user-selection-card">
+        <h1 class="user-selection-title">👤 Select Active User</h1>
+        <p class="user-selection-subtitle">Choose which user to test the messaging system with</p>
+        
+        <form method="POST">
+            <div class="user-list">
+                {% for user in users %}
+                <label class="user-card {% if user.id == currentUserId %}active{% endif %}">
+                    <input type="radio" name="user_id" value="{{ user.id }}" 
+                           {% if user.id == currentUserId %}checked{% endif %}
+                           style="display: none;">
+                    <div class="user-avatar">
+                        {{ user.firstName|slice(0, 1)|upper }}{{ user.lastName|slice(0, 1)|upper }}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
+                        <span class="user-role {{ user.familyRole.value|lower }}">
+                            {{ user.familyRole.value }}
+                        </span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="select-btn">Continue to Messaging</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Add click handler to radio buttons
+    document.querySelectorAll('.user-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.user-card').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

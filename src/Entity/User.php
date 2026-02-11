@@ -3,20 +3,17 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Uid\Uuid;
 use App\Enum\UserStatus;
 use App\Enum\SystemRole;
 use App\Enum\FamilyRole;
-use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
@@ -25,12 +22,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 private ?string $id = null;
 
 
+public function __construct()
+{
+   $this->id = Uuid::v4()->toRfc4122();
+
+    $this->createdAt = new \DateTimeImmutable();
+}
+
+
 
     #[ORM\Column(length: 180)]
     private ?string $email = null;
-
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $username = null;
 
     /**
      * @var list<string> The user roles
@@ -74,20 +76,11 @@ private ?string $status = null;
     #[ORM\Column(length: 255)]
     private ?string $familyRole = null;
 
-    #[ORM\Column(length: 64, nullable: true)]
-    private ?string $emailVerificationToken = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $emailVerificationRequestedAt = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $emailVerifiedAt = null;
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $resetToken = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $resetExpiresAt = null;
+    private ?\DateTime $resetExpiresAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTime $lastLogin = null;
@@ -100,17 +93,6 @@ private ?string $status = null;
 
     #[ORM\ManyToOne]
     private ?Family $family = null;
-
-    #[ORM\ManyToMany(targetEntity: Badge::class)]
-    #[ORM\JoinTable(name: 'user_badges')]
-    private Collection $badges;
-
-    public function __construct()
-    {
-        $this->id = Uuid::v4()->toRfc4122();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->badges = new ArrayCollection();
-    }
 
     public function getId(): ?string
 {
@@ -131,18 +113,6 @@ private ?string $status = null;
         return $this;
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-
     /**
      * A visual identifier that represents this user.
      *
@@ -150,7 +120,7 @@ private ?string $status = null;
      */
     public function getUserIdentifier(): string
     {
-        return $this->username ?? (string) $this->email;
+        return (string) $this->email;
     }
 
     /**
@@ -316,42 +286,6 @@ public function setStatus(UserStatus $status): static
         return $this;
     }
 
-    public function getEmailVerificationToken(): ?string
-    {
-        return $this->emailVerificationToken;
-    }
-
-    public function setEmailVerificationToken(?string $emailVerificationToken): static
-    {
-        $this->emailVerificationToken = $emailVerificationToken;
-
-        return $this;
-    }
-
-    public function getEmailVerificationRequestedAt(): ?\DateTimeImmutable
-    {
-        return $this->emailVerificationRequestedAt;
-    }
-
-    public function setEmailVerificationRequestedAt(?\DateTimeImmutable $requestedAt): static
-    {
-        $this->emailVerificationRequestedAt = $requestedAt;
-
-        return $this;
-    }
-
-    public function getEmailVerifiedAt(): ?\DateTimeImmutable
-    {
-        return $this->emailVerifiedAt;
-    }
-
-    public function setEmailVerifiedAt(?\DateTimeImmutable $verifiedAt): static
-    {
-        $this->emailVerifiedAt = $verifiedAt;
-
-        return $this;
-    }
-
     public function getResetToken(): ?string
     {
         return $this->resetToken;
@@ -364,12 +298,12 @@ public function setStatus(UserStatus $status): static
         return $this;
     }
 
-    public function getResetExpiresAt(): ?\DateTimeImmutable
+    public function getResetExpiresAt(): ?\DateTime
     {
         return $this->resetExpiresAt;
     }
 
-    public function setResetExpiresAt(?\DateTimeImmutable $resetExpiresAt): static
+    public function setResetExpiresAt(?\DateTime $resetExpiresAt): static
     {
         $this->resetExpiresAt = $resetExpiresAt;
 
@@ -420,30 +354,6 @@ public function setStatus(UserStatus $status): static
     public function setFamily(?Family $family): static
     {
         $this->family = $family;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Badge>
-     */
-    public function getBadges(): Collection
-    {
-        return $this->badges;
-    }
-
-    public function addBadge(Badge $badge): static
-    {
-        if (!$this->badges->contains($badge)) {
-            $this->badges->add($badge);
-        }
-
-        return $this;
-    }
-
-    public function removeBadge(Badge $badge): static
-    {
-        $this->badges->removeElement($badge);
 
         return $this;
     }

@@ -1,0 +1,25 @@
+<div class="message {% if message.sender.id == activeUser.id %}own{% endif %}" id="message_{{ message.id }}">
+    <div class="message-avatar">
+        {{ message.sender.firstName|slice(0, 1)|upper }}{{ message.sender.lastName|slice(0, 1)|upper }}
+    </div>
+    <div class="message-content">
+        <div class="message-header">
+            <span class="message-sender">{{ message.sender.firstName }} {{ message.sender.lastName }}</span>
+            <span class="message-time">{{ message.sentAt|date('H:i') }}</span>
+        </div>
+        <div class="message-bubble">
+            {% if message.attachmentURL %}
+                <div class="message-attachment">
+                    <a href="{{ asset(message.attachmentURL) }}" target="_blank">
+                        {% if message.attachmentURL|split('.')|last|lower in ['jpg', 'jpeg', 'png', 'gif'] %}
+                            <img src="{{ asset(message.attachmentURL) }}" alt="Attachment" style="max-width: 200px; border-radius: 8px;">
+                        {% else %}
+                            📎 Attachment
+                        {% endif %}
+                    </a>
+                </div>
+            {% endif %}
+            {{ message.content }}
+        </div>
+    </div>
+</div>

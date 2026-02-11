@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}HomeBalance{% endblock %}</title>
+<html>
+   <head>
+  <meta charset="UTF-8">
+  <title>{% block title %}HomeBalance{% endblock %}</title>
 
   <!-- Sneat CSS -->
-  
-  
-  
+  <link rel="stylesheet" href="{{ asset('assets/css/core.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/theme-default.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}">
 
   {% block stylesheets %}{% endblock %}
-       
 
   <!-- Sneat JS helpers -->
   {% block javascripts %}
-           
+    {{ importmap('app') }}
   {% endblock %}
 </head>
 
@@ -22,6 +21,9 @@
   {% block body %}{% endblock %}
 
   <!-- Sneat JS -->
-
+  <script src="{{ asset('assets/js/helpers.js') }}"></script>
+  <script src="{{ asset('assets/js/config.js') }}"></script>
+  <script src="{{ asset('assets/js/main.js') }}"></script>
 </body>
+
 </html>

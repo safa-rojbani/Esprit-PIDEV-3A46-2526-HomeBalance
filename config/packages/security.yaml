@@ -8,6 +8,7 @@ security:
         app_user_provider:
             entity:
                 class: App\Entity\User
+                property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -15,30 +16,6 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            user_checker: App\Security\UserStatusChecker
-
-            form_login:
-                login_path: portal_auth_login
-                check_path: portal_auth_login
-                username_parameter: _username
-                password_parameter: _password
-                default_target_path: portal_dashboard
-                enable_csrf: true
-                csrf_token_id: authenticate
-            login_throttling:
-                max_attempts: 5
-                interval: '15 minutes'
-
-            logout:
-                path: portal_auth_logout
-                target: portal_auth_login
-
-            remember_me:
-                secret: '%env(APP_SECRET)%'
-                lifetime: 604800 # 7 days
-                path: /
-
-            access_denied_handler: App\Security\AccessDeniedHandler
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -49,7 +26,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/portal/admin, roles: ROLE_ADMIN }
+        # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:

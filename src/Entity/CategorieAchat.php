@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Entity;
-use Symfony\Component\Validator\Constraints as Assert;
+
 use App\Repository\CategorieAchatRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,17 +14,10 @@ class CategorieAchat
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le nom de la catégorie est obligatoire.')]
-#[Assert\Length(
-    min: 2,
-    max: 255,
-    minMessage: 'Le nom de la catégorie doit contenir au moins {{ limit }} caractères.',
-    maxMessage: 'Le nom de la catégorie ne peut pas dépasser {{ limit }} caractères.'
-)]
     private ?string $nomCategorie = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Family $family = null;
 
     public function getId(): ?int
@@ -37,7 +30,7 @@ class CategorieAchat
         return $this->nomCategorie;
     }
 
-    public function setNomCategorie(?string $nomCategorie): static
+    public function setNomCategorie(string $nomCategorie): static
     {
         $this->nomCategorie = $nomCategorie;
 

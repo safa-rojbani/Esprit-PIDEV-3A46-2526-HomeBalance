@@ -16,12 +16,10 @@ final class TestController extends AbstractController
         ]);
     }
 
-    #[Route('/login', name: 'app_login')]
-    public function login(): Response
-    {
-        return $this->render('ui_portal/auth-login-basic.html.twig', [
-            'active_menu' => 'auth-login',
-        ]);
-    }
+    #[Route('/login')]
+public function login(): Response
+{
+    return $this->render('auth/login.html.twig');
+}
 
 }

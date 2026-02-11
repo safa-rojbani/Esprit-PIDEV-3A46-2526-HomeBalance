@@ -40,12 +40,4 @@ class HistoriqueAchatRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-public function sumAll(): string
-{
-    return (string) $this->createQueryBuilder('h')
-        ->select('COALESCE(SUM(h.montantAchete), 0)')
-        ->getQuery()
-        ->getSingleScalarResult();
-}
-
 }
