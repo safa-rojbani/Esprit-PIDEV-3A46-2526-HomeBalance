@@ -1,0 +1,437 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Détails catégorie{% endblock %}
+{% block page_title %}Détails catégorie{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+
+      {# Breadcrumb moderne #}
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb-modern">
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_categorie_achat_index') }}">
+              <i class="bi bi-grid-3x3-gap"></i>
+              Catégories
+            </a>
+          </li>
+          <li class="breadcrumb-item-active">
+            {{ categorie_achat.nomCategorie }}
+          </li>
+        </ol>
+      </nav>
+
+      {# Card principale moderne #}
+      <div class="card-modern shadow-lg">
+        
+        {# Header avec avatar et actions #}
+        <div class="card-modern-header">
+          <div class="d-flex align-items-center gap-3">
+            {# Avatar grande taille #}
+            <div class="avatar-modern-large">
+              {{ categorie_achat.nomCategorie|default('C')|slice(0,1)|upper }}
+            </div>
+            
+            <div>
+              <h3 class="mb-1 fw-bold">{{ categorie_achat.nomCategorie }}</h3>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge-modern-small">Catégorie d'achat</span>
+                <span class="text-muted" style="font-size:.85rem;">• ID #{{ categorie_achat.id }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ path('app_categorie_achat_index') }}" class="btn-modern btn-modern-secondary">
+              <i class="bi bi-arrow-left"></i>
+              <span>Retour</span>
+            </a>
+            <a href="{{ path('app_categorie_achat_edit', {'id': categorie_achat.id}) }}" class="btn-modern btn-modern-warning">
+              <i class="bi bi-pencil-square"></i>
+              <span>Modifier</span>
+            </a>
+          </div>
+        </div>
+
+        {# Séparateur #}
+        <div class="divider-modern"></div>
+
+        {# Informations détaillées #}
+        <div class="card-modern-body">
+          <h5 class="section-title">
+            <i class="bi bi-info-circle me-2"></i>
+            Informations
+          </h5>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon info-card-icon-primary">
+                  <i class="bi bi-hash"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Identifiant</div>
+                  <div class="info-card-value">#{{ categorie_achat.id }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon info-card-icon-success">
+                  <i class="bi bi-tag"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Nom de la catégorie</div>
+                  <div class="info-card-value">{{ categorie_achat.nomCategorie }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Séparateur #}
+        <div class="divider-modern"></div>
+
+        {# Footer avec action de suppression #}
+        <div class="card-modern-footer">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h6 class="mb-1 text-danger fw-semibold">Zone de danger</h6>
+              <p class="text-muted mb-0" style="font-size:.9rem;">
+                La suppression est irréversible et affectera tous les achats liés.
+              </p>
+            </div>
+            
+            <button type="button" class="btn-modern btn-modern-danger" id="deleteBtn">
+              <i class="bi bi-trash"></i>
+              <span>Supprimer</span>
+            </button>
+          </div>
+
+          {# Formulaire de suppression caché #}
+          <div style="display:none;">
+            {{ include('module_charge/Admin/categorie_achat/_delete_form.html.twig') }}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# Script pour la suppression #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const deleteBtn = document.getElementById('deleteBtn');
+  
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', function() {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?\n\nCette action est irréversible et peut affecter les achats associés.')) {
+        const form = document.querySelector('form[name="delete"]') || document.querySelector('form[method="post"]');
+        if (form) {
+          form.submit();
+        }
+      }
+    });
+  }
+});
+</script>
+
+{# Styles modernes pour la page détails #}
+<style>
+  /* === BREADCRUMB MODERNE === */
+  .breadcrumb-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    list-style: none;
+  }
+
+  .breadcrumb-modern .breadcrumb-item a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .breadcrumb-modern .breadcrumb-item a:hover {
+    color: #667eea;
+  }
+
+  .breadcrumb-modern .breadcrumb-item-active {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .breadcrumb-modern .breadcrumb-item::after {
+    content: '›';
+    color: #d1d5db;
+    margin-left: 8px;
+    font-size: 16px;
+  }
+
+  .breadcrumb-modern .breadcrumb-item:last-child::after {
+    display: none;
+  }
+
+  /* === CARD MODERNE === */
+  .card-modern {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+  }
+
+  .card-modern-header {
+    padding: 32px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .card-modern-body {
+    padding: 32px;
+  }
+
+  .card-modern-footer {
+    padding: 24px 32px;
+    background: #fef2f2;
+    border-top: 2px solid #fee2e2;
+  }
+
+  /* === AVATAR GRANDE TAILLE === */
+  .avatar-modern-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease;
+  }
+
+  .avatar-modern-large:hover {
+    transform: rotate(-5deg) scale(1.05);
+  }
+
+  /* === BADGE PETIT === */
+  .badge-modern-small {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+  }
+
+  /* === DIVIDER === */
+  .divider-modern {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+    margin: 0;
+  }
+
+  /* === SECTION TITLE === */
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 20px;
+  }
+
+  .section-title i {
+    color: #667eea;
+  }
+
+  /* === INFO CARD === */
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: white;
+    border: 2px solid #f3f4f6;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .info-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .info-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .info-card-icon-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .info-card-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .info-card-content {
+    flex: 1;
+  }
+
+  .info-card-label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-card-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  /* === BOUTONS MODERNES === */
+  .btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-modern i {
+    font-size: 16px;
+  }
+
+  .btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .btn-modern:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-modern:active {
+    transform: scale(0.95);
+  }
+
+  /* Variantes */
+  .btn-modern-secondary {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .btn-modern-secondary:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-modern-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-modern-warning:hover {
+    box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  .btn-modern-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-modern-danger:hover {
+    box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 768px) {
+    .card-modern-header,
+    .card-modern-body,
+    .card-modern-footer {
+      padding: 20px;
+    }
+
+    .avatar-modern-large {
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+    }
+
+    .btn-modern span {
+      display: none;
+    }
+    
+    .btn-modern {
+      padding: 10px 14px;
+    }
+
+    .info-card {
+      padding: 16px;
+    }
+  }
+</style>
+{% endblock %}

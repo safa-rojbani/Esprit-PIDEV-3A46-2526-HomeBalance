@@ -24,7 +24,7 @@ class HistoriqueAchat
     private ?\DateTimeImmutable $dateAchat = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false,onDelete: 'CASCADE')]
     private ?Achat $achat = null;
 
     #[ORM\ManyToOne]

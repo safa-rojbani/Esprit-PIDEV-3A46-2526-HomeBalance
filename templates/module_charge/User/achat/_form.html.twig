@@ -1,0 +1,22 @@
+{{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+
+<div class="mb-3">
+  {{ form_label(form.nomArticle, "Nom de l'article") }}
+  {{ form_widget(form.nomArticle, {'attr': {'class': 'form-control'}}) }}
+  <div class="text-danger small mt-1">{{ form_errors(form.nomArticle) }}</div>
+</div>
+
+<div class="mb-3">
+  {{ form_label(form.categorie, "Catégorie") }}
+  {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+  <div class="text-danger small mt-1">{{ form_errors(form.categorie) }}</div>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-4">
+  <a href="{{ path('app_achat_index') }}" class="btn btn-light">Annuler</a>
+  <button type="submit" class="btn btn-primary">
+    {{ button_label|default('Enregistrer') }}
+  </button>
+</div>
+
+{{ form_end(form) }}

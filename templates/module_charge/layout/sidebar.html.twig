@@ -1,0 +1,52 @@
+{% set r = app.request.attributes.get('_route') %}
+
+
+
+{% set r = app.request.attributes.get('_route') %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <div class="rounded-3 d-flex align-items-center justify-content-center"
+       style="width:40px;height:40px;background:#4f46e5;color:#fff;">
+    MC
+  </div>
+  <div>
+    <div class="brand">Module Charge</div>
+    <div class="text-muted" style="font-size:.85rem;">Navigation</div>
+  </div>
+</div>
+
+<nav class="nav flex-column gap-1">
+
+  {# Achats #}
+  <a class="nav-link {% if r starts with 'app_achat_' %}active{% endif %}"
+     href="{{ path('app_achat_index') }}">
+    🧾 Achats
+  </a>
+
+  {# Catégories Achat (Admin ou commun) #}
+  <a class="nav-link {% if r starts with 'app_categorie_achat_' %}active{% endif %}"
+     href="{{ path('app_categorie_achat_index') }}">
+    🗂️ Catégories
+  </a>
+
+  {# Historique Achat #}
+  <a class="nav-link {% if r starts with 'app_historique_achat_' %}active{% endif %}"
+     href="{{ path('app_historique_achat_index') }}">
+    📜 Historique
+  </a>
+
+  <hr class="my-2">
+
+  {# Revenus #}
+  <a class="nav-link {% if r starts with 'app_revenu_' and r != 'app_revenu_budget' %}active{% endif %}"
+     href="{{ path('app_revenu_index') }}">
+    💰 Revenus
+  </a>
+
+  {# Budget #}
+  <a class="nav-link {% if r == 'app_revenu_budget' %}active{% endif %}"
+     href="{{ path('app_revenu_budget') }}">
+    📊 Budget
+  </a>
+
+</nav>
