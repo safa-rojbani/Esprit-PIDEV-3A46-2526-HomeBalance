@@ -1,0 +1,77 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Détails de l’achat{% endblock %}
+{% block page_title %}Historique d’achat{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8 col-xl-6">
+
+    <div class="card p-4">
+
+      {# Header #}
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h4 class="mb-1">Détails de l’achat</h4>
+          <div class="text-muted" style="font-size:.9rem;">
+            Achat effectué le
+            {{ historique_achat.dateAchat ? historique_achat.dateAchat|date('d/m/Y à H:i') : '—' }}
+          </div>
+        </div>
+
+        <a href="{{ path('app_historique_achat_index') }}"
+           class="btn btn-outline-secondary btn-sm">
+          ← Retour
+        </a>
+      </div>
+
+      <hr class="my-3">
+
+      {# Infos principales #}
+      <div class="row g-3">
+
+        <div class="col-12 col-md-6">
+          <div class="p-3 bg-light rounded-3">
+            <div class="text-muted" style="font-size:.85rem;">Montant</div>
+            <div class="fw-semibold">
+              {{ historique_achat.montantAchete }} DT
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="p-3 bg-light rounded-3">
+            <div class="text-muted" style="font-size:.85rem;">Quantité</div>
+            <div class="fw-semibold">
+              {{ historique_achat.quantiteAchete ?? 1 }}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="p-3 bg-light rounded-3">
+            <div class="text-muted" style="font-size:.85rem;">Date d’achat</div>
+            <div class="fw-semibold">
+              {{ historique_achat.dateAchat|date('d/m/Y H:i') }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <hr class="my-4">
+
+      {# Actions #}
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ path('app_historique_achat_edit', {'id': historique_achat.id}) }}"
+           class="btn btn-warning">
+          <i class="bi bi-pencil"></i> Modifier
+        </a>
+
+        {{ include('module_charge/User/historique_achat/_delete_form.html.twig') }}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'ui_portal/layouts/auth.html.twig' %}
+
+{% block title %}Family onboarding · HomeBalance{% endblock %}
+
+{% block hero %}
+  <p class="eyebrow">Start with your household</p>
+  <h1>Bring your family into HomeBalance.</h1>
+  <p class="lead">
+    Create your household hub or join one with a code. You can always adjust roles and settings later.
+  </p>
+  <ul class="hero-points">
+    <li>Share chores, budgets, and reminders</li>
+    <li>Invite members in minutes</li>
+    <li>Keep everyone aligned</li>
+  </ul>
+{% endblock %}
+
+{% block panel_subtitle %}Set up your household{% endblock %}
+
+{% block panel %}
+  {% block onboarding_panel %}{% endblock %}
+{% endblock %}

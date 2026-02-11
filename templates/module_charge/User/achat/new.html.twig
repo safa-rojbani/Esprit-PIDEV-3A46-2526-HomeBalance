@@ -1,0 +1,30 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Nouvel Achat{% endblock %}
+{% block page_title %}Créer un nouvel achat{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8 col-xl-6">
+
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Nouvel achat</h4>
+        <a href="{{ path('app_achat_index') }}" class="btn btn-outline-secondary btn-sm">
+          Retour
+        </a>
+      </div>
+
+      <div class="text-muted mb-3">
+        Ajoute un article à acheter. Tu pourras le marquer comme “Acheté” plus tard.
+      </div>
+
+     {{ include('module_charge/User/achat/_form.html.twig', {
+  form: form,
+  button_label: 'Enregistrer'
+}) }}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

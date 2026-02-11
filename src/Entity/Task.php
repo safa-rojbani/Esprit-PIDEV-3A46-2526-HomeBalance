@@ -6,6 +6,10 @@ use App\Repository\TaskRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\TaskDifficulty;
 use App\Enum\TaskRecurrence;
+use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\TaskCompletion;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -15,18 +19,23 @@ class Task
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Le titre est obligatoire')]
+    #[Assert\Length(min: 3, max: 255)]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Assert\NotBlank(message: 'La description est obligatoire')]
+    #[Assert\Length(min: 5)]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
- #[ORM\Column(length: 50)]
-private ?string $difficulty = null;
+    #[Assert\NotNull]
+    #[ORM\Column(length: 50)]
+    private ?string $difficulty = null;
 
-#[ORM\Column(length: 50)]
-private ?string $recurrence = null;
-
+    #[Assert\NotNull]
+    #[ORM\Column(length: 50)]
+    private ?string $recurrence = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -35,12 +44,27 @@ private ?string $recurrence = null;
     private ?bool $isActive = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Family $family = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;
+
+    // ✅ RELATION AVEC LES VALIDATIONS
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskCompletion::class, orphanRemoval: true)]
+    #[ORM\OrderBy(['completedAt' => 'DESC'])]
+
+    private Collection $taskCompletions;
+
+    public function __construct()
+    {
+        $this->taskCompletions = new ArrayCollection();
+    }
+
+    /* =======================
+        GETTERS / SETTERS
+    ======================== */
 
     public function getId(): ?int
     {
@@ -55,7 +79,6 @@ private ?string $recurrence = null;
     public function setTitle(string $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -67,31 +90,30 @@ private ?string $recurrence = null;
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
     public function getDifficulty(): ?TaskDifficulty
-{
-    return $this->difficulty ? TaskDifficulty::from($this->difficulty) : null;
-}
+    {
+        return $this->difficulty ? TaskDifficulty::from($this->difficulty) : null;
+    }
 
-public function setDifficulty(TaskDifficulty $difficulty): static
-{
-    $this->difficulty = $difficulty->value;
-    return $this;
-}
+    public function setDifficulty(TaskDifficulty $difficulty): static
+    {
+        $this->difficulty = $difficulty->value;
+        return $this;
+    }
 
-public function getRecurrence(): ?TaskRecurrence
-{
-    return $this->recurrence ? TaskRecurrence::from($this->recurrence) : null;
-}
+    public function getRecurrence(): ?TaskRecurrence
+    {
+        return $this->recurrence ? TaskRecurrence::from($this->recurrence) : null;
+    }
 
-public function setRecurrence(TaskRecurrence $recurrence): static
-{
-    $this->recurrence = $recurrence->value;
-    return $this;
-}
+    public function setRecurrence(TaskRecurrence $recurrence): static
+    {
+        $this->recurrence = $recurrence->value;
+        return $this;
+    }
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
@@ -101,7 +123,6 @@ public function setRecurrence(TaskRecurrence $recurrence): static
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -113,7 +134,6 @@ public function setRecurrence(TaskRecurrence $recurrence): static
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
-
         return $this;
     }
 
@@ -125,7 +145,6 @@ public function setRecurrence(TaskRecurrence $recurrence): static
     public function setFamily(?Family $family): static
     {
         $this->family = $family;
-
         return $this;
     }
 
@@ -137,7 +156,13 @@ public function setRecurrence(TaskRecurrence $recurrence): static
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
-
         return $this;
     }
+
+    // 🔑 POUR LE FRONT (TWIG)
+    public function getTaskCompletions(): Collection
+    {
+        return $this->taskCompletions;
+    }
 }
+    

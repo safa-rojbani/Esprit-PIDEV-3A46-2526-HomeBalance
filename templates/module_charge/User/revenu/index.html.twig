@@ -1,0 +1,242 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Revenus{% endblock %}
+{% block page_title %}Revenus{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <!-- Header Section -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Mes revenus</h2>
+      <p class="text-muted mb-0">Gérez et suivez vos sources de revenus</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ path('app_revenu_budget') }}" class="btn btn-outline-primary">
+        <i class="bi bi-calculator"></i> Budget
+      </a>
+      <a href="{{ path('app_revenu_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nouveau revenu
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">Total revenus</p>
+              <h4 class="mb-0 fw-bold">
+                {% set total = 0 %}
+                {% for revenu in revenus %}
+                  {% set total = total + revenu.montant %}
+                {% endfor %}
+                {{ total|number_format(2, ',', ' ') }} TND
+              </h4>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+              <i class="bi bi-cash-stack text-primary fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">Nombre de sources</p>
+              <h4 class="mb-0 fw-bold">{{ revenus|length }}</h4>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+              <i class="bi bi-graph-up-arrow text-success fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">Dernier revenu</p>
+              <h4 class="mb-0 fw-bold">
+                {% if revenus|length > 0 %}
+                  {{ revenus|last.dateRevenu ? revenus|last.dateRevenu|date('d/m/Y') : '-' }}
+                {% else %}
+                  -
+                {% endif %}
+              </h4>
+            </div>
+            <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+              <i class="bi bi-calendar-event text-info fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold">Liste des revenus</h5>
+        <div class="input-group" style="width: 300px;">
+          <span class="input-group-text bg-light border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input id="revSearch" type="text" class="form-control border-start-0 bg-light" placeholder="Rechercher...">
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="px-4 py-3 text-muted small fw-semibold">TYPE</th>
+            <th class="py-3 text-muted small fw-semibold">MONTANT</th>
+            <th class="py-3 text-muted small fw-semibold">DATE</th>
+            <th class="py-3 text-muted small fw-semibold text-end pe-4">ACTIONS</th>
+          </tr>
+        </thead>
+
+        <tbody id="revTable">
+          {% for revenu in revenus %}
+            <tr class="border-bottom">
+              <td class="px-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rev-icon">
+                    <i class="bi bi-wallet2"></i>
+                  </div>
+                  <span class="fw-semibold">{{ revenu.typeRevenu }}</span>
+                </div>
+              </td>
+
+              <td class="py-3">
+                <span class="rev-amount">
+                  {{ revenu.montant|number_format(2, ',', ' ') }} TND
+                </span>
+              </td>
+
+              <td class="py-3">
+                <span class="text-muted">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ revenu.dateRevenu ? revenu.dateRevenu|date('d/m/Y') : '-' }}
+                </span>
+              </td>
+
+              <td class="py-3 text-end pe-4">
+                <div class="d-inline-flex align-items-center gap-2 action-wrap">
+
+                  <a class="btn btn-sm btn-outline-info action-btn"
+                     href="{{ path('app_revenu_show', {'id': revenu.id}) }}"
+                     title="Voir">
+                    <i class="bi bi-eye"></i>
+                    <span class="d-none d-lg-inline ms-1">Voir</span>
+                  </a>
+
+                  <a class="btn btn-sm btn-outline-warning action-btn"
+                     href="{{ path('app_revenu_edit', {'id': revenu.id}) }}"
+                     title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                    <span class="d-none d-lg-inline ms-1">Modifier</span>
+                  </a>
+
+                  <form method="post"
+                        action="{{ path('app_revenu_delete', {'id': revenu.id}) }}"
+                        class="d-inline"
+                        onsubmit="return confirm('Supprimer ce revenu ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ revenu.id) }}">
+                    <button class="btn btn-sm btn-outline-danger action-btn" title="Supprimer">
+                      <i class="bi bi-trash"></i>
+                      <span class="d-none d-lg-inline ms-1">Supprimer</span>
+                    </button>
+                  </form>
+
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="4" class="text-center py-5">
+                <div class="text-muted">
+                  <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                  <p class="mb-2 fw-semibold">Aucun revenu enregistré</p>
+                  <p class="small mb-3">Commencez par ajouter votre premier revenu</p>
+                  <a href="{{ path('app_revenu_new') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Ajouter un revenu
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('revSearch');
+  const rows = Array.from(document.querySelectorAll('#revTable tr'));
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    rows.forEach(r => {
+      r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+});
+</script>
+
+<style>
+  /* petite icône du type */
+  .rev-icon{
+    width:36px;height:36px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background: rgba(79,70,229,.10);
+    color:#4f46e5;
+  }
+
+  /* montant style "pill" */
+  .rev-amount{
+    display:inline-flex;align-items:center;
+    padding:6px 12px;border-radius:10px;
+    background: rgba(16,185,129,.12);
+    color:#0f766e;
+    font-weight:700;
+  }
+
+  /* actions visibles */
+  .action-wrap{
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    padding:6px;
+    border-radius:14px;
+  }
+  .action-btn{
+    border-radius:12px;
+    font-weight:600;
+  }
+  .action-btn:hover{
+    transform: translateY(-1px);
+  }
+
+  /* mobile: garde juste les icones, mais visibles */
+  @media (max-width: 768px){
+    .action-wrap{gap:6px;}
+    .action-btn{padding: .35rem .5rem;}
+  }
+</style>
+{% endblock %}

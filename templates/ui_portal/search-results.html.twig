@@ -1,0 +1,135 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}HomeBalance · Search{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Search results</h4>
+      <p class="text-muted mb-0">UMS-only search across users, families, invitations, and badges.</p>
+    </div>
+  </div>
+
+  {% if query == '' %}
+    <div class="alert alert-info">Type something in the search box to begin.</div>
+  {% else %}
+    <div class="alert alert-light">
+      Showing results for <strong>{{ query }}</strong>
+    </div>
+  {% endif %}
+
+  {% set hasResults = false %}
+  {% for list in results %}
+    {% if list is not empty %}
+      {% set hasResults = true %}
+    {% endif %}
+  {% endfor %}
+
+  {% if query != '' and not hasResults %}
+    <div class="alert alert-warning">No results found for this query.</div>
+  {% endif %}
+
+  {% if results.users is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Users</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for user in results.users %}
+            <li>{{ user.getUserIdentifier() }} · {{ user.getEmail() }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.families is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Families</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for family in results.families %}
+            <li>{{ family.getName() }} · {{ family.getJoinCode() ?? 'No code' }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.invitations is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Invitations</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for invite in results.invitations %}
+            <li>{{ invite.getInvitedEmail() }} · {{ invite.getJoinCode() }} · {{ invite.getStatus().name|title }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.memberships is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Memberships</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for membership in results.memberships %}
+            <li>{{ membership.getUser().getUserIdentifier() }} · {{ membership.getFamily().getName() }} · {{ membership.getRole().name|title }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.badges is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Badges</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for badge in results.badges %}
+            <li>{{ badge.getName() }} · {{ badge.getCode() }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.familyBadges is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Family Badges</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for record in results.familyBadges %}
+            <li>{{ record.getFamily().getName() }} · {{ record.getBadge().getName() }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.accountNotifications is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Account Notifications</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for notification in results.accountNotifications %}
+            <li>{{ notification.getUser().getUserIdentifier() }} · {{ notification.getKey() }} · {{ notification.getStatus() }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if results.auditTrails is not empty %}
+    <div class="card mb-4">
+      <div class="card-header"><h5 class="mb-0">Audit Trails</h5></div>
+      <div class="card-body">
+        <ul class="mb-0">
+          {% for record in results.auditTrails %}
+            <li>{{ record.getAction() }} · {{ record.getUser() ? record.getUser().getUserIdentifier() : 'System' }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

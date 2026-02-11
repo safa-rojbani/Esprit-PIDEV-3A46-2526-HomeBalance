@@ -1,0 +1,55 @@
+<h1>Mes tâches</h1>
+
+<h2>📌 Tâches qui me sont assignées</h2>
+
+<ul>
+{% for a in assignedTasks %}
+    <li>
+        <strong>{{ a.task.title }}</strong>
+
+        {% if a.status.value == 'assigned' %}
+            <a href="{{ path('child_task_accept', {id: a.id}) }}">✅ Accepter</a>
+            <a href="{{ path('child_task_refuse', {id: a.id}) }}">❌ Refuser</a>
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
+
+<hr>
+
+<h2>👨‍👩‍👧 Tâches familiales</h2>
+
+<ul>
+{% for task in freeTasks %}
+    <li>
+        <strong>{{ task.title }}</strong>
+
+        {# 🔍 chercher si une complétion existe #}
+       {% set completion = task.taskCompletions
+    |filter(c => c.user.email == 'child@test.com')
+    |first
+%}
+
+{% if completion %}
+    {% if completion.isValidated is same as(true) %}
+        ✅ Validée par le parent
+
+    {% elseif completion.isValidated is same as(false) %}
+        ❌ Refusée par le parent <br>
+        💬 <em>{{ completion.parentComment }}</em><br>
+        <a href="{{ path('child_task_complete', {id: task.id}) }}">
+            🔁 Revalider
+        </a>
+
+    {% else %}
+        ⏳ En attente de validation parent
+        <button disabled>Valider</button>
+    {% endif %}
+{% else %}
+    <a href="{{ path('child_task_complete', {id: task.id}) }}">✅ Valider</a>
+{% endif %}
+
+
+    </li>
+{% endfor %}
+</ul>

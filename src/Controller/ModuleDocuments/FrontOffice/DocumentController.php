@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Enum\EtatDocument;
 use App\Form\ModuleDocuments\FrontOffice\DocumentType;
 use App\Repository\DocumentRepository;
+use App\Repository\GalleryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -224,103 +225,174 @@ final class DocumentController extends AbstractController
 
 
     #[Route('/documents/trash/restore-all', name: 'app_document_restore_all', methods: ['POST'])]
-public function restoreAll(
-    Request $request,
-    DocumentRepository $repo,
-    EntityManagerInterface $em
-): Response {
-    if (!$this->isCsrfTokenValid('restore_all', $request->request->get('_token'))) {
-        throw $this->createAccessDeniedException();
+    public function restoreAll(
+        Request $request,
+        DocumentRepository $repo,
+        EntityManagerInterface $em
+    ): Response {
+        if (!$this->isCsrfTokenValid('restore_all', $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        /** @var User|null $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            $user = $em->getRepository(User::class)->find(1);
+        }
+
+        $family = $user->getFamily();
+
+        // 🔹 récupérer tous les documents en corbeille de cette famille
+        $documents = $repo->findBy([
+            'etat'   => EtatDocument::CORBEILLE,
+            'family' => $family,
+        ]);
+
+        foreach ($documents as $document) {
+            $document->setEtat(EtatDocument::ACTIF);
+            $document->setDeletedAt(null);
+        }
+
+        $em->flush();
+
+        return $this->redirectToRoute('app_document_trash');
     }
 
-    /** @var User|null $user */
-    $user = $this->getUser();
 
-    if (!$user) {
-        $user = $em->getRepository(User::class)->find(1);
-    }
+    #[Route('/documents/{id}/restore', name: 'app_document_restore', methods: ['POST'])]
+    public function restore(Request $request, Document $document, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('restore' . $document->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
 
-    $family = $user->getFamily();
-
-    // 🔹 récupérer tous les documents en corbeille de cette famille
-    $documents = $repo->findBy([
-        'etat'   => EtatDocument::CORBEILLE,
-        'family' => $family,
-    ]);
-
-    foreach ($documents as $document) {
         $document->setEtat(EtatDocument::ACTIF);
         $document->setDeletedAt(null);
+
+        $em->flush();
+
+        return $this->redirectToRoute('app_document_trash');
     }
 
-    $em->flush();
+    #[Route('/documents/{id}/delete-permanently', name: 'app_document_delete_permanently', methods: ['POST'])]
+    public function deletePermanently(Request $request, Document $document, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_permanently' . $document->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
 
-    return $this->redirectToRoute('app_document_trash');
-}
+        $document->setEtat(EtatDocument::DELETED);
+        $document->setDeletedAt(new \DateTimeImmutable());
+
+        $em->flush();
+
+        return $this->redirectToRoute('app_document_trash');
+    }
 
 
-#[Route('/documents/{id}/restore', name: 'app_document_restore', methods: ['POST'])]
-public function restore(Request $request, Document $document, EntityManagerInterface $em): Response
+
+    #[Route('/documents/trash/delete-all-permanently', name: 'app_document_delete_all_permanently', methods: ['POST'])]
+    public function deleteAllPermanently(Request $request, DocumentRepository $repo, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_all_permanently', $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        /** @var User|null $user */
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $em->getRepository(User::class)->find(1); // fallback
+        }
+
+        $family = $user->getFamily();
+
+        $documents = $repo->findBy([
+            'etat'   => EtatDocument::CORBEILLE,
+            'family' => $family,
+        ]);
+
+        $now = new \DateTimeImmutable();
+
+        foreach ($documents as $doc) {
+            $doc->setEtat(EtatDocument::DELETED); // لازم تكون موجودة في enum
+            $doc->setDeletedAt($now);
+        }
+
+        $em->flush();
+
+        return $this->redirectToRoute('app_document_trash');
+    }
+
+
+    #[Route('/documents/{id}/transfer', name: 'app_document_transfer', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function transfer(
+        Request $request,
+        Document $document,
+        GalleryRepository $galleryRepository,
+        EntityManagerInterface $em
+    ): Response {
+        // ✅ CSRF
+        if (!$this->isCsrfTokenValid('transfer' . $document->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        /** @var User|null $user */
+        $user = $this->getUser() ?? $em->getRepository(User::class)->find(1);
+
+        // ✅ Security: same family
+        if (!$user || !$document->getFamily() || $document->getFamily()->getId() !== $user->getFamily()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $targetId = (int) $request->request->get('target_gallery_id');
+        if (!$targetId) {
+            $this->addFlash('danger', 'Please choose a target gallery.');
+            return $this->redirectToRoute('app_gallery_show', ['id' => $document->getGallery()->getId()]);
+        }
+
+        $targetGallery = $galleryRepository->find($targetId);
+        if (!$targetGallery) {
+            throw $this->createNotFoundException('Target gallery not found.');
+        }
+
+        // ✅ Security: target gallery same family
+        if (!$targetGallery->getFamily() || $targetGallery->getFamily()->getId() !== $user->getFamily()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // ✅ Transfer
+        $document->setGallery($targetGallery);
+        $document->setUpdatedAt(new \DateTimeImmutable());
+        $em->flush();
+
+        $this->addFlash('success', 'Document transferred ✅');
+
+        // ✅ Redirect to target gallery
+        return $this->redirectToRoute('app_gallery_show', ['id' => $targetGallery->getId()]);
+    }
+
+
+    #[Route('/documents/{id}/restore', name: 'app_document_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
+public function restoreHidden(Request $request, Document $document, EntityManagerInterface $em): Response
 {
     if (!$this->isCsrfTokenValid('restore' . $document->getId(), $request->request->get('_token'))) {
         throw $this->createAccessDeniedException();
     }
 
-    $document->setEtat(EtatDocument::ACTIF);
-    $document->setDeletedAt(null);
-
-    $em->flush();
-
-    return $this->redirectToRoute('app_document_trash');
-}
-
-#[Route('/documents/{id}/delete-permanently', name: 'app_document_delete_permanently', methods: ['POST'])]
-public function deletePermanently(Request $request, Document $document, EntityManagerInterface $em): Response
-{
-    if (!$this->isCsrfTokenValid('delete_permanently' . $document->getId(), $request->request->get('_token'))) {
+    // (optionnel) sécurité famille
+    $user = $this->getUser() ?? $em->getRepository(User::class)->find(1);
+    if ($document->getFamily() !== $user->getFamily()) {
         throw $this->createAccessDeniedException();
     }
 
-    $document->setEtat(EtatDocument::DELETED); 
-    $document->setDeletedAt(new \DateTimeImmutable());
+    if ($document->getEtat() === EtatDocument::HIDDEN) {
+        $document->setEtat(EtatDocument::ACTIF);
+        $document->setUpdatedAt(new \DateTimeImmutable());
+        $em->flush();
+    }
 
-    $em->flush();
-
-    return $this->redirectToRoute('app_document_trash');
+    $this->addFlash('success', 'Document restored successfully.');
+    return $this->redirectToRoute('app_gallery_hidden');
 }
-
-
-
-#[Route('/documents/trash/delete-all-permanently', name: 'app_document_delete_all_permanently', methods: ['POST'])]
-public function deleteAllPermanently(Request $request, DocumentRepository $repo, EntityManagerInterface $em): Response
-{
-    if (!$this->isCsrfTokenValid('delete_all_permanently', $request->request->get('_token'))) {
-        throw $this->createAccessDeniedException();
-    }
-
-    /** @var User|null $user */
-    $user = $this->getUser();
-    if (!$user) {
-        $user = $em->getRepository(User::class)->find(1); // fallback
-    }
-
-    $family = $user->getFamily();
-
-    $documents = $repo->findBy([
-        'etat'   => EtatDocument::CORBEILLE,
-        'family' => $family,
-    ]);
-
-    $now = new \DateTimeImmutable();
-
-    foreach ($documents as $doc) {
-        $doc->setEtat(EtatDocument::DELETED); // لازم تكون موجودة في enum
-        $doc->setDeletedAt($now);
-    }
-
-    $em->flush();
-
-    return $this->redirectToRoute('app_document_trash');
-}
-
 }

@@ -3,8 +3,11 @@
 namespace App\Controller\ModuleDocuments\FrontOffice;
 
 use App\Entity\Gallery;
+use App\Entity\User;
+use App\Enum\EtatDocument;
 use App\Enum\EtatGallery;
 use App\Form\ModuleDocuments\FrontOffice\GalleryType;
+use App\Repository\DocumentRepository;
 use App\Repository\GalleryRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -94,20 +97,31 @@ final class GalleryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_gallery_show', methods: ['GET'])]
-    public function show(Request $request, ?Gallery $gallery): Response
+    #[Route('/{id}', name: 'app_gallery_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(Request $request, Gallery $gallery, GalleryRepository $galleryRepository): Response
     {
-        $from = $request->query->get('from', 'index'); // index | hidden | trash ...
+        $from = $request->query->get('from', 'index');
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $this->userRepository->find(1);
+        }
+
+        $family = $user->getFamily();
+
+        // ✅ galleries de la même famille
+        $familyGalleries = $galleryRepository->findBy(['family' => $family]);
 
         return $this->render('ModuleDocuments/FrontOffice/gallery/show.html.twig', [
             'gallery' => $gallery,
             'documents' => $gallery->getDocuments(),
             'from' => $from,
+            'familyGalleries' => $familyGalleries,
         ]);
     }
 
 
-    #[Route('/{id}/edit', name: 'app_gallery_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_gallery_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, Gallery $gallery, EntityManagerInterface $entityManager): Response
     {
         $from = $request->query->get('from', 'index');
@@ -134,7 +148,7 @@ final class GalleryController extends AbstractController
     }
 
 
-    #[Route('/{id}', name: 'app_gallery_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_gallery_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Request $request, Gallery $gallery, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $gallery->getId(), $request->getPayload()->getString('_token'))) {
@@ -158,31 +172,41 @@ final class GalleryController extends AbstractController
 
         return $this->redirectToRoute('app_gallery_index');
     }
-    #[Route('/hidden/galleries', name: 'app_gallery_hidden', methods: ['GET'])]
-    public function hidden(GalleryRepository $galleryRepository): Response
-    {
+    #[Route('/hidden', name: 'app_gallery_hidden', methods: ['GET'])]
+    public function hidden(
+        GalleryRepository $galleryRepository,
+        DocumentRepository $documentRepository,
+        EntityManagerInterface $em
+    ): Response {
+        /** @var User|null $user */
         $user = $this->getUser();
 
         if (!$user) {
-            $user = $this->userRepository->find(1);
+            $user = $em->getRepository(User::class)->find(1);
         }
 
         $family = $user->getFamily();
-        $galleries = $galleryRepository->findBy(
-            [
-                'etat' => EtatGallery::HIDDEN,
-                'family' => $family,
-            ]
-        );
+
+        // ✅ Hidden galleries (de la famille)
+        $galleries = $galleryRepository->findBy([
+            'etat'   => EtatGallery::HIDDEN,
+            'family' => $family,
+        ]);
+
+        // ✅ Hidden documents (de la famille) — même si la gallery est active
+        $documents = $documentRepository->findBy([
+            'etat'   => EtatDocument::HIDDEN,
+            'family' => $family,
+        ]);
 
         return $this->render('ModuleDocuments/FrontOffice/gallery/hidden.html.twig', [
             'galleries' => $galleries,
+            'documents' => $documents,
         ]);
     }
 
 
-
-    #[Route('/{id}/activate', name: 'app_gallery_activate', methods: ['GET'])]
+    #[Route('/{id}/activate', name: 'app_gallery_activate', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function activate(Gallery $gallery, EntityManagerInterface $em): Response
     {
         // Vérifie que la gallery est bien HIDDEN
