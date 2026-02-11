@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\ModuleCharge;
 
 use App\Entity\Achat;
 use App\Entity\Family;

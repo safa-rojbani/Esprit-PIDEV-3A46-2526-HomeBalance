@@ -3,6 +3,7 @@
 namespace App\Controller\ModuleTache\FrontOffice;
 
 use App\Entity\User;
+use App\Entity\Family;
 use App\Entity\Task;
 use App\Entity\TaskAssignment;
 use App\Entity\TaskCompletion;
@@ -14,22 +15,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Form\TaskCompletionType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/child/tasks')]
+#[Route('/portal/tasks/child')]
 class ChildTaskController extends AbstractController
 {
-    private function getChild(EntityManagerInterface $em): User
-    {
-        return $em->getRepository(User::class)->findOneBy([
-            'email' => 'child@test.com'
-        ]);
-    }
-
     #[Route('/', name: 'child_task_index')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
     {
-        $child = $this->getChild($em);
-        $family = $child->getFamily();
+        [$child, $family] = $this->resolveUserAndFamily($familyResolver);
 
         // 1️⃣ Tâches assignées à l’enfant (ASSIGNED uniquement)
         $assignedTasks = $em->getRepository(TaskAssignment::class)
@@ -88,9 +82,12 @@ return $this->render('ModuleTache/frontoffice/child/index.html.twig', [
     }
 
     #[Route('/assignment/{id}/accept', name: 'child_task_accept')]
-    public function accept(TaskAssignment $assignment, EntityManagerInterface $em): Response
+    public function accept(TaskAssignment $assignment, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
     {
-        $child = $this->getChild($em);
+        [$child, $family] = $this->resolveUserAndFamily($familyResolver);
+        if ($assignment->getFamily()?->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
 
         // 🔐 sécurité
         if ($assignment->getUser() !== $child) {
@@ -109,9 +106,12 @@ return $this->render('ModuleTache/frontoffice/child/index.html.twig', [
     }
 
     #[Route('/assignment/{id}/refuse', name: 'child_task_refuse')]
-    public function refuse(TaskAssignment $assignment, EntityManagerInterface $em): Response
+    public function refuse(TaskAssignment $assignment, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
     {
-        $child = $this->getChild($em);
+        [$child, $family] = $this->resolveUserAndFamily($familyResolver);
+        if ($assignment->getFamily()?->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
 
         if ($assignment->getUser() !== $child) {
             throw new \Exception('Action non autorisée');
@@ -129,9 +129,13 @@ return $this->render('ModuleTache/frontoffice/child/index.html.twig', [
 public function complete(
     Task $task,
     Request $request,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
-    $child = $this->getChild($em);
+    [$child, $family] = $this->resolveUserAndFamily($familyResolver);
+    if ($task->getFamily()?->getId() !== $family->getId()) {
+        throw $this->createAccessDeniedException();
+    }
 
     // 1️⃣ Vérifier s’il existe une assignation ACCEPTED
     $assignment = $em->getRepository(TaskAssignment::class)->findOneBy([
@@ -190,4 +194,21 @@ public function complete(
     ]);
 }
 
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
+    }
 }

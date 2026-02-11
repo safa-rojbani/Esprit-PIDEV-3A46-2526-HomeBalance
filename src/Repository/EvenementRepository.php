@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Evenement;
+use App\Entity\Family;
 use App\Entity\TypeEvenement;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -24,50 +25,32 @@ class EvenementRepository extends ServiceEntityRepository
     public function findVisibleForUser(?User $user): array
     {
         if ($user === null) {
-            return $this->createQueryBuilder('e')
-                ->andWhere('e.createdBy IS NULL')
-                ->orderBy('e.dateDebut', 'ASC')
-                ->getQuery()
-                ->getResult();
+            return [];
         }
-        $qb = $this->createQueryBuilder('e')
-            ->andWhere('e.createdBy = :user OR e.createdBy IS NULL')
-            ->setParameter('user', $user)
-            ->orderBy('e.dateDebut', 'ASC');
 
         $family = $user->getFamily();
-        if ($family !== null) {
-            $qb->orWhere('e.shareWithFamily = true AND e.family = :family')
-                ->setParameter('family', $family);
+        if ($family === null) {
+            return [];
         }
 
-        return $qb->getQuery()->getResult();
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('e.dateDebut', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**
      * @return Evenement[]
      */
-    public function findForUserWithFilters(User $user, ?TypeEvenement $type, ?string $search): array
+    public function findForFamilyWithFilters(Family $family, ?TypeEvenement $type, ?string $search): array
     {
         $qb = $this->createQueryBuilder('e')
             ->orderBy('e.dateDebut', 'ASC');
 
-        $visibility = $qb->expr()->eq('e.createdBy', ':user');
-        $qb->setParameter('user', $user);
-
-        $family = $user->getFamily();
-        if ($family !== null) {
-            $visibility = $qb->expr()->orX(
-                $visibility,
-                $qb->expr()->andX(
-                    $qb->expr()->eq('e.shareWithFamily', 'true'),
-                    $qb->expr()->eq('e.family', ':family')
-                )
-            );
-            $qb->setParameter('family', $family);
-        }
-
-        $qb->andWhere($visibility);
+        $qb->andWhere('e.family = :family')
+            ->setParameter('family', $family);
 
         if ($type !== null) {
             $qb->andWhere('e.TypeEvenement = :type')
@@ -85,10 +68,13 @@ class EvenementRepository extends ServiceEntityRepository
     /**
      * @return Evenement[]
      */
-    public function findWithFilters(?TypeEvenement $type, ?string $search): array
+    public function findWithFilters(Family $family, ?TypeEvenement $type, ?string $search): array
     {
         $qb = $this->createQueryBuilder('e')
             ->orderBy('e.dateDebut', 'ASC');
+
+        $qb->andWhere('e.family = :family')
+            ->setParameter('family', $family);
 
         if ($type !== null) {
             $qb->andWhere('e.TypeEvenement = :type')

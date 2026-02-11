@@ -3,6 +3,7 @@
 namespace App\Controller\ModuleTache\FrontOffice;
 
 use App\Entity\User;
+use App\Entity\Family;
 use App\Entity\TaskAssignment;
 use App\Enum\TaskAssignmentStatus;
 use App\Form\TaskAssignmentType;
@@ -11,20 +12,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/parent/assignments')]
+#[Route('/portal/tasks/parent/assignments')]
 class ParentTaskAssignmentController extends AbstractController
 {
     #[Route('/new', name: 'parent_task_assign')]
     public function assign(
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
-        $parent = $em->getRepository(User::class)->findOneBy([
-            'email' => 'parent@test.com'
-        ]);
-
-        $family = $parent->getFamily();
+        [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
 
         $assignment = new TaskAssignment();
 
@@ -57,5 +56,23 @@ class ParentTaskAssignmentController extends AbstractController
         return $this->render('ModuleTache/frontoffice/parent/assign.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
     }
 }

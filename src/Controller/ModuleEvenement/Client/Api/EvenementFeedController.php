@@ -8,37 +8,33 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\ActiveFamilyResolver;
+use App\Entity\User;
+use App\Entity\Family;
 
-#[Route('/app/evenements')]
+#[Route('/portal/evenements')]
 class EvenementFeedController extends AbstractController
 {
     #[Route('/feed', name: 'app_evenements_feed', methods: ['GET'])]
     public function feed(
         Request $request,
         EntityManagerInterface $em,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
+        ActiveFamilyResolver $familyResolver
     ): JsonResponse
     {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json([]);
+        }
+        $family = $this->resolveFamily($familyResolver);
         $conn = $em->getConnection();
 
         $where = [];
         $params = [];
 
-        if ($user !== null) {
-            $visibility = ['e.created_by_id = :userId', 'e.created_by_id IS NULL'];
-            $params['userId'] = $user->getId();
-
-            $familyId = $user->getFamily()?->getId();
-            if ($familyId !== null) {
-                $visibility[] = '(e.share_with_family = 1 AND e.family_id = :familyId)';
-                $params['familyId'] = $familyId;
-            }
-
-            $where[] = '(' . implode(' OR ', $visibility) . ')';
-        } else {
-            $where[] = 'e.created_by_id IS NULL';
-        }
+        $where[] = 'e.family_id = :familyId';
+        $params['familyId'] = $family->getId();
 
         $typeId = $request->query->get('type');
         if ($typeId !== null && $typeId !== '') {
@@ -112,5 +108,20 @@ class EvenementFeedController extends AbstractController
         }
 
         return $this->json($data);
+    }
+
+    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $family;
     }
 }

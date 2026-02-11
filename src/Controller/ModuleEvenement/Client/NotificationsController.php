@@ -8,20 +8,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\ActiveFamilyResolver;
+use App\Entity\User;
+use App\Entity\Family;
 
-#[Route('/app/notifications')]
+#[Route('/portal/evenements/notifications')]
 class NotificationsController extends AbstractController
 {
     #[Route('', name: 'app_notifications', methods: ['GET'])]
-    public function index(RappelRepository $rappelRepository, Request $request): Response
+    public function index(RappelRepository $rappelRepository, Request $request, ActiveFamilyResolver $familyResolver): Response
     {
         $user = $this->getUser();
-        if ($user === null) {
-            return $this->render('app/notifications/index.html.twig', [
-                'rappels' => [],
-                'filter' => 'all',
-            ]);
-        }
+        $family = $this->resolveFamily($familyResolver);
 
         $rappelRepository->cleanupOrphanedAndPast();
         $filter = $request->query->get('filter', 'all');
@@ -29,7 +27,9 @@ class NotificationsController extends AbstractController
         $qb = $rappelRepository->createQueryBuilder('r')
             ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
+            ->andWhere('e.family = :family')
             ->setParameter('user', $user)
+            ->setParameter('family', $family)
             ->andWhere('e.dateFin >= :now')
             ->setParameter('now', $now)
             ->orderBy('r.scheduledAt', 'DESC');
@@ -57,5 +57,20 @@ class NotificationsController extends AbstractController
             }, $qb->getQuery()->getResult()),
             'filter' => $filter,
         ]);
+    }
+
+    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $family;
     }
 }

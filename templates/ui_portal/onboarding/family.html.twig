@@ -2,31 +2,31 @@
 
 {% block onboarding_panel %}
   <div class="panel-head">
-    <h2>Choose how to begin</h2>
-    <p class="text-muted">Create a household or join one with a code shared by a family member.</p>
+    <h2>Choisissez comment commencer</h2>
+    <p class="text-muted">Créez un foyer ou rejoignez-en un grâce à un code partagé.</p>
   </div>
 
   <div class="stack-lg">
     <form method="post" action="{{ path('portal_onboarding_family_create') }}" class="card border-0 shadow-none p-3" novalidate>
       <input type="hidden" name="_token" value="{{ csrf_token('family_onboarding_create') }}" />
-      <h6 class="mb-2">Create a household</h6>
+      <h6 class="mb-2">Créer un foyer</h6>
       <div class="mb-3">
-        <label class="form-label" for="familyName">Household name</label>
+        <label class="form-label" for="familyName">Nom du foyer</label>
         <input
           type="text"
           class="form-control"
           id="familyName"
           name="familyName"
-          placeholder="The Parker Family" />
+          placeholder="La famille Martin" />
       </div>
-      <button type="submit" class="btn btn-primary w-100">Create household</button>
+      <button type="submit" class="btn btn-primary w-100">Créer le foyer</button>
     </form>
 
     <form method="post" action="{{ path('portal_onboarding_family_join') }}" class="card border-0 shadow-none p-3" novalidate>
       <input type="hidden" name="_token" value="{{ csrf_token('family_onboarding_join') }}" />
-      <h6 class="mb-2">Join with a code</h6>
+      <h6 class="mb-2">Rejoindre avec un code</h6>
       <div class="mb-3">
-        <label class="form-label" for="joinCode">Join code</label>
+        <label class="form-label" for="joinCode">Code d’accès</label>
         <input
           type="text"
           class="form-control"
@@ -34,7 +34,7 @@
           name="joinCode"
           placeholder="ABC123" />
       </div>
-      <button type="submit" class="btn btn-outline-primary w-100">Join household</button>
+      <button type="submit" class="btn btn-outline-primary w-100">Rejoindre le foyer</button>
     </form>
   </div>
 {% endblock %}
