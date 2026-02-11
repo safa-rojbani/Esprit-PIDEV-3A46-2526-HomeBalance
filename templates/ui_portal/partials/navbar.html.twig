@@ -15,8 +15,8 @@
           type="text"
           name="q"
           class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
-          placeholder="Search your home..."
-          aria-label="Search"
+          placeholder="Rechercher dans votre foyer..."
+          aria-label="Recherche"
           value="{{ app.request.query.get('q') }}" />
       </form>
     </div>
@@ -26,14 +26,14 @@
         <li class="nav-item me-3 d-none d-md-inline-flex">
           <a class="btn btn-outline-primary d-flex align-items-center gap-2" href="{{ path('portal_admin_users') }}">
             <i class="icon-base bx bx-user-circle"></i>
-            <span>Admin users</span>
+            <span>Administration</span>
           </a>
         </li>
       {% endif %}
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
         <a class="nav-link dropdown-toggle hide-arrow p-0" href="#accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="avatar avatar-online">
-            <img src="{{ app.user and app.user.avatarPath ? asset(app.user.avatarPath) : asset('img/avatars/1.png') }}" alt="User avatar" class="w-px-40 h-auto rounded-circle" />
+            <img src="{{ app.user and app.user.avatarPath ? asset(app.user.avatarPath) : asset('materio/img/avatars/1.png') }}" alt="User avatar" class="w-px-40 h-auto rounded-circle" />
           </div>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
@@ -41,8 +41,8 @@
             <a class="dropdown-item" href="{{ path('portal_account') }}">
               <div class="d-flex align-items-center">
                 <div class="flex-grow-1">
-                  <h6 class="mb-0">{{ app.user ? (app.user.firstName ~ ' ' ~ app.user.lastName) : 'User' }}</h6>
-                  <small class="text-body-secondary">{{ app.user and is_granted('ROLE_ADMIN') ? 'Household admin' : 'Member' }}</small>
+                  <h6 class="mb-0">{{ app.user ? (app.user.firstName ~ ' ' ~ app.user.lastName) : 'Utilisateur' }}</h6>
+                  <small class="text-body-secondary">{{ app.user and is_granted('ROLE_ADMIN') ? 'Administrateur du foyer' : 'Membre' }}</small>
                 </div>
               </div>
             </a>
@@ -50,7 +50,7 @@
           <li><div class="dropdown-divider my-1"></div></li>
           <li>
             <a class="dropdown-item" href="{{ path('portal_account') }}">
-              <i class="icon-base bx bx-user icon-md me-3"></i><span>My space</span>
+              <i class="icon-base bx bx-user icon-md me-3"></i><span>Mon espace</span>
             </a>
           </li>
           <li>
@@ -62,19 +62,19 @@
           {% if is_granted('ROLE_ADMIN') %}
             <li>
               <a class="dropdown-item" href="{{ path('portal_admin_users') }}">
-                <i class="icon-base bx bx-shield icon-md me-3"></i><span>Admin: manage users</span>
+                <i class="icon-base bx bx-shield icon-md me-3"></i><span>Admin : utilisateurs</span>
               </a>
             </li>
             <li>
               <a class="dropdown-item" href="{{ path('portal_admin_gamification_badges') }}">
-                <i class="icon-base bx bx-medal icon-md me-3"></i><span>Admin: gamification</span>
+                <i class="icon-base bx bx-medal icon-md me-3"></i><span>Admin : gamification</span>
               </a>
             </li>
             <li><div class="dropdown-divider my-1"></div></li>
           {% endif %}
           <li>
             <a class="dropdown-item" href="{{ path('portal_auth_logout') }}">
-              <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Sign out</span>
+              <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Se déconnecter</span>
             </a>
           </li>
         </ul>

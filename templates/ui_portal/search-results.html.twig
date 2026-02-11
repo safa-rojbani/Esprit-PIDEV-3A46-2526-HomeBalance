@@ -1,20 +1,20 @@
 {% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}HomeBalance · Search{% endblock %}
+{% block title %}HomeBalance · Recherche{% endblock %}
 
 {% block content %}
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
     <div>
-      <h4 class="mb-0">Search results</h4>
-      <p class="text-muted mb-0">UMS-only search across users, families, invitations, and badges.</p>
+      <h4 class="mb-0">Résultats de recherche</h4>
+      <p class="text-muted mb-0">Recherche UMS : utilisateurs, familles, invitations et badges.</p>
     </div>
   </div>
 
   {% if query == '' %}
-    <div class="alert alert-info">Type something in the search box to begin.</div>
+    <div class="alert alert-info">Saisissez un terme pour commencer.</div>
   {% else %}
     <div class="alert alert-light">
-      Showing results for <strong>{{ query }}</strong>
+      Résultats pour <strong>{{ query }}</strong>
     </div>
   {% endif %}
 
@@ -26,12 +26,12 @@
   {% endfor %}
 
   {% if query != '' and not hasResults %}
-    <div class="alert alert-warning">No results found for this query.</div>
+    <div class="alert alert-warning">Aucun résultat pour cette recherche.</div>
   {% endif %}
 
   {% if results.users is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Users</h5></div>
+      <div class="card-header"><h5 class="mb-0">Utilisateurs</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for user in results.users %}
@@ -44,11 +44,11 @@
 
   {% if results.families is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Families</h5></div>
+      <div class="card-header"><h5 class="mb-0">Familles</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for family in results.families %}
-            <li>{{ family.getName() }} · {{ family.getJoinCode() ?? 'No code' }}</li>
+            <li>{{ family.getName() }} · {{ family.getJoinCode() ?? 'Sans code' }}</li>
           {% endfor %}
         </ul>
       </div>
@@ -70,7 +70,7 @@
 
   {% if results.memberships is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Memberships</h5></div>
+      <div class="card-header"><h5 class="mb-0">Adhésions</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for membership in results.memberships %}
@@ -96,7 +96,7 @@
 
   {% if results.familyBadges is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Family Badges</h5></div>
+      <div class="card-header"><h5 class="mb-0">Badges famille</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for record in results.familyBadges %}
@@ -109,7 +109,7 @@
 
   {% if results.accountNotifications is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Account Notifications</h5></div>
+      <div class="card-header"><h5 class="mb-0">Notifications compte</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for notification in results.accountNotifications %}
@@ -122,11 +122,11 @@
 
   {% if results.auditTrails is not empty %}
     <div class="card mb-4">
-      <div class="card-header"><h5 class="mb-0">Audit Trails</h5></div>
+      <div class="card-header"><h5 class="mb-0">Journal d’audit</h5></div>
       <div class="card-body">
         <ul class="mb-0">
           {% for record in results.auditTrails %}
-            <li>{{ record.getAction() }} · {{ record.getUser() ? record.getUser().getUserIdentifier() : 'System' }}</li>
+            <li>{{ record.getAction() }} · {{ record.getUser() ? record.getUser().getUserIdentifier() : 'Système' }}</li>
           {% endfor %}
         </ul>
       </div>

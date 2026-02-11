@@ -47,12 +47,18 @@ final class UserStatusSubscriber implements EventSubscriberInterface
 
         $status = $user->getStatus();
         if ($status === null || $status === UserStatus::ACTIVE) {
-            return;
+            if ($user->getEmailVerifiedAt() !== null) {
+                return;
+            }
         }
 
-        $message = $status === UserStatus::DELETED
-            ? 'This account has been deleted.'
-            : 'This account is temporarily suspended.';
+        if ($user->getEmailVerifiedAt() === null) {
+            $message = 'Please verify your email before continuing.';
+        } else {
+            $message = $status === UserStatus::DELETED
+                ? 'This account has been deleted.'
+                : 'This account is temporarily suspended.';
+        }
 
         if ($request->hasSession()) {
             $session = $request->getSession();

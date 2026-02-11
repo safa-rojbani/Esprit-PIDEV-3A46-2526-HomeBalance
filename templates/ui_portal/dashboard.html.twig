@@ -1,6 +1,6 @@
 {% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}HomeBalance · Home{% endblock %}
+{% block title %}HomeBalance · Accueil{% endblock %}
 
 {% block content %}
   {% set familyCount = metrics.familyMembers|default(1) %}
@@ -11,33 +11,33 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <div>
-              <p class="text-uppercase fw-medium text-white-50 mb-1">Your household today</p>
-              <h4 class="text-white mb-1">Welcome home, {{ user.firstName ?? user.username }}.</h4>
+              <p class="text-uppercase fw-medium text-white-50 mb-1">Votre foyer aujourd’hui</p>
+              <h4 class="text-white mb-1">Ravi de vous revoir, {{ user.firstName ?? user.username }}.</h4>
               <p class="text-white-75 mb-0">
                 {% if soloAccount %}
-                  Here&apos;s a snapshot of your day so nothing sneaks up on you.
+                  Voici un aperçu de votre journée pour garder le cap.
                 {% else %}
-                  Here&apos;s what&apos;s happening in your household today so everyone stays on the same page.
+                  Voici ce qui se passe aujourd’hui dans votre foyer pour que tout le monde reste aligné.
                 {% endif %}
               </p>
             </div>
             <span class="orbit-chip">
-              <small>Today</small>
-              <strong>{{ "now"|date('M d') }}</strong>
+              <small>Aujourd’hui</small>
+              <strong>{{ "now"|date('d M') }}</strong>
             </span>
           </div>
           <div class="orbit-strip mt-4" data-controller="streak-meter" data-streak-meter-count-value="{{ metrics.badgeCount }}">
             <div>
               <h5 class="text-white mb-0">{{ metrics.badgeCount }}</h5>
-              <small class="text-white-50">Your contributions</small>
+              <small class="text-white-50">Vos contributions</small>
             </div>
             <div>
               <h5 class="text-white mb-0">{{ metrics.familyMembers }}</h5>
-              <small class="text-white-50">People in your space</small>
+              <small class="text-white-50">Personnes dans le foyer</small>
             </div>
             <div>
               <h5 class="text-white mb-0">{{ recentActivity|length }}</h5>
-              <small class="text-white-50">Highlights saved</small>
+              <small class="text-white-50">Moments enregistrés</small>
             </div>
           </div>
         </div>
@@ -48,22 +48,22 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
-              <p class="text-uppercase text-muted mb-1">Your contributions</p>
+              <p class="text-uppercase text-muted mb-1">Vos contributions</p>
               <h4 class="mb-0">{{ engagement.score }}%</h4>
             </div>
-            <span class="badge bg-label-primary">{{ engagement.delivery|title }} delivery</span>
+            <span class="badge bg-label-primary">Canal {{ engagement.delivery|title }}</span>
           </div>
           <div class="pulse-ring" data-pulse-card-target="ring">
             <div class="pulse-ring__value" data-pulse-card-target="value">{{ engagement.score }}%</div>
           </div>
           <ul class="pulse-meta list-unstyled mb-0 mt-4">
             <li>
-              <span class="text-muted">Family</span>
-              <strong>{{ engagement.familyName ?? 'Solo account' }}</strong>
+              <span class="text-muted">Famille</span>
+              <strong>{{ engagement.familyName ?? 'Compte solo' }}</strong>
             </li>
             <li>
-              <span class="text-muted">Last check-in</span>
-              <strong>{{ engagement.lastLogin ? engagement.lastLogin|date('M d, H:i') : 'Not recorded yet' }}</strong>
+              <span class="text-muted">Dernière activité</span>
+              <strong>{{ engagement.lastLogin ? engagement.lastLogin|date('d M, H:i') : 'Pas encore enregistré' }}</strong>
             </li>
           </ul>
         </div>
@@ -77,13 +77,13 @@
         <div class="card h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-              <h5 class="mb-0">Your badges</h5>
-              <small class="text-muted">Personal milestones earned through your contributions.</small>
+              <h5 class="mb-0">Vos badges</h5>
+              <small class="text-muted">Des repères personnels obtenus grâce à vos actions.</small>
             </div>
           </div>
           <div class="card-body">
             {% if metrics.badges is empty %}
-              <p class="text-muted mb-0">No badges yet. Keep logging highlights to unlock them.</p>
+              <p class="text-muted mb-0">Pas encore de badge. Continuez à avancer pour les débloquer.</p>
             {% else %}
               <div class="d-flex flex-wrap gap-3">
                 {% for badge in metrics.badges %}
@@ -92,7 +92,7 @@
                       <i class="icon-base bx bx-award text-primary"></i>
                       <strong>{{ badge.name }}</strong>
                     </div>
-                    <small class="text-muted">{{ badge.description ?? 'Unlocked via household activity.' }}</small>
+                    <small class="text-muted">{{ badge.description ?? 'Débloqué grâce aux actions du foyer.' }}</small>
                   </div>
                 {% endfor %}
               </div>
@@ -104,23 +104,23 @@
         <div class="card h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-              <h5 class="mb-0">Family badges</h5>
-              <small class="text-muted">Shared achievements unlocked with your household.</small>
+              <h5 class="mb-0">Badges de la famille</h5>
+              <small class="text-muted">Des réussites partagées par tout le foyer.</small>
             </div>
           </div>
           <div class="card-body">
             {% if metrics.familyBadges is empty %}
-              <p class="text-muted mb-0">Once multiple members team up, family badges appear here.</p>
+              <p class="text-muted mb-0">Lorsque le foyer avance ensemble, les badges apparaissent ici.</p>
             {% else %}
               <div class="d-flex flex-column gap-3">
                 {% for badge in metrics.familyBadges %}
                   <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
                     <div>
                       <div class="fw-semibold">{{ badge.name }}</div>
-                      <small class="text-muted">{{ badge.description ?? 'Shared household recognition.' }}</small>
+                      <small class="text-muted">{{ badge.description ?? 'Réussite collective du foyer.' }}</small>
                     </div>
                     {% if badge.awardedAt %}
-                      <small class="text-muted">{{ badge.awardedAt|date('M d') }}</small>
+                      <small class="text-muted">{{ badge.awardedAt|date('d M') }}</small>
                     {% endif %}
                   </div>
                 {% endfor %}
@@ -142,14 +142,14 @@
         data-notification-heatmap-csrf-value="{{ csrf_token('notifications_quick') }}">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h5 class="mb-0">Household notifications</h5>
-            <small class="text-muted">Small actions add up. Here&apos;s what needs attention today.</small>
+              <h5 class="mb-0">Notifications du foyer</h5>
+              <small class="text-muted">Les petits gestes comptent. Voici ce qui mérite votre attention.</small>
+            </div>
+            <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-primary">Gérer les alertes</a>
           </div>
-          <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-primary">Tidy alerts</a>
-        </div>
-        <div class="card-body">
-          <div class="heatmap-grid">
-            <div class="heatmap-grid__corner">Channel</div>
+          <div class="card-body">
+            <div class="heatmap-grid">
+            <div class="heatmap-grid__corner">Canal</div>
             {% for channel, channelMeta in notificationChannels %}
               <div class="heatmap-grid__column">
                 <i class="icon-base bx {{ channelMeta.icon }}"></i>
@@ -171,16 +171,16 @@
                   data-channel="{{ channel }}"
                   data-type="{{ row.key }}"
                   data-enabled="{{ active ? 'true' : 'false' }}">
-                  <span>{{ active ? 'On' : 'Off' }}</span>
+                  <span>{{ active ? 'Activé' : 'Désactivé' }}</span>
                 </button>
               {% endfor %}
             {% endfor %}
           </div>
           <div class="heatmap-legend mt-3">
             <span class="dot dot--on"></span>
-            <small>Active delivery</small>
+            <small>Actif</small>
             <span class="dot dot--off ms-4"></span>
-            <small>Muted</small>
+            <small>En pause</small>
           </div>
         </div>
       </div>
@@ -189,33 +189,33 @@
       <div class="card quick-list h-100" data-controller="focus-queue">
         <div class="card-header d-flex justify-content-between align-items-center">
           <div>
-            <h5 class="mb-0">Today&apos;s tasks</h5>
-            <small class="text-muted">Small actions add up. Here&apos;s what needs attention.</small>
+            <h5 class="mb-0">Tâches du jour</h5>
+            <small class="text-muted">Les petits gestes comptent. Voici les priorités.</small>
           </div>
-          <span class="badge bg-label-info">Live</span>
+          <span class="badge bg-label-info">En direct</span>
         </div>
         <div class="card-body">
           <ol class="focus-queue mb-0" data-focus-queue-target="list">
             <li>
               <div>
-                <h6 class="mb-1">Check today&apos;s highlights</h6>
-                <p class="text-muted mb-0">{{ recentActivity|length }} new moments were captured in the last day.</p>
+                <h6 class="mb-1">Consulter les moments du jour</h6>
+                <p class="text-muted mb-0">{{ recentActivity|length }} nouveaux moments enregistrés sur les dernières 24 h.</p>
               </div>
-              <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">Review</a>
+              <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">Voir</a>
             </li>
             <li>
               <div>
-                <h6 class="mb-1">Confirm how alerts arrive</h6>
-                <p class="text-muted mb-0">Currently set to {{ engagement.delivery|title }} — adjust if family habits changed.</p>
+                <h6 class="mb-1">Vérifier les notifications</h6>
+                <p class="text-muted mb-0">Canal actuel : {{ engagement.delivery|title }} — ajustez si les habitudes évoluent.</p>
               </div>
-              <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-secondary">Update</a>
+              <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-secondary">Mettre à jour</a>
             </li>
             <li>
               <div>
-                <h6 class="mb-1">Invite someone to help</h6>
-                <p class="text-muted mb-0">Sharing the load keeps things fair. Send a code when you&apos;re ready.</p>
+                <h6 class="mb-1">Inviter un proche</h6>
+                <p class="text-muted mb-0">Partager la charge, c’est plus simple. Envoyez un code quand vous voulez.</p>
               </div>
-              <a href="{{ path('portal_account') }}#family" class="btn btn-sm btn-outline-secondary">Share code</a>
+              <a href="{{ path('portal_account') }}#family" class="btn btn-sm btn-outline-secondary">Partager le code</a>
             </li>
           </ol>
         </div>
@@ -226,14 +226,14 @@
   <div class="card" data-controller="timeline-peek">
     <div class="card-header d-flex justify-content-between align-items-center">
       <div>
-        <h5 class="mb-0">Moments from your household</h5>
-        <small class="text-muted">A gentle record of how everyone&apos;s contributing.</small>
+        <h5 class="mb-0">Moments du foyer</h5>
+        <small class="text-muted">Un fil doux pour suivre les contributions de chacun.</small>
       </div>
-      <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">View full history</a>
+      <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">Voir l’historique</a>
     </div>
     <div class="card-body">
       {% if recentActivity is empty %}
-        <p class="text-muted mb-0">No activity recorded yet. That&apos;s okay — every organized home starts somewhere.</p>
+        <p class="text-muted mb-0">Aucune activité pour l’instant. Tout foyer organisé commence quelque part.</p>
       {% else %}
         <ul class="timeline timeline-center mt-3" data-timeline-peek-target="timeline">
           {% for event in recentActivity %}
@@ -242,7 +242,7 @@
               <div class="timeline-event">
                 <div class="timeline-header">
                   <h6 class="mb-0">{{ event.title }}</h6>
-                  <small class="text-muted">{{ event.occurredAt|date('M d, H:i') }}</small>
+                  <small class="text-muted">{{ event.occurredAt|date('d M, H:i') }}</small>
                 </div>
                 <p class="mb-0 text-muted">{{ event.description }}</p>
               </div>

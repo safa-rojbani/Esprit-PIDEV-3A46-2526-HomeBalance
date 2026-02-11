@@ -6,6 +6,7 @@ use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\User;
+use App\Entity\Family;
 
 /**
  * @extends ServiceEntityRepository<Task>
@@ -16,12 +17,13 @@ class TaskRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Task::class);
     }
-    public function findAdminTasks(User $admin): array
+    public function findAdminTasks(User $admin, Family $family): array
 {
     return $this->createQueryBuilder('t')
         ->where('t.createdBy = :admin')
-        ->andWhere('t.family IS NULL')
+        ->andWhere('t.family = :family')
         ->setParameter('admin', $admin)
+        ->setParameter('family', $family)
         ->orderBy('t.createdAt', 'DESC')
         ->getQuery()
         ->getResult();

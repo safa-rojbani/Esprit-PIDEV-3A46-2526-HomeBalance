@@ -5,36 +5,36 @@ namespace App\Controller\ModuleDocuments\FrontOffice\API;
 use App\Entity\Document;
 use App\Entity\Gallery;
 use App\Enum\EtatDocument;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\ActiveFamilyResolver;
+use App\Entity\User;
 
 final class CameraUploadController extends AbstractController
 {
-    public function __construct(private UserRepository $userRepository) {}
-
-    #[Route('/api/galleries/{id}/camera-upload', name: 'api_camera_upload', methods: ['POST'])]
-    public function __invoke(Gallery $gallery, Request $request, EntityManagerInterface $em): JsonResponse
+    #[Route('/portal/documents/api/galleries/{id}/camera-upload', name: 'api_camera_upload', methods: ['POST'])]
+    public function __invoke(Gallery $gallery, Request $request, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): JsonResponse
     {
         try {
             $user = $this->getUser();
 
-            // ✅ DEV fallback فقط (في production: رجّع 401)
-            if (!$user instanceof \App\Entity\User) {
-                $user = $this->userRepository->find(1);
-                if (!$user) {
-                    return $this->json(['ok' => false, 'error' => 'Unauthenticated'], 401);
-                }
+            if (!$user instanceof User) {
+                return $this->json(['ok' => false, 'error' => 'Unauthenticated'], 401);
+            }
+
+            $family = $familyResolver->resolveForUser($user);
+            if ($family === null) {
+                return $this->json(['ok' => false, 'error' => 'No active family'], 403);
             }
 
             // ✅ isolation Family
             if (
-                !$gallery->getFamily() || !$user->getFamily() ||
-                $gallery->getFamily()->getId() !== $user->getFamily()->getId()
+                !$gallery->getFamily() ||
+                $gallery->getFamily()->getId() !== $family->getId()
             ) {
                 return $this->json(['ok' => false, 'error' => 'Forbidden'], 403);
             }
@@ -93,7 +93,7 @@ final class CameraUploadController extends AbstractController
             $doc->setEtat(EtatDocument::ACTIF);
 
             $doc->setGallery($gallery);
-            $doc->setFamily($user->getFamily());
+            $doc->setFamily($family);
             $doc->setUploadedBY($user);
 
             $em->persist($doc);

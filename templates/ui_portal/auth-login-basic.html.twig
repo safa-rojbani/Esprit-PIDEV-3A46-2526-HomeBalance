@@ -1,26 +1,26 @@
 {% extends 'ui_portal/layouts/auth.html.twig' %}
 
-{% block title %}Sign in · HomeBalance{% endblock %}
+{% block title %}Connexion · HomeBalance{% endblock %}
 
 {% block hero %}
-  <p class="eyebrow">Your household, all in one place</p>
-  <h1>Welcome back to HomeBalance.</h1>
-  <h2 class="visually-hidden">HomeBalance sign in</h2>
+  <p class="eyebrow">Votre foyer, en un seul endroit</p>
+  <h1>Heureux de vous revoir sur HomeBalance.</h1>
+  <h2 class="visually-hidden">Connexion HomeBalance</h2>
   <p class="lead">
-    Every task, every contribution, every small effort matters. Log in to see how your household is moving forward today.
+    Chaque tâche compte. Connectez-vous pour voir comment votre foyer avance aujourd’hui.
   </p>
   <div class="hero-insight" data-controller="clock-pill">
-    <span data-clock-pill-target="label">{{ 'now'|date('g:i a') }}</span>
-    <small>Local time</small>
+    <span data-clock-pill-target="label">{{ 'now'|date('H:i') }}</span>
+    <small>Heure locale</small>
   </div>
 {% endblock %}
 
-{% block panel_subtitle %}Let's check in on your home{% endblock %}
+{% block panel_subtitle %}Retrouvons votre espace familial{% endblock %}
 
 {% block panel %}
   <div class="panel-head">
-    <h2>Sign in to your space</h2>
-    <p class="text-muted">Log in to manage chores, track expenses, and keep your household balanced without the pressure.</p>
+    <h2>Connexion à votre espace</h2>
+    <p class="text-muted">Gérez les tâches, suivez le budget et gardez un foyer serein, sans pression.</p>
   </div>
 
   {% if error %}
@@ -46,13 +46,13 @@
         class="form-control"
         id="username"
         name="_username"
-        placeholder="Email or username"
+        placeholder="E-mail ou identifiant"
         value="{{ last_username }}"
         autocomplete="username"
         data-login-form-target="username" />
-      <span>Email or username</span>
+      <span>E-mail ou identifiant</span>
     </label>
-    <small class="field-hint text-muted">The email you used to create your HomeBalance account.</small>
+    <small class="field-hint text-muted">L’e-mail utilisé pour créer votre compte HomeBalance.</small>
 
     <div class="form-password-toggle" data-controller="password-visibility">
       <label class="form-floating">
@@ -61,42 +61,42 @@
           id="password"
           class="form-control"
           name="_password"
-          placeholder="Password"
+          placeholder="Mot de passe"
           autocomplete="current-password"
           data-password-visibility-target="input" />
-        <span>Password</span>
+        <span>Mot de passe</span>
         <button
           class="password-toggle"
           type="button"
-          aria-label="Toggle password visibility"
+          aria-label="Afficher ou masquer le mot de passe"
           data-action="password-visibility#toggle"
           data-password-visibility-target="toggle">
           <i class="icon-base bx bx-hide"></i>
         </button>
       </label>
-      <small class="field-hint text-muted">Your private key to your household space.</small>
+      <small class="field-hint text-muted">Votre clé privée pour l’espace familial.</small>
     </div>
 
     <div class="d-flex justify-content-between align-items-center">
       <label class="form-check">
         <input class="form-check-input" type="checkbox" id="remember-me" name="_remember_me" />
-        <span class="form-check-label">Keep me signed in on this device</span>
+        <span class="form-check-label">Rester connecté sur cet appareil</span>
       </label>
       <div class="text-end">
-        <a class="link-muted" href="{{ path('portal_auth_forgot_password') }}">Forgot password?</a>
-        <small class="text-muted d-block">It happens. Let's get you back in.</small>
+        <a class="link-muted" href="{{ path('portal_auth_forgot_password') }}">Mot de passe oublié ?</a>
+        <small class="text-muted d-block">Ça arrive. On vous aide à revenir.</small>
         <small class="text-muted d-block mt-1">
-          Need a new verification email?
-          <a class="link-underline" href="{{ path('portal_auth_resend_verification') }}">Send it again</a>
+          Besoin d’un nouvel e-mail de vérification ?
+          <a class="link-underline" href="{{ path('portal_auth_resend_verification') }}">Le renvoyer</a>
         </small>
       </div>
     </div>
 
-    <button class="btn btn-primary w-100" type="submit">Head home</button>
+    <button class="btn btn-primary w-100" type="submit">Entrer</button>
   </form>
 
   <p class="text-center mb-0">
-    <span class="text-muted">New here?</span>
-    <a href="{{ path('portal_auth_register') }}" class="link-underline">Create an account and start building balance</a>
+    <span class="text-muted">Nouveau ici ?</span>
+    <a href="{{ path('portal_auth_register') }}" class="link-underline">Créer un compte et commencer</a>
   </p>
 {% endblock %}

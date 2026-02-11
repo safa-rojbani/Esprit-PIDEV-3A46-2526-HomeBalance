@@ -4,6 +4,7 @@ namespace App\Controller\ModuleTache\FrontOffice;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Entity\Family;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,33 +12,21 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/parent/tasks')]
+#[Route('/portal/tasks/parent')]
 class ParentTaskController extends AbstractController
 {
-    private function getParent(EntityManagerInterface $em): User
-    {
-        $parent = $em->getRepository(User::class)->findOneBy([
-            'email' => 'parent@test.com'
-        ]);
-
-        if (!$parent) {
-            throw new \Exception('Parent introuvable');
-        }
-
-        return $parent;
-    }
-
     #[Route('/', name: 'parent_task_index')]
     public function index(
         TaskRepository $taskRepository,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
-        $parent = $this->getParent($em);
-        $family = $parent->getFamily();
+        [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
 
         $adminTasks = $taskRepository->findBy([
-            'family' => null,
+            'family' => $family,
             'isActive' => true
         ]);
 
@@ -54,9 +43,14 @@ class ParentTaskController extends AbstractController
     #[Route('/add/{id}', name: 'parent_task_add')]
     public function addAdminTask(
         Task $adminTask,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
-        $parent = $this->getParent($em);
+        [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
+
+        if ($adminTask->getFamily()?->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
 
         $task = new Task();
         $task->setTitle($adminTask->getTitle());
@@ -66,7 +60,7 @@ class ParentTaskController extends AbstractController
         $task->setIsActive(true);
         $task->setCreatedAt(new \DateTimeImmutable());
         $task->setCreatedBy($parent);
-        $task->setFamily($parent->getFamily());
+        $task->setFamily($family);
 
         $em->persist($task);
         $em->flush();
@@ -77,9 +71,10 @@ class ParentTaskController extends AbstractController
     #[Route('/new', name: 'parent_task_new')]
     public function new(
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
-        $parent = $this->getParent($em);
+        [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
 
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
@@ -89,7 +84,7 @@ class ParentTaskController extends AbstractController
             $task->setCreatedAt(new \DateTimeImmutable());
             $task->setIsActive(true);
             $task->setCreatedBy($parent);
-            $task->setFamily($parent->getFamily());
+            $task->setFamily($family);
 
             $em->persist($task);
             $em->flush();
@@ -107,8 +102,14 @@ class ParentTaskController extends AbstractController
     public function edit(
         Task $task,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
+        [, $family] = $this->resolveUserAndFamily($familyResolver);
+        if ($task->getFamily()?->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
 
@@ -126,13 +127,37 @@ class ParentTaskController extends AbstractController
     public function delete(
         Task $task,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver
     ): Response {
+        [, $family] = $this->resolveUserAndFamily($familyResolver);
+        if ($task->getFamily()?->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
         if ($this->isCsrfTokenValid('delete_task_'.$task->getId(), $request->request->get('_token'))) {
             $em->remove($task);
             $em->flush();
         }
 
         return $this->redirectToRoute('parent_task_index');
+    }
+
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
     }
 }

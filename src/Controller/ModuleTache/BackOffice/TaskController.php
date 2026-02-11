@@ -4,6 +4,7 @@ namespace App\Controller\ModuleTache\BackOffice;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Entity\Family;
 use App\Repository\UserRepository;
 use App\Enum\TaskDifficulty;
 use App\Enum\TaskRecurrence;
@@ -14,24 +15,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\TaskType;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/admin/tasks')]
+#[Route('/portal/admin/tasks')]
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'admin_task_index')]
 public function index(
     TaskRepository $taskRepository,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
-    $admin = $em->getRepository(User::class)->findOneBy([
-        'email' => 'admin@test.com'
-    ]);
+    [$admin, $family] = $this->resolveUserAndFamily($familyResolver);
 
-    if (!$admin) {
-        throw new \Exception('Admin introuvable');
-    }
-
-    $tasks = $taskRepository->findAdminTasks($admin);
+    $tasks = $taskRepository->findAdminTasks($admin, $family);
 
     return $this->render('ModuleTache/backoffice/index.html.twig', [
         'tasks' => $tasks,
@@ -42,8 +39,9 @@ public function index(
    
 
 #[Route('/create', name: 'admin_task_create')]
-public function create(Request $request, EntityManagerInterface $em): Response
+public function create(Request $request, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
 {
+    [$admin, $family] = $this->resolveUserAndFamily($familyResolver);
     $task = new Task();
 
     $form = $this->createForm(TaskType::class, $task);
@@ -51,18 +49,10 @@ public function create(Request $request, EntityManagerInterface $em): Response
 
     if ($form->isSubmitted() && $form->isValid()) {
 
-        $admin = $em->getRepository(User::class)->findOneBy([
-            'email' => 'admin@test.com'
-        ]);
-
-        if (!$admin) {
-            throw new \Exception('Admin introuvable');
-        }
-
         $task->setCreatedAt(new \DateTimeImmutable());
         $task->setIsActive(true);
         $task->setCreatedBy($admin);
-        $task->setFamily(null);
+        $task->setFamily($family);
 
         $em->persist($task);
         $em->flush();
@@ -80,8 +70,14 @@ public function create(Request $request, EntityManagerInterface $em): Response
 public function edit(
     Task $task,
     Request $request,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
+    [, $family] = $this->resolveUserAndFamily($familyResolver);
+    if ($task->getFamily()?->getId() !== $family->getId()) {
+        throw $this->createAccessDeniedException();
+    }
+
     $form = $this->createForm(TaskType::class, $task);
     $form->handleRequest($request);
 
@@ -101,8 +97,14 @@ public function edit(
 public function delete(
     Request $request,
     Task $task,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
+    [, $family] = $this->resolveUserAndFamily($familyResolver);
+    if ($task->getFamily()?->getId() !== $family->getId()) {
+        throw $this->createAccessDeniedException();
+    }
+
     if ($this->isCsrfTokenValid('delete_task_'.$task->getId(), $request->request->get('_token'))) {
         $em->remove($task);
         $em->flush();
@@ -111,5 +113,22 @@ public function delete(
     return $this->redirectToRoute('admin_task_index');
 }
 
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
+    }
 
 }

@@ -3,6 +3,7 @@
 namespace App\ServiceModuleCharge;
 
 use App\Entity\CategorieAchat;
+use App\Entity\Family;
 use App\Repository\CategorieAchatRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -21,6 +22,11 @@ class CategorieAchatService
     public function findAll(): array
     {
         return $this->repository->findAll();
+    }
+
+    public function findAllByFamily(Family $family): array
+    {
+        return $this->repository->findBy(['family' => $family]);
     }
 
     // 2️⃣ Créer une catégorie

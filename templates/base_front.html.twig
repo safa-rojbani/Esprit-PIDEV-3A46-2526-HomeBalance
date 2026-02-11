@@ -68,47 +68,55 @@
 <div class="layout-wrapper layout-content-navbar">
   <div class="layout-container">
 
-    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-      <div class="app-brand demo px-3 py-2">
-        <a href="{{ path('home') }}" class="app-brand-link text-decoration-none">
-          <span class="app-brand-text demo menu-text fw-bold ms-2">HomeBalance</span>
-        </a>
-      </div>
+    {% set route = app.request.attributes.get('_route') %}
+    {% set active_menu = active_menu|default(
+      (route starts with 'app_evenement'
+        or route starts with 'app_rappel'
+        or route starts with 'app_type_evenement'
+        or route starts with 'app_calendar'
+        or route starts with 'app_notifications') ? 'module-events'
+      : (route starts with 'app_gallery'
+        or route starts with 'app_document'
+        or route starts with 'app_default_gallery') ? 'module-documents'
+      : (route starts with 'app_achat'
+        or route starts with 'app_revenu'
+        or route starts with 'app_historique_achat'
+        or route starts with 'app_categorie_achat') ? 'module-charge'
+      : (route starts with 'parent_task'
+        or route starts with 'child_task'
+        or route starts with 'family_task'
+        or route starts with 'parent_validation'
+        or route starts with 'admin_task') ? 'module-tasks'
+      : 'dashboard'
+    ) %}
+    {% set module_submenus = module_submenus|default({
+      'module-charge': [
+        {'label': 'Achats', 'route': 'app_achat_index'},
+        {'label': 'Historique', 'route': 'app_historique_achat_index'},
+        {'label': 'Revenus', 'route': 'app_revenu_index'},
+        {'label': 'Budget', 'route': 'app_revenu_budget'}
+      ],
+      'module-documents': [
+        {'label': 'Galeries', 'route': 'app_gallery_index'},
+        {'label': 'Documents', 'route': 'app_document_index'},
+        {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+        {'label': 'Corbeille', 'route': 'app_document_trash'}
+      ],
+      'module-tasks': [
+        {'label': 'Tâches parent', 'route': 'parent_task_index'},
+        {'label': 'Tâches enfant', 'route': 'child_task_index'},
+        {'label': 'Tâches famille', 'route': 'family_task_list'},
+        {'label': 'Validations', 'route': 'parent_validation_index'}
+      ],
+      'module-events': [
+        {'label': 'Événements', 'route': 'app_evenement_index'},
+        {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
+        {'label': 'Rappels', 'route': 'app_rappel_history'},
+        {'label': 'Calendrier', 'route': 'app_calendar'}
+      ]
+    }) %}
 
-      <div class="menu-inner-shadow"></div>
-
-      <ul class="menu-inner py-1">
-        <li class="menu-header small text-uppercase">
-          <span class="menu-header-text">Client</span>
-        </li>
-
-        <li class="menu-item">
-          <a href="{{ path('app_calendar') }}" class="menu-link">
-            <i class="menu-icon iconify" data-icon="mdi:calendar-blank-outline"></i>
-            <div>Calendrier</div>
-          </a>
-        </li>
-
-        <li class="menu-item">
-          <a href="{{ path('app_evenement_index') }}" class="menu-link">
-            <i class="menu-icon iconify" data-icon="mdi:format-list-bulleted"></i>
-            <div>Mes événements</div>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="{{ path('app_type_evenement_index') }}" class="menu-link">
-            <i class="menu-icon iconify" data-icon="mdi:tag-outline"></i>
-            <div>Types d'événements</div>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="{{ path('app_rappel_history') }}" class="menu-link">
-            <i class="menu-icon iconify" data-icon="mdi:bell-outline"></i>
-            <div>Rappels</div>
-          </a>
-        </li>
-      </ul>
-    </aside>
+    {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
 
     <div class="layout-page">
       <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"

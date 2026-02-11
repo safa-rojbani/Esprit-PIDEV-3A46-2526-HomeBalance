@@ -13,27 +13,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\ActiveFamilyResolver;
+use App\Entity\User;
+use App\Entity\Family;
 
-#[Route('/app')]
+#[Route('/portal/evenements')]
 class RappelController extends AbstractController
 {
     #[Route('/rappels', name: 'app_rappel_history', methods: ['GET'])]
-    public function history(RappelRepository $rappelRepository): Response
+    public function history(RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
     {
         $user = $this->getUser();
-        if ($user === null) {
-            return $this->render('app/rappel/history.html.twig', [
-                'rappels' => [],
-            ]);
-        }
+        $family = $this->resolveFamily($familyResolver);
 
         $rappelRepository->cleanupOrphanedAndPast();
         $now = new \DateTimeImmutable();
         $rappels = $rappelRepository->createQueryBuilder('r')
             ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
+            ->andWhere('e.family = :family')
             ->andWhere('e.dateFin >= :now')
             ->setParameter('user', $user)
+            ->setParameter('family', $family)
             ->setParameter('now', $now)
             ->orderBy('r.id', 'DESC')
             ->getQuery()
@@ -64,11 +65,10 @@ class RappelController extends AbstractController
     }
 
     #[Route('/evenement/{id}/rappels', name: 'app_evenement_rappels', methods: ['GET'])]
-    public function index(Evenement $evenement, RappelRepository $rappelRepository): Response
+    public function index(Evenement $evenement, RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
     {
-        if (!$this->canViewEvent($evenement)) {
-            throw $this->createAccessDeniedException();
-        }
+        $family = $this->resolveFamily($familyResolver);
+        $this->assertSameFamily($family, $evenement->getFamily());
 
         $user = $this->getUser();
         $rappels = $rappelRepository->findBy(
@@ -83,15 +83,21 @@ class RappelController extends AbstractController
     }
 
     #[Route('/rappel/new', name: 'app_rappel_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EvenementRepository $evenementRepository, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EvenementRepository $evenementRepository, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
     {
+        $family = $this->resolveFamily($familyResolver);
+
         $eventId = $request->query->get('evenement');
         if (!$eventId) {
             throw $this->createNotFoundException('Missing event id.');
         }
 
         $evenement = $evenementRepository->find($eventId);
-        if (!$evenement || !$this->canViewEvent($evenement)) {
+        if (!$evenement) {
+            throw $this->createAccessDeniedException();
+        }
+        $this->assertSameFamily($family, $evenement->getFamily());
+        if ($this->getUser() === null) {
             throw $this->createAccessDeniedException();
         }
 
@@ -103,7 +109,7 @@ class RappelController extends AbstractController
             $user = $this->getUser();
             $rappel->setEvenement($evenement);
             $rappel->setUser($user);
-            $rappel->setFamily($user?->getFamily());
+            $rappel->setFamily($family);
             if ($rappel->isActif() === null) {
                 $rappel->setActif(true);
             }
@@ -128,8 +134,11 @@ class RappelController extends AbstractController
     }
 
     #[Route('/rappel/{id}/edit', name: 'app_rappel_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Rappel $rappel, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Rappel $rappel, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
     {
+        $family = $this->resolveFamily($familyResolver);
+        $this->assertSameFamily($family, $rappel->getFamily());
+
         if ($rappel->getUser() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
@@ -169,8 +178,11 @@ class RappelController extends AbstractController
     }
 
     #[Route('/rappel/{id}', name: 'app_rappel_delete', methods: ['POST'])]
-    public function delete(Request $request, Rappel $rappel, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Rappel $rappel, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
     {
+        $family = $this->resolveFamily($familyResolver);
+        $this->assertSameFamily($family, $rappel->getFamily());
+
         if ($rappel->getUser() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
@@ -198,19 +210,33 @@ class RappelController extends AbstractController
     private function canViewEvent(Evenement $evenement): bool
     {
         $user = $this->getUser();
-        if ($user === null) {
+        if (!$user instanceof User) {
             return false;
-        }
-
-        if ($evenement->getCreatedBy() === $user) {
-            return true;
-        }
-
-        if ($evenement->getCreatedBy() === null) {
-            return true;
         }
 
         return $user->getFamily() !== null
             && $evenement->getFamily() === $user->getFamily();
+    }
+
+    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $family;
+    }
+
+    private function assertSameFamily(Family $family, ?Family $targetFamily): void
+    {
+        if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }
