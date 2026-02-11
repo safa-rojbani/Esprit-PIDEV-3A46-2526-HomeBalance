@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Espace Parent</h1>
+
+<a href="{{ path('parent_task_new') }}">➕ Nouvelle tâche personnalisée</a>
+
+<hr>
+
+<h2>Tâches admin</h2>
+<ul>
+    {% for task in adminTasks %}
+        <li>
+            {{ task.title }}
+            <a href="{{ path('parent_task_add', {id: task.id}) }}">➕ Ajouter</a>
+        </li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+<h2>Tâches de la famille</h2>
+<ul>
+    {% for task in familyTasks %}
+        <li>
+            <strong>{{ task.title }}</strong>
+            <a href="{{ path('parent_task_edit', {id: task.id}) }}">✏️</a>
+
+            <form method="post"
+                  action="{{ path('parent_task_delete', {id: task.id}) }}"
+                  style="display:inline"
+                  onsubmit="return confirm('Supprimer cette tâche ?')">
+                <input type="hidden" name="_token"
+                       value="{{ csrf_token('delete_task_' ~ task.id) }}">
+                <button type="submit">🗑️</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

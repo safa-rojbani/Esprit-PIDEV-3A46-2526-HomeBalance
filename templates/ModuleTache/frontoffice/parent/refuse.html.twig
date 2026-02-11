@@ -1,0 +1,10 @@
+<h1>❌ Refuser la tâche</h1>
+
+<p><strong>{{ completion.task.title }}</strong></p>
+
+<img src="/uploads/proofs/{{ completion.proof }}" width="200">
+
+{{ form_start(form) }}
+    {{ form_row(form.parentComment) }}
+    <button type="submit">❌ Confirmer le refus</button>
+{{ form_end(form) }}
