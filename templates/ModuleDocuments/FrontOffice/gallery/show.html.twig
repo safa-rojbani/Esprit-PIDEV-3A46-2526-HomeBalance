@@ -1,0 +1,477 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ gallery.name }}
+{% endblock %}
+
+{% block content %}
+	<style>
+		/* ===== HomeBalance: Gallery (Docs first) ===== */
+		.hb-page {
+			padding-top: 6px;
+		}
+
+		/* --- Compact top bar --- */
+		.hb-topbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 12px;
+		}
+		.hb-top-left {
+			min-width: 240px;
+		}
+		.hb-album-name {
+			margin: 0;
+			font-weight: 900;
+			color: #2b2f36;
+			line-height: 1.15;
+			word-break: break-word;
+			font-size: 1.1rem;
+		}
+		.hb-album-sub {
+			margin: 6px 0 0;
+			color: #7a8699;
+			font-size: 0.85rem;
+			max-width: 720px;
+			word-break: break-word;
+		}
+		.hb-actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			align-items: center;
+		}
+
+		.hb-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			font-weight: 800;
+			text-decoration: none;
+			background: rgba(255, 255, 255, 0.75);
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			color: #566a7f;
+			backdrop-filter:blur(10px);
+			transition: 0.15s ease;
+		}
+		.hb-pill:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 10px 18px rgba(67, 89, 113, 0.12);
+			color: #3b4452;
+		}
+		.hb-pill.primary {
+			background: linear-gradient(135deg,#6f7dff,#9b5cff);
+			border: none;
+			color: #fff;
+		}
+		.hb-pill.primary:hover {
+			box-shadow: 0 14px 26px rgba(111, 125, 255, 0.28);
+			color: #fff;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.70);
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			color: #566a7f;
+			backdrop-filter:blur(10px);
+			font-weight: 800;
+		}
+		.hb-mini {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			align-items: center;
+			margin-top: 10px;
+		}
+
+		/* ===== Documents section ===== */
+		.hb-section-title {
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 10px;
+			margin: 14px 0 12px;
+			flex-wrap: wrap;
+		}
+		.hb-section-title h5 {
+			margin: 0;
+			font-weight: 900;
+			color: #2b2f36;
+		}
+		.hb-section-title p {
+			margin: 0;
+			color: #7a8699;
+			font-size: 0.85rem;
+		}
+
+		.hb-doc-grid {
+			display: grid;
+			grid-template-columns: repeat(6, 1fr);
+			gap: 12px;
+		}
+		@media(max-width:1200px) {
+			.hb-doc-grid {
+				grid-template-columns: repeat(4, 1fr);
+			}
+		}
+		@media(max-width:768px) {
+			.hb-doc-grid {
+				grid-template-columns: repeat(3, 1fr);
+			}
+		}
+		@media(max-width:420px) {
+			.hb-doc-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		/* ✅ IMPORTANT: allow dropdown to overflow */
+		.hb-doc {
+			position: relative;
+			overflow: visible; /* <--- THIS fixes "only 3 options" */
+		}
+
+		/* inner card keeps rounded corners + crop */
+		.hb-doc-card {
+			border-radius: 14px;
+			overflow: hidden;
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			background: #fff;
+			box-shadow: 0 10px 22px rgba(67, 89, 113, 0.10);
+			transition: 0.16s ease;
+		}
+		.hb-doc:hover .hb-doc-card {
+			transform: translateY(-2px);
+			box-shadow: 0 16px 30px rgba(67, 89, 113, 0.16);
+		}
+
+		.hb-thumb {
+			aspect-ratio: 1 / 1;
+			background: #f2f3f6;
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.hb-thumb img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+
+		.hb-doc-type {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			padding: 0.25rem 0.55rem;
+			border-radius: 999px;
+			font-size: 0.72rem;
+			font-weight: 900;
+			background: rgba(255, 255, 255, 0.82);
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			color: #566a7f;
+			backdrop-filter:blur(10px);
+			z-index: 3;
+		}
+
+		/* ===== Per-doc menu (same as gallery hb-menu) ===== */
+		.hb-doc-actions {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			z-index: 50;
+			pointer-events: none;
+		}
+
+		.hb-doc-menu-btn {
+			pointer-events: auto;
+			width: 38px;
+			height: 38px;
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			background: rgba(0, 0, 0, 0.42);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 10px 22px rgba(0, 0, 0, 0.20);
+
+			opacity: 0;
+			transform: translateY(-4px);
+			transition: 0.18s ease;
+
+			cursor: pointer;
+			outline: none;
+		}
+
+		.hb-doc-menu-btn::before {
+			content: "⋮";
+			color: rgba(255, 255, 255, 0.95);
+			font-size: 20px;
+			line-height: 1;
+			transform: translateY(-1px);
+			display: block;
+		}
+
+		.hb-doc:hover .hb-doc-menu-btn {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		@media(max-width:768px) {
+			.hb-doc-menu-btn {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.hb-doc-menu {
+			position: absolute;
+			top: 54px;
+			right: 0;
+			min-width: 200px;
+
+			border-radius: 14px;
+			overflow: hidden;
+			background: rgba(255, 255, 255, 0.94);
+			border: 1px solid rgba(67, 89, 113, 0.14);
+			backdrop-filter:blur(14px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, 0.22);
+
+			opacity: 0;
+			transform: translateY(-6px);
+			pointer-events: none;
+			transition: 0.18s ease;
+		}
+
+		.hb-doc-menu.show {
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.hb-doc-menu a,
+		.hb-doc-menu button {
+			width: 100%;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 12px;
+
+			background: transparent;
+			border: 0;
+			text-align: left;
+
+			font-weight: 700;
+			color: #566a7f;
+			text-decoration: none;
+		}
+
+		.hb-doc-menu a:hover,
+		.hb-doc-menu button:hover {
+			background: rgba(67, 89, 113, 0.06);
+		}
+
+		.hb-doc-menu .danger {
+			color: #d32f2f;
+		}
+
+		.hb-doc-footer {
+			padding: 10px 10px 12px;
+		}
+		.hb-doc-name {
+			font-weight: 900;
+			color: #2b2f36;
+			font-size: 0.9rem;
+			margin: 0;
+			word-break: break-word;
+		}
+		.hb-doc-sub {
+			margin: 4px 0 0;
+			font-size: 0.78rem;
+			color: #7a8699;
+			word-break: break-word;
+		}
+
+		.hb-delete-wrap form {
+			display: inline;
+		}
+		.hb-delete-wrap button {
+			border-radius: 999px !important;
+			font-weight: 900;
+			padding: 0.45rem 0.75rem;
+		}
+	</style>
+
+	{% set activeDocs = documents|filter(d => d.etat and d.etat.value == 'actif') %}
+	{% set createdLabel = gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '—' %}
+
+	<div class="hb-page">
+
+		<div class="hb-topbar">
+			<div class="hb-top-left">
+				<h3 class="hb-album-name">{{ gallery.name }}</h3>
+				<p class="hb-album-sub">{{ gallery.description ?: 'No description yet — add one ✨' }}</p>
+
+				<div class="hb-mini">
+					<span class="hb-chip">
+						<i class="bx bx-file"></i>
+						{{ activeDocs|length }}
+						doc{{ activeDocs|length > 1 ? 's' : '' }}
+					</span>
+					<span class="hb-chip">
+						<i class="bx bx-calendar"></i>
+						{{ createdLabel }}
+					</span>
+				</div>
+			</div>
+
+			<div class="hb-actions">
+				{% set backPath = (from is defined and from == 'hidden')
+  ? path('app_gallery_hidden')
+  : path('app_gallery_index')
+%}
+
+				<a href="{{ backPath }}" class="btn btn-outline-secondary">
+					<i class="bx bx-left-arrow-alt me-1"></i>
+					Back
+				</a>
+
+				<a class="hb-pill" href="{{ path('app_gallery_edit', {'id': gallery.id}) }}">
+					<i class="bx bx-edit-alt"></i>
+					Edit
+				</a>
+				<a class="hb-pill primary" href="{{ path('app_document_new', {'galleryId': gallery.id}) }}">
+					<i class="bx bx-plus"></i>
+					Add document
+				</a>
+				<span class="hb-delete-wrap">
+					{{ include('ModuleDocuments/FrontOffice/gallery/_delete_form.html.twig') }}
+				</span>
+			</div>
+		</div>
+
+		<div class="hb-section-title">
+			<div>
+				<h5>Documents</h5>
+				<p class="text-muted">Focus here: images, PDFs, and files</p>
+			</div>
+		</div>
+
+		{% if activeDocs|length == 0 %}
+			<div class="alert alert-info mb-0">No active documents in this gallery.</div>
+		{% else %}
+			<div class="hb-doc-grid">
+				{% for document in activeDocs %}
+					<div
+						class="hb-doc">
+
+						{# ✅ menu placed OUTSIDE clipped card #}
+						<div class="hb-doc-actions" onclick="event.stopPropagation();">
+							<button type="button" class="hb-doc-menu-btn" onclick="event.stopPropagation(); hbToggleDocMenu(this);" aria-label="Menu"></button>
+
+							<div class="hb-doc-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+
+								<a href="{{ path('app_document_show', {'id': document.id, 'galleryId': gallery.id}) }}">
+									<i class="bx bx-show"></i>
+									Open
+								</a>
+
+								<a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': gallery.id}) }}">
+									<i class="bx bx-edit-alt"></i>
+									Edit
+								</a>
+
+								<a href="{{ asset(document.filePath) }}" download="{{ document.fileName }}">
+									<i class="bx bx-edit-alt"></i>
+									Save
+								</a>
+
+
+								<a href="#" onclick="event.preventDefault();">
+									<i class="bx bx-transfer-alt"></i>
+									Transfer
+								</a>
+
+
+								<form method="post" action="{{ path('app_document_hide', { id: document.id }) }}" onsubmit="return confirm('Hide this document ?');" class="hb-link-form">
+									<input type="hidden" name="_token" value="{{ csrf_token('hide' ~ document.id) }}">
+									<button type="submit" class="hb-link danger">
+										<i class="bx bx-hide"></i>
+										Hide
+									</button>
+								</form>
+
+
+							</div>
+						</div>
+
+						<div class="hb-doc-card">
+							<div class="hb-thumb">
+
+								{% if document.fileType starts with 'image/' %}
+									<img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+									<span class="hb-doc-type">
+										<i class="bx bx-image-alt me-1"></i>Image</span>
+								{% elseif document.fileType == 'application/pdf' %}
+									<i class="bx bxs-file-pdf" style="font-size:44px; opacity:.55;"></i>
+									<span class="hb-doc-type">
+										<i class="bx bxs-file-pdf me-1"></i>PDF</span>
+								{% elseif document.fileType starts with 'video/' %}
+									<i class="bx bxs-video" style="font-size:44px; opacity:.55;"></i>
+									<span class="hb-doc-type">
+										<i class="bx bxs-video me-1"></i>Video
+									</span>
+								{% else %}
+									<i class="bx bx-file" style="font-size:44px; opacity:.55;"></i>
+									<span class="hb-doc-type">
+										<i class="bx bx-file me-1"></i>File</span>
+								{% endif %}
+
+							</div>
+
+							<div class="hb-doc-footer">
+								<p class="hb-doc-name">{{ document.fileName }}</p>
+								<p class="hb-doc-sub">{{ document.fileType }}</p>
+							</div>
+						</div>
+
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+
+	</div>
+
+	<script>
+		function hbToggleDocMenu(btn) {
+const doc = btn.closest('.hb-doc');
+const menu = doc.querySelector('.hb-doc-menu');
+
+document.querySelectorAll('.hb-doc-menu.show').forEach(m => {
+if (m !== menu) 
+m.classList.remove('show');
+
+
+
+});
+
+menu.classList.toggle('show');
+}
+
+document.addEventListener('click', function () {
+document.querySelectorAll('.hb-doc-menu.show').forEach(m => m.classList.remove('show'));
+});
+	</script>
+{% endblock %}

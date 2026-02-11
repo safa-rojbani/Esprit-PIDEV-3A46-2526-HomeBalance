@@ -1,0 +1,358 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Default Galleries{% endblock %}
+
+{% block content %}
+	<style>
+		/* ===== HomeBalance Admin: Default Galleries (Premium, Phone-like) ===== */
+
+		.hb-headline {
+			display: flex;
+			gap: 16px;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 20px;
+		}
+
+		.hb-title h4 {
+			margin: 0;
+			font-weight: 1000;
+			letter-spacing: .2px;
+			color: #2b2f36;
+		}
+		.hb-title p {
+			margin: 6px 0 0;
+			color: #7a8699;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.70);
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			color: #566a7f;
+			backdrop-filter: blur(10px);
+		}
+
+		.hb-grid {
+			margin-top: 8px;
+		}
+
+		.hb-card {
+			border-radius: 18px;
+			overflow: hidden;
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			background: #fff;
+			transition: transform 0.18s ease, box-shadow 0.18s ease;
+			position: relative;
+		}
+		.hb-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, 0.18);
+		}
+
+		.hb-cover {
+			aspect-ratio: 4 / 2;
+			position: relative;
+			overflow: hidden;
+		}
+		.hb-cover::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: radial-gradient(600px 220px at 20% 10%, rgba(255,255,255,.55), transparent 60%),
+				linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.06));
+			pointer-events: none;
+		}
+
+		.hb-cover .hb-icon {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 44px;
+			opacity: .95;
+		}
+
+		.hb-badge {
+			position: absolute;
+			left: 12px;
+			bottom: 12px;
+			padding: 6px 10px;
+			border-radius: 999px;
+			font-weight: 800;
+			font-size: .82rem;
+			color: #fff;
+			background: rgba(0, 0, 0, 0.35);
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			backdrop-filter: blur(10px);
+		}
+
+		.hb-body {
+			padding: 14px 14px 12px;
+			position: relative;
+			z-index: 2;
+		}
+
+
+        
+		.hb-name {
+			font-weight: 900;
+			color: #2b2f36;
+			margin-bottom: 2px;
+			line-height: 1.2;
+			word-break: break-word;
+		}
+		.hb-desc {
+			color: #7a8699;
+			font-size: 0.86rem;
+			margin-top: 8px;
+			min-height: 42px;
+			word-break: break-word;
+		}
+		.hb-meta {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			color: #8592a3;
+			font-size: 0.82rem;
+			margin-top: 10px;
+		}
+
+		/* gradient variants */
+		.g1 { background: linear-gradient(135deg, #9b5cff, #6f7dff); }
+		.g2 { background: linear-gradient(135deg, #2dd4bf, #3b82f6); }
+		.g3 { background: linear-gradient(135deg, #fb7185, #f59e0b); }
+		.g4 { background: linear-gradient(135deg, #a78bfa, #22c55e); }
+
+		/* Whole card clickable */
+		.hb-stretched {
+			position: absolute;
+			inset: 0;
+			z-index: 1;
+			border-radius: 18px;
+		}
+
+		/* ===== 3-dots menu (RIGHT) ===== */
+		.hb-actions {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			z-index: 3;
+		}
+
+		.hb-menu-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+
+	width: 30px;          /* ↓ 38 → 30 */
+	height: 30px;         /* ↓ 38 → 30 */
+	border-radius: 9px;   /* ↓ 12 → 9 */
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background: rgba(0, 0, 0, 0.38); /* un peu plus léger */
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	backdrop-filter: blur(10px);
+	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+
+	opacity: 0;
+	transform: translateY(-3px);
+	transition: 0.18s ease;
+
+	pointer-events: auto;
+	cursor: pointer;
+	outline: none;
+}
+
+
+		.hb-menu-btn::before {
+	content: "⋮";
+	color: rgba(255, 255, 255, 0.95);
+	font-size: 16px;      /* ↓ 20 → 16 */
+	line-height: 1;
+	transform: translateY(-1px);
+	display: block;
+}
+
+
+		.hb-card:hover .hb-menu-btn {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		@media(max-width: 768px) {
+			.hb-menu-btn { opacity: 1; transform: translateY(0); }
+		}
+
+		.hb-menu {
+			top: 44px;           /* ↓ 54 → 44 */
+	right: 10px;
+	min-width: 180px;    /* un peu plus compact */
+			min-width: 190px;
+			border-radius: 14px;
+			overflow: hidden;
+
+			background: rgba(255, 255, 255, 0.94);
+			border: 1px solid rgba(67, 89, 113, 0.14);
+			backdrop-filter: blur(14px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, 0.22);
+
+			opacity: 0;
+			transform: translateY(-6px);
+			pointer-events: none;
+			transition: 0.18s ease;
+		}
+
+		.hb-menu.show {
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.hb-menu a,
+		.hb-menu button {
+			width: 100%;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 12px;
+
+			background: transparent;
+			border: 0;
+			text-align: left;
+
+			font-weight: 800;
+			color: #566a7f;
+		}
+
+		.hb-menu a:hover,
+		.hb-menu button:hover {
+			background: rgba(67, 89, 113, 0.06);
+		}
+
+		.hb-menu .danger {
+			color: #d32f2f;
+		}
+	</style>
+
+	<div class="hb-headline flex-wrap">
+		<div class="hb-title">
+			<h4 class="fw-bold mb-1">Default Galleries</h4>
+			<p class="text-muted mb-0">Admin templates to help families start fast </p>
+		</div>
+
+		<div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
+			<span class="hb-chip">
+				<i class="bx bx-layer"></i>
+				{{ default_galleries|length }}
+				default gallery{{ default_galleries|length > 1 ? 's' : '' }}
+			</span>
+
+			<a href="{{ path('app_default_gallery_new') }}" class="btn btn-primary">
+				<i class="bx bx-plus me-1"></i>
+				New default gallery
+			</a>
+		</div>
+	</div>
+
+	<div class="row g-4 hb-grid">
+		{% set gradients = ['g1','g2','g3','g4'] %}
+
+		{% for default_gallery in default_galleries %}
+			{% set gclass = gradients[(loop.index0) % gradients|length] %}
+
+			<div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+				<div class="hb-card h-100">
+
+					<div class="hb-cover {{ gclass }}">
+						<div class="hb-icon">
+							<i class="bx bx-collection text-white"></i>
+						</div>
+
+						
+
+						<div class="hb-actions">
+							<button type="button" class="hb-menu-btn"
+								onclick="event.stopPropagation(); hbToggleMenu(this);"
+								aria-label="Menu"></button>
+
+							<div class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+								<a href="{{ path('app_default_gallery_show', {'id': default_gallery.id}) }}">
+									<i class="bx bx-show"></i>
+									Show
+								</a>
+
+								<a href="{{ path('app_default_gallery_edit', {'id': default_gallery.id}) }}">
+									<i class="bx bx-edit-alt"></i>
+									Edit
+								</a>
+
+								{# Delete uses POST + CSRF token generated by CRUD controller #}
+								<form method="post" action="{{ path('app_default_gallery_delete', {'id': default_gallery.id}) }}">
+									<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ default_gallery.id) }}">
+									<button type="submit" class="danger" onclick="return confirm('Delete this template?');">
+										<i class="bx bx-trash"></i>
+										Delete
+									</button>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<div class="hb-body">
+						<div class="hb-name">{{ default_gallery.name }}</div>
+
+						<div class="hb-desc">
+							{{ default_gallery.description }}
+						</div>
+
+						<div class="hb-meta">
+							
+
+							<span class="text-muted">
+								<i class="bx bx-chevron-right"></i>
+							</span>
+						</div>
+
+						<a class="hb-stretched"
+						   href="{{ path('app_default_gallery_show', {'id': default_gallery.id}) }}"
+						   aria-label="Open template"></a>
+					</div>
+
+				</div>
+			</div>
+		{% else %}
+			<div class="col-12">
+				<div class="alert alert-info mb-0">
+					No default galleries yet. Create the first gallery 
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+
+	<script>
+		function hbToggleMenu(btn) {
+			const card = btn.closest('.hb-card');
+			const menu = card.querySelector('.hb-menu');
+
+			document.querySelectorAll('.hb-menu.show').forEach(m => {
+				if (m !== menu) m.classList.remove('show');
+			});
+
+			menu.classList.toggle('show');
+		}
+
+		document.addEventListener('click', function () {
+			document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
+		});
+	</script>
+{% endblock %}

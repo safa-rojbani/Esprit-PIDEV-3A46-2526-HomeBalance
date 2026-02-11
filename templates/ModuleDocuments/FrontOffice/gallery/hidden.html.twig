@@ -1,0 +1,379 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hidden Galleries
+{% endblock %}
+
+{% block content %}
+	<style>
+		/* ===== HomeBalance: Hidden Galleries Premium (Album Wall) ===== */
+
+		.hb-headline {
+			display: flex;
+			gap: 16px;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 20px;
+		}
+		.hb-title h4 {
+			margin: 0;
+			font-weight: 900;
+		}
+		.hb-title p {
+			margin: 0;
+			color: #7a8699;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .75);
+			border: 1px solid rgba(67, 89, 113, .12);
+			color: #566a7f;
+			backdrop-filter:blur(10px);
+			font-weight: 800;
+		}
+
+		.hb-grid {
+			margin-top: 8px;
+		}
+
+		.hb-album {
+			border-radius: 18px;
+			overflow: hidden;
+			border: 1px solid rgba(67, 89, 113, .12);
+			background: #fff;
+			transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+			position: relative;
+		}
+		.hb-album:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, .18);
+			border-color: rgba(105, 108, 255, .18);
+		}
+
+		/* Hidden cover: neutral, elegant */
+		.hb-cover {
+			aspect-ratio: 4 / 3;
+			position: relative;
+			overflow: hidden;
+			background: linear-gradient(135deg, rgba(67,89,113,.14), rgba(67,89,113,.06));
+		}
+		.hb-cover::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: radial-gradient(600px 220px at 20% 10%, rgba(255,255,255,.60), transparent 60%), linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(0, 0, 0, 0.05));
+			pointer-events: none;
+		}
+
+		.hb-cover .hb-icon {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 54px;
+			opacity: .95;
+			color: #566a7f;
+		}
+
+		/* little preview tiles */
+		.hb-preview {
+			position: absolute;
+			left: 14px;
+			bottom: 14px;
+			display: grid;
+			grid-template-columns: repeat(3, 18px);
+			grid-auto-rows: 18px;
+			gap: 6px;
+			opacity: .95;
+		}
+		.hb-preview span {
+			border-radius: 6px;
+			background: rgba(255, 255, 255, .55);
+			border: 1px solid rgba(255, 255, 255, .35);
+			backdrop-filter: blur(10px);
+		}
+
+		/* Hidden badge */
+		.hb-hidden-badge {
+			position: absolute;
+			top: 12px;
+			left: 12px;
+			z-index: 4;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.35rem 0.6rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .90);
+			border: 1px solid rgba(67, 89, 113, .14);
+			color: #8a6d00;
+			font-weight: 900;
+			backdrop-filter: blur(10px);
+		}
+
+		.hb-body {
+			padding: 14px 14px 12px;
+			position: relative;
+			z-index: 2;
+		}
+		.hb-name {
+			font-weight: 900;
+			color: #2b2f36;
+			margin-bottom: 2px;
+			line-height: 1.2;
+			word-break: break-word;
+		}
+		.hb-desc {
+			color: #7a8699;
+			font-size: 0.85rem;
+			margin-top: 8px;
+			min-height: 36px;
+			word-break: break-word;
+		}
+		.hb-meta {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			color: #8592a3;
+			font-size: 0.82rem;
+			margin-top: 8px;
+		}
+
+		/* Whole card clickable */
+		.hb-stretched {
+			position: absolute;
+			inset: 0;
+			z-index: 1;
+			border-radius: 18px;
+		}
+
+		/* ===== 3-dots menu ===== */
+		.hb-album-actions {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			z-index: 5;
+		}
+
+		.hb-menu-btn {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			width: 38px;
+			height: 38px;
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			background: rgba(0, 0, 0, .42);
+			border: 1px solid rgba(255, 255, 255, .12);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 10px 22px rgba(0, 0, 0, .20);
+
+			opacity: 0;
+			transform: translateY(-4px);
+			transition: 0.18s ease;
+
+			pointer-events: auto;
+			cursor: pointer;
+			outline: none;
+		}
+		.hb-menu-btn::before {
+			content: "⋮";
+			color: rgba(255, 255, 255, .95);
+			font-size: 20px;
+			line-height: 1;
+			transform: translateY(-1px);
+			display: block;
+		}
+		.hb-album:hover .hb-menu-btn {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		@media(max-width: 768px) {
+			.hb-menu-btn {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.hb-menu {
+			position: absolute;
+			top: 54px;
+			right: 10px;
+			min-width: 190px;
+			border-radius: 14px;
+			overflow: hidden;
+
+			background: rgba(255, 255, 255, .94);
+			border: 1px solid rgba(67, 89, 113, .14);
+			backdrop-filter: blur(14px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, .22);
+
+			opacity: 0;
+			transform: translateY(-6px);
+			pointer-events: none;
+			transition: 0.18s ease;
+		}
+		.hb-menu.show {
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.hb-menu a {
+			width: 100%;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 12px;
+
+			background: transparent;
+			border: 0;
+			text-align: left;
+
+			font-weight: 850;
+			color: #566a7f;
+			text-decoration: none;
+		}
+		.hb-menu a:hover {
+			background: rgba(67, 89, 113, .06);
+		}
+
+		.hb-menu .success {
+			color: #1a7f37;
+		}
+
+	</style>
+
+	<div class="hb-headline flex-wrap">
+		<div class="hb-title">
+			<h4 class="fw-bold mb-1">Hidden Galleries</h4>
+			<p class="mb-0">Hidden albums — restore them anytime ✨</p>
+		</div>
+
+		<div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
+			<span class="hb-chip">
+				<i class="bx bx-hide"></i>
+				{{ galleries|length }}
+				hidden
+			</span>
+
+			<a href="{{ path('app_gallery_index') }}" class="btn btn-outline-secondary">
+				<i class="bx bx-collection me-1"></i>
+				Back
+			</a>
+		</div>
+	</div>
+
+	<div class="row g-4 hb-grid">
+		{% if galleries is empty %}
+			<div class="col-12">
+				<div class="alert alert-info mb-0">
+					No hidden galleries found.
+				</div>
+			</div>
+		{% endif %}
+
+		{% for gallery in galleries %}
+			{% set activeDocs = gallery.documents|filter(d => d.etat and d.etat.value == 'actif') %}
+
+			<div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+				<div class="hb-album h-100">
+
+					<div class="hb-cover">
+						<span class="hb-hidden-badge">
+							<i class="bx bx-hide"></i>
+							Hidden
+						</span>
+
+						<div class="hb-icon">
+							<i class="bx bx-photo-album"></i>
+						</div>
+
+						<div class="hb-preview">
+							<span></span>
+							<span></span>
+							<span></span>
+							<span></span>
+							<span></span>
+							<span></span>
+						</div>
+
+						<div class="hb-album-actions">
+							<button type="button" class="hb-menu-btn" onclick="event.stopPropagation(); hbToggleMenu(this);" aria-label="Menu"></button>
+
+							<div class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+
+								<a href="{{ path('app_gallery_activate', {'id': gallery.id}) }}" class="success">
+									<i class="bx bx-refresh"></i>
+									Restore
+								</a>
+
+								<a href="{{ path('app_gallery_show', {'id': gallery.id, 'from': 'hidden'}) }}">
+									<i class="bx bx-folder-open"></i>
+									Open
+								</a>
+
+								<a href="{{ path('app_gallery_edit', {'id': gallery.id, 'from': 'hidden'}) }}">
+									<i class="bx bx-edit-alt"></i>
+									Edit
+								</a>
+
+							</div>
+						</div>
+					</div>
+
+					<div class="hb-body">
+						<div class="hb-name">{{ gallery.name }}</div>
+
+						<div class="hb-desc">
+							{{ gallery.description ?: 'No description — you can update it anytime ✨' }}
+						</div>
+
+						<div class="hb-meta">
+							<span>
+								<i class="bx bx-file me-1"></i>
+								{{ activeDocs|length }}
+								doc{{ activeDocs|length > 1 ? 's' : '' }}
+							</span>
+							<span class="text-muted">
+								<i class="bx bx-time-five me-1"></i>
+								{{ gallery.updatedAt ? gallery.updatedAt|date('d/m/Y') : (gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '') }}
+							</span>
+						</div>
+
+						<a class="hb-stretched" href="{{ path('app_gallery_show', {'id': gallery.id}) }}" aria-label="Open gallery"></a>
+					</div>
+
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+
+	<script>
+		function hbToggleMenu(btn) {
+const card = btn.closest('.hb-album');
+const menu = card.querySelector('.hb-menu');
+
+document.querySelectorAll('.hb-menu.show').forEach(m => {
+if (m !== menu) 
+m.classList.remove('show');
+
+});
+
+menu.classList.toggle('show');
+}
+
+document.addEventListener('click', function () {
+document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
+});
+	</script>
+{% endblock %}
