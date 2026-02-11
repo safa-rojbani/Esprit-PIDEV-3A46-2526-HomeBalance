@@ -1,0 +1,147 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Account Settings · Signal Preferences{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'preferences' } %}
+
+  {% set pref = preferences.data %}
+  {% set lastTuned = pref.updatedAt is defined and pref.updatedAt ? pref.updatedAt|date('M j, H:i') : 'not set yet' %}
+
+  <div class="row g-6 align-items-start">
+    <div class="col-lg-7">
+      <form class="card" method="post" action="{{ path('portal_account_preferences') }}" novalidate>
+        <input type="hidden" name="_token" value="{{ csrf_token('account_preferences') }}" />
+        <input type="hidden" name="section" value="preferences" />
+
+        <div class="card-body">
+          <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+            <div>
+              <h5 class="mb-1">Signal priorities</h5>
+              <p class="mb-0 text-muted">Tell HomeBalance what deserves a nudge and when you would rather stay heads-down.</p>
+            </div>
+            <div class="text-lg-end">
+              <small class="text-muted d-block">Last tuned · {{ lastTuned }}</small>
+            </div>
+          </div>
+
+          {% if preferences.errors %}
+            <div class="alert alert-danger mt-4" role="alert">
+              <ul class="mb-0 ps-3">
+                {% for error in preferences.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="card-body border-top">
+          <h6 class="mb-2">Topics you actually care about</h6>
+          <p class="text-muted">Pick the conversations worth interrupting you for.</p>
+          <div class="row g-4">
+            {% for key, topic in preferences.topics %}
+              {% set inputId = 'topic-' ~ key %}
+              <div class="col-sm-6">
+                <label class="card h-100 shadow-none border {{ key in pref.topics ? 'border-primary' }} cursor-pointer p-4" for="{{ inputId }}">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <span class="badge bg-label-primary mb-2 text-uppercase small">{{ loop.index }}</span>
+                      <div class="fw-semibold">{{ topic.label }}</div>
+                      <small class="text-muted">{{ topic.description }}</small>
+                    </div>
+                    <input type="checkbox" class="form-check-input mt-0" id="{{ inputId }}" name="preferences[topics][]" value="{{ key }}" {{ key in pref.topics ? 'checked' }} />
+                  </div>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-body border-top">
+          <h6 class="mb-2">Where pings should land</h6>
+          <p class="text-muted">Layer channels so important chores are impossible to miss.</p>
+          <div class="row g-4">
+            {% for key, channel in preferences.channels %}
+              {% set inputId = 'channel-' ~ key %}
+              <div class="col-sm-6">
+                <div class="border rounded p-4 h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                      <div class="fw-semibold">{{ channel.label }}</div>
+                      <small class="text-muted">{{ channel.description }}</small>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" role="switch" id="{{ inputId }}" name="preferences[channels][]" value="{{ key }}" {{ key in pref.channels ? 'checked' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-body border-top">
+          <h6 class="mb-2">Quiet hours &amp; digest rhythm</h6>
+          <p class="text-muted">Protect focus time, then let us wrap things up in a weekly summary.</p>
+          <div class="row g-4">
+            <div class="col-sm-6">
+              <label for="quietStart" class="form-label">Quiet hours start</label>
+              <input type="time" class="form-control" id="quietStart" name="preferences[quietStart]" value="{{ pref.quietStart ?? '' }}" />
+            </div>
+            <div class="col-sm-6">
+              <label for="quietEnd" class="form-label">Quiet hours end</label>
+              <input type="time" class="form-control" id="quietEnd" name="preferences[quietEnd]" value="{{ pref.quietEnd ?? '' }}" />
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="weeklySummary" name="preferences[weeklySummary]" value="1" {{ pref.weeklySummary ? 'checked' }} />
+                <label class="form-check-label" for="weeklySummary">Send me a weekly digest that blends finances, chores, and mood check-ins.</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body border-top d-flex flex-column flex-md-row align-items-md-center gap-3">
+          <button type="submit" class="btn btn-primary">Save preferences</button>
+          <button type="reset" class="btn btn-outline-secondary">Reset form</button>
+          <small class="text-muted">These settings apply across HomeBalance web and mobile.</small>
+        </div>
+      </form>
+    </div>
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm bg-body-tertiary h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted fw-semibold mb-3">How HomeBalance uses this</h6>
+          <ul class="list-unstyled mb-4">
+            <li class="d-flex mb-3">
+              <i class="icon-base bx bx-target-lock text-primary me-3"></i>
+              <div>
+                <div class="fw-semibold">Focus on signal over noise</div>
+                <small class="text-muted">Topics drive which automations run and what appears on your dashboard hero moments.</small>
+              </div>
+            </li>
+            <li class="d-flex mb-3">
+              <i class="icon-base bx bx-navigation text-primary me-3"></i>
+              <div>
+                <div class="fw-semibold">Respect your availability</div>
+                <small class="text-muted">Quiet hours mute proactive nudges but keep critical alerts accessible from the log.</small>
+              </div>
+            </li>
+            <li class="d-flex">
+              <i class="icon-base bx bx-line-chart text-primary me-3"></i>
+              <div>
+                <div class="fw-semibold">Tell richer stories</div>
+                <small class="text-muted">Weekly digests stitch together savings, tasks, and wellbeing cues for your family check-ins.</small>
+              </div>
+            </li>
+          </ul>
+          <div class="bg-label-primary rounded p-4">
+            <p class="mb-2 fw-semibold">Pro tip</p>
+            <p class="mb-0 text-muted">Pair email + push for essential categories, then enable SMS when traveling or during intense seasons.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

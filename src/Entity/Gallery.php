@@ -6,6 +6,9 @@ use App\Repository\GalleryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\EtatGallery;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+
 
 #[ORM\Entity(repositoryClass: GalleryRepository::class)]
 class Gallery
@@ -40,6 +43,25 @@ class Gallery
     #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;
 
+    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Document::class)]
+    private Collection $documents;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?DefaultGallery $defaultGallery = null;
+
+
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
+
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -73,7 +95,7 @@ class Gallery
     {
         return $this->etat ? EtatGallery::from($this->etat) : null;
     }
-  
+
     public function setEtat(EtatGallery $etat): static
     {
         $this->etat = $etat->value;
@@ -138,6 +160,17 @@ class Gallery
     {
         $this->createdBy = $createdBy;
 
+        return $this;
+    }
+
+    public function getDefaultGallery(): ?DefaultGallery
+    {
+        return $this->defaultGallery;
+    }
+
+    public function setDefaultGallery(?DefaultGallery $defaultGallery): static
+    {
+        $this->defaultGallery = $defaultGallery;
         return $this;
     }
 }

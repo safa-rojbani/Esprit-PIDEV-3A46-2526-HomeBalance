@@ -1,0 +1,57 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Confirmer l’achat{% endblock %}
+{% block page_title %}Confirmer l’achat{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8 col-xl-6">
+
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <h4 class="mb-1">Confirmer l’achat</h4>
+          <div class="text-muted" style="font-size:.9rem;">
+            Renseigne le montant (et la quantité) pour enregistrer dans l’historique.
+          </div>
+        </div>
+
+        <a href="{{ path('app_achat_index') }}" class="btn btn-outline-secondary btn-sm">
+          ← Retour
+        </a>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 mb-3">
+        <div class="text-muted" style="font-size:.85rem;">Article</div>
+        <div class="fw-semibold">{{ achat.nomArticle }}</div>
+      </div>
+
+      {{ form_start(form) }}
+
+        <div class="mb-3">
+          {{ form_label(form.montantAchete, 'Montant', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+          {{ form_widget(form.montantAchete, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 12.500'}}) }}
+          {{ form_errors(form.montantAchete) }}
+          <div class="form-text">Saisis le montant payé pour cet article.</div>
+        </div>
+
+        <div class="mb-3">
+          {{ form_label(form.quantiteAchete, 'Quantité', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+          {{ form_widget(form.quantiteAchete, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 2'}}) }}
+          {{ form_errors(form.quantiteAchete) }}
+          <div class="form-text">Optionnel si tu n’utilises pas la quantité.</div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <a href="{{ path('app_achat_index') }}" class="btn btn-light">Annuler</a>
+          <button class="btn btn-success">
+            <i class="bi bi-check2"></i> Valider
+          </button>
+        </div>
+
+      {{ form_end(form) }}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

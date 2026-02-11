@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Tâches de la famille</h1>
+
+{% if tasks is empty %}
+    <p>Aucune tâche pour le moment.</p>
+{% else %}
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <strong>{{ task.title }}</strong><br>
+                {{ task.description }}<br>
+                Difficulté : {{ task.difficulty.value }} |
+                Récurrence : {{ task.recurrence.value }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<hr>
+
+<a href="{{ path('parent_task_index') }}">
+    ➕ Ajouter / gérer les tâches
+</a>
+{% endblock %}

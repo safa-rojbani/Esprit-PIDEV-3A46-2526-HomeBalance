@@ -1,0 +1,108 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Users{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">All Users</h4>
+      <p class="text-muted mb-0">Search, filter, and manage every account.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary" href="{{ path('portal_admin_users_new') }}">New user</a>
+      <form class="d-flex" method="get" action="{{ path('portal_admin_users') }}">
+        <input type="search" class="form-control me-3" placeholder="Search by name, username, or email" name="q" value="{{ filters.query }}" />
+        <select class="form-select me-3" name="systemRole">
+        <option value="">All roles</option>
+        {% for key, label in filters.systemRoleChoices %}
+          <option value="{{ key }}" {{ filters.systemRole == key ? 'selected' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+        <select class="form-select me-3" name="status">
+        <option value="">Any status</option>
+        {% for key, label in filters.statusChoices %}
+          <option value="{{ key }}" {{ filters.status == key ? 'selected' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+        <select class="form-select me-3" name="sort">
+          <option value="createdAt" {{ filters.sort == 'createdAt' ? 'selected' }}>Newest</option>
+          <option value="lastLogin" {{ filters.sort == 'lastLogin' ? 'selected' }}>Last login</option>
+          <option value="email" {{ filters.sort == 'email' ? 'selected' }}>Email</option>
+          <option value="username" {{ filters.sort == 'username' ? 'selected' }}>Username</option>
+        </select>
+        <select class="form-select me-3" name="dir">
+          <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' }}>Desc</option>
+          <option value="ASC" {{ filters.direction == 'ASC' ? 'selected' }}>Asc</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive text-nowrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Last Login</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if users is empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-6">No users match your filters.</td>
+            </tr>
+          {% else %}
+            {% for user in users %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <img src="{{ asset('img/avatars/1.png') }}" class="rounded-circle" width="40" height="40" alt="avatar" />
+                    <div>
+                      <div class="fw-semibold">{{ user.firstName }} {{ user.lastName }}</div>
+                      <div class="small text-muted">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ user.username }}</td>
+                <td>
+                  <span class="badge bg-label-primary">{{ user.systemRoleLabel }}</span>
+                  {% if user.familyRoleLabel %}
+                    <span class="badge bg-label-info ms-1">{{ user.familyRoleLabel }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge {{ user.statusBadgeClass }}">{{ user.statusLabel }}</span>
+                </td>
+                <td>{{ user.lastLogin ? user.lastLogin|date('Y-m-d H:i') : '—' }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a href="{{ path('portal_admin_users_view', { id: user.id }) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                    <a href="{{ path('portal_admin_users_edit', { id: user.id }) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <div class="text-muted">Showing {{ pagination.currentRange }} of {{ pagination.total }} users</div>
+      <div>
+        {% if pagination.previous %}
+          <a class="btn btn-outline-secondary btn-sm" href="{{ pagination.previous }}">Previous</a>
+        {% endif %}
+        {% if pagination.next %}
+          <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ pagination.next }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

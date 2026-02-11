@@ -1,0 +1,141 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+{% block title %}Détails revenu{% endblock %}
+{% block page_title %}Détails revenu{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+  {# Header #}
+  <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Détails du revenu</h2>
+      <div class="text-muted" style="font-size:.95rem;">
+        Informations complètes sur cette source de revenu
+      </div>
+    </div>
+
+    <a href="{{ path('app_revenu_index') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Retour à la liste
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+
+      <div class="card border-0 shadow-sm rounded-4 p-4">
+
+        {# Titre + icône #}
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="rev-icon-lg">
+            <i class="bi bi-wallet2"></i>
+          </div>
+          <div>
+            <h4 class="mb-1 fw-bold">{{ revenu.typeRevenu }}</h4>
+            <div class="text-muted" style="font-size:.9rem;">
+              Source de revenu
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-3">
+
+        {# Infos principales #}
+        <div class="row g-3">
+
+          <div class="col-12 col-md-6">
+            <div class="info-card">
+              <div class="text-muted small mb-1">
+                <i class="bi bi-cash-stack"></i> Montant
+              </div>
+              <div class="rev-amount-lg">
+                {{ revenu.montant|number_format(2, ',', ' ') }} TND
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="info-card">
+              <div class="text-muted small mb-1">
+                <i class="bi bi-calendar-event"></i> Date du revenu
+              </div>
+              <div class="fw-semibold">
+                {{ revenu.dateRevenu ? revenu.dateRevenu|date('d/m/Y') : '—' }}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <hr class="my-4">
+
+        {# Actions #}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+          <div class="d-flex gap-2">
+            <a href="{{ path('app_revenu_edit', {'id': revenu.id}) }}"
+               class="btn btn-outline-warning action-btn">
+              <i class="bi bi-pencil"></i>
+              <span>Modifier</span>
+            </a>
+
+            <form method="post"
+                  action="{{ path('app_revenu_delete', {'id': revenu.id}) }}"
+                  onsubmit="return confirm('Supprimer ce revenu ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ revenu.id) }}">
+              <button class="btn btn-outline-danger action-btn">
+                <i class="bi bi-trash"></i>
+                <span>Supprimer</span>
+              </button>
+            </form>
+          </div>
+
+          <a href="{{ path('app_revenu_index') }}" class="btn btn-light">
+            <i class="bi bi-arrow-left-circle"></i> Retour
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* grosse icône */
+  .rev-icon-lg{
+    width:56px;height:56px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(79,70,229,.12);
+    color:#4f46e5;
+    font-size:26px;
+  }
+
+  /* carte info */
+  .info-card{
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:16px;
+  }
+
+  /* montant */
+  .rev-amount-lg{
+    display:inline-flex;align-items:center;
+    padding:8px 16px;
+    border-radius:12px;
+    background:rgba(16,185,129,.12);
+    color:#0f766e;
+    font-weight:800;
+    font-size:18px;
+  }
+
+  /* boutons actions */
+  .action-btn{
+    font-weight:600;
+    border-radius:12px;
+  }
+  .action-btn:hover{
+    transform:translateY(-1px);
+  }
+</style>
+{% endblock %}
