@@ -1,0 +1,307 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ gallery.name }}{% endblock %}
+
+{% block content %}
+<style>
+  .hb-page{padding-top:6px}
+  .hb-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .hb-top-left{min-width:240px}
+  .hb-album-name{margin:0;font-weight:900;color:#2b2f36;line-height:1.15;word-break:break-word;font-size:1.1rem}
+  .hb-album-sub{margin:6px 0 0;color:#7a8699;font-size:.85rem;max-width:720px;word-break:break-word}
+  .hb-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .hb-pill{display:inline-flex;align-items:center;gap:8px;padding:.45rem .75rem;border-radius:999px;font-weight:800;text-decoration:none;background:rgba(255,255,255,.75);border:1px solid rgba(67,89,113,.12);color:#566a7f;backdrop-filter:blur(10px);transition:.15s ease}
+  .hb-pill:hover{transform:translateY(-1px);box-shadow:0 10px 18px rgba(67,89,113,.12);color:#3b4452}
+  .hb-pill.primary{background:linear-gradient(135deg,#6f7dff,#9b5cff);border:none;color:#fff}
+  .hb-pill.primary:hover{box-shadow:0 14px 26px rgba(111,125,255,.28);color:#fff}
+
+  .hb-chip{display:inline-flex;align-items:center;gap:8px;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.70);border:1px solid rgba(67,89,113,.12);color:#566a7f;backdrop-filter:blur(10px);font-weight:800}
+  .hb-mini{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+
+  .hb-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 16px}
+  .hb-search{flex:1;min-width:240px;position:relative}
+  .hb-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#7a8699;font-size:18px}
+  .hb-search input{width:100%;border-radius:14px;padding:.75rem 1rem .75rem 2.4rem}
+
+  .hb-sort{display:flex;align-items:center}
+  .hb-sortgroup{border-radius:14px;overflow:hidden;background:rgba(255,255,255,.70);border:1px solid rgba(67,89,113,.12);backdrop-filter:blur(10px)}
+  #hbDocSortSelect{border:0;min-width:220px}
+  #hbDocSortDirBtn{border:0;border-left:1px solid rgba(67,89,113,.12);min-width:52px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#566a7f;background:transparent}
+
+  .hb-section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:14px 0 12px;flex-wrap:wrap}
+  .hb-section-title h5{margin:0;font-weight:900;color:#2b2f36}
+  .hb-section-title p{margin:0;color:#7a8699;font-size:.85rem}
+
+  .hb-doc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  @media(max-width:1200px){.hb-doc-grid{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:768px){.hb-doc-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:420px){.hb-doc-grid{grid-template-columns:repeat(2,1fr)}}
+
+  .hb-doc{position:relative;overflow:visible}
+  .hb-doc-card{border-radius:14px;overflow:hidden;border:1px solid rgba(67,89,113,.12);background:#fff;box-shadow:0 10px 22px rgba(67,89,113,.10);transition:.16s ease}
+  .hb-doc:hover .hb-doc-card{transform:translateY(-2px);box-shadow:0 16px 30px rgba(67,89,113,.16)}
+
+  .hb-thumb{aspect-ratio:1/1;background:#f2f3f6;position:relative;display:flex;align-items:center;justify-content:center}
+  .hb-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+  .hb-doc-type{position:absolute;top:10px;left:10px;padding:.25rem .55rem;border-radius:999px;font-size:.72rem;font-weight:900;background:rgba(255,255,255,.82);border:1px solid rgba(67,89,113,.12);color:#566a7f;backdrop-filter:blur(10px);z-index:3}
+
+  .hb-doc-actions{position:absolute;top:10px;right:10px;z-index:50;pointer-events:none}
+  .hb-doc-menu-btn{pointer-events:auto;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);box-shadow:0 10px 22px rgba(0,0,0,.20);opacity:0;transform:translateY(-4px);transition:.18s ease;cursor:pointer;outline:none}
+  .hb-doc-menu-btn::before{content:"⋮";color:rgba(255,255,255,.95);font-size:20px;line-height:1;transform:translateY(-1px);display:block}
+  .hb-doc:hover .hb-doc-menu-btn{opacity:1;transform:translateY(0)}
+  @media(max-width:768px){.hb-doc-menu-btn{opacity:1;transform:translateY(0)}}
+
+  .hb-doc-menu{position:absolute;top:54px;right:0;min-width:200px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.94);border:1px solid rgba(67,89,113,.14);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(67,89,113,.22);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s ease}
+  .hb-doc-menu.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .hb-doc-menu a,.hb-doc-menu button{width:100%;display:flex;gap:10px;align-items:center;padding:10px 12px;background:transparent;border:0;text-align:left;font-weight:700;color:#566a7f;text-decoration:none}
+  .hb-doc-menu a:hover,.hb-doc-menu button:hover{background:rgba(67,89,113,.06)}
+  .hb-doc-menu .danger{color:#d32f2f}
+
+  .hb-doc-footer{padding:10px 10px 12px}
+  .hb-doc-name{font-weight:900;color:#2b2f36;font-size:.9rem;margin:0;word-break:break-word}
+  .hb-doc-sub{margin:4px 0 0;font-size:.78rem;color:#7a8699;word-break:break-word}
+
+  .hb-delete-wrap form{display:inline}
+  .hb-delete-wrap button{border-radius:999px!important;font-weight:900;padding:.45rem .75rem}
+
+  .hb-modal{position:fixed;inset:0;z-index:9999}
+  .hb-modal-backdrop{position:absolute;inset:0;background:rgba(20,24,31,.45);backdrop-filter:blur(6px)}
+  .hb-modal-card{position:relative;max-width:520px;margin:9vh auto 0;background:#fff;border-radius:18px;border:1px solid rgba(67,89,113,.12);box-shadow:0 30px 90px rgba(0,0,0,.25);overflow:hidden;animation:hbIn .18s ease both}
+  .hb-modal-head{padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:rgba(250,251,253,.95);border-bottom:1px solid rgba(67,89,113,.10)}
+  .hb-modal-title{font-weight:1000;color:#2b2f36;display:flex;gap:10px;align-items:center}
+  .hb-modal-title i{color:#696cff;font-size:18px}
+  .hb-modal-sub{margin-top:6px;color:#7a8699;font-size:.9rem}
+  .hb-modal-x{border:0;background:rgba(67,89,113,.08);border-radius:12px;width:38px;height:38px;font-weight:1000;cursor:pointer}
+  .hb-modal-body{padding:16px}
+  .hb-modal-label{font-weight:900;color:#566a7f;margin-bottom:8px;display:block}
+  .hb-modal-actions{margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+</style>
+
+{% set activeDocs = documents|filter(d => d.etat and d.etat.value == 'actif') %}
+{% set createdLabel = gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '—' %}
+
+<div class="hb-page">
+  <div class="hb-topbar">
+    <div class="hb-top-left">
+      <h3 class="hb-album-name">{{ gallery.name }}</h3>
+      <p class="hb-album-sub">{{ gallery.description ?: 'No description yet — add one ✨' }}</p>
+
+      <div class="hb-mini">
+        <span class="hb-chip"><i class="bx bx-file"></i>{{ activeDocs|length }} doc{{ activeDocs|length > 1 ? 's' : '' }}</span>
+        <span class="hb-chip"><i class="bx bx-calendar"></i>{{ createdLabel }}</span>
+      </div>
+    </div>
+
+    <div class="hb-actions">
+      {% set backPath = (from is defined and from == 'hidden') ? path('app_gallery_hidden') : path('app_gallery_index') %}
+
+      <a href="{{ backPath }}" class="btn btn-outline-secondary"><i class="bx bx-left-arrow-alt me-1"></i>Back</a>
+      <a class="hb-pill" href="{{ path('app_gallery_edit', {'id': gallery.id}) }}"><i class="bx bx-edit-alt"></i>Edit</a>
+      <a class="hb-pill primary" href="{{ path('app_document_new', {'galleryId': gallery.id}) }}"><i class="bx bx-plus"></i>Add document</a>
+      <span class="hb-delete-wrap">{{ include('ModuleDocuments/FrontOffice/gallery/_delete_form.html.twig') }}</span>
+    </div>
+  </div>
+
+  <div class="hb-tools">
+    <div class="hb-search">
+      <i class="bx bx-search"></i>
+      <input id="hbDocSearchInput" type="text" class="form-control" placeholder="Search documents… (name, type)" autocomplete="off">
+    </div>
+
+    <div class="hb-sort">
+      <div class="input-group hb-sortgroup">
+        <select id="hbDocSortSelect" class="form-select">
+          <option value="date" selected>Date</option>
+          <option value="name">Name</option>
+          <option value="type">Type</option>
+          <option value="size">Size</option>
+        </select>
+        <button id="hbDocSortDirBtn" class="btn" type="button" aria-label="Toggle sort direction">
+          <span id="hbDocSortIcon">↓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hb-section-title">
+    <div>
+      <h5>Documents</h5>
+      <p class="text-muted">Focus here: images, PDFs, and files</p>
+    </div>
+  </div>
+
+  {% if activeDocs|length == 0 %}
+    <div class="alert alert-info mb-0">No active documents in this gallery.</div>
+  {% else %}
+    <div class="hb-doc-grid">
+      {% for document in activeDocs %}
+        <div class="hb-doc hb-doc-item"
+             data-name="{{ document.fileName|lower }}"
+             data-type="{{ document.fileType|lower }}"
+             data-date="{{ (document.updatedAt ?: document.createdAt ?: document.uploadedAt)|date('U') }}"
+             data-size="{{ document.filesize ?: '0' }}">
+
+          <div class="hb-doc-actions" onclick="event.stopPropagation();">
+            <button type="button" class="hb-doc-menu-btn" onclick="event.stopPropagation(); hbToggleDocMenu(this);" aria-label="Menu"></button>
+
+            <div class="hb-doc-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+              <a href="{{ path('app_document_show', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-show"></i>Open</a>
+              <a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-edit-alt"></i>Edit</a>
+              <a href="{{ asset(document.filePath) }}" download="{{ document.fileName }}"><i class="bx bx-download"></i>Save</a>
+
+              <button type="button"
+                      data-transfer-url="{{ path('app_document_transfer', {id: document.id}) }}"
+                      data-transfer-token="{{ csrf_token('transfer' ~ document.id) }}"
+                      onclick="hbOpenTransferFromBtn(this);">
+                <i class="bx bx-transfer-alt"></i>Transfer
+              </button>
+
+              <form method="post" action="{{ path('app_document_hide', { id: document.id }) }}" onsubmit="return confirm('Hide this document ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('hide' ~ document.id) }}">
+                <button type="submit" class="danger"><i class="bx bx-hide"></i>Hide</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="hb-doc-card">
+            <div class="hb-thumb">
+              {% if document.fileType starts with 'image/' %}
+                <img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+                <span class="hb-doc-type"><i class="bx bx-image-alt me-1"></i>Image</span>
+              {% elseif document.fileType == 'application/pdf' %}
+                <i class="bx bxs-file-pdf" style="font-size:44px;opacity:.55;"></i>
+                <span class="hb-doc-type"><i class="bx bxs-file-pdf me-1"></i>PDF</span>
+              {% elseif document.fileType starts with 'video/' %}
+                <i class="bx bxs-video" style="font-size:44px;opacity:.55;"></i>
+                <span class="hb-doc-type"><i class="bx bxs-video me-1"></i>Video</span>
+              {% else %}
+                <i class="bx bx-file" style="font-size:44px;opacity:.55;"></i>
+                <span class="hb-doc-type"><i class="bx bx-file me-1"></i>File</span>
+              {% endif %}
+            </div>
+
+            <div class="hb-doc-footer">
+              <p class="hb-doc-name">{{ document.fileName }}</p>
+              <p class="hb-doc-sub">{{ document.fileType }}</p>
+            </div>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div id="hbTransferModal" class="hb-modal" style="display:none;">
+    <div class="hb-modal-backdrop" onclick="hbCloseTransfer()"></div>
+
+    <div class="hb-modal-card" role="dialog" aria-modal="true">
+      <div class="hb-modal-head">
+        <div>
+          <div class="hb-modal-title"><i class="bx bx-transfer-alt"></i>Transfer document</div>
+          <div class="hb-modal-sub">Choose a target gallery from your family ✨</div>
+        </div>
+        <button type="button" class="hb-modal-x" onclick="hbCloseTransfer()" aria-label="Close">✕</button>
+      </div>
+
+      <form method="post" id="hbTransferForm" class="hb-modal-body">
+        <input type="hidden" name="_token" id="hbTransferToken" value="">
+
+        <label class="hb-modal-label">Target gallery</label>
+        <select class="form-select" id="hbTargetGallerySelect" name="target_gallery_id" required>
+          <option value="">— Choose a gallery —</option>
+          {% for g in familyGalleries %}
+            {% if g.etat and g.etat.value == 'actif' and g.id != gallery.id %}
+              <option value="{{ g.id }}">{{ g.name }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+
+        <div class="hb-modal-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="hbCloseTransfer()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bx bx-check-circle me-1"></i>Transfer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function hbToggleDocMenu(btn){
+  const doc = btn.closest('.hb-doc');
+  const menu = doc.querySelector('.hb-doc-menu');
+  document.querySelectorAll('.hb-doc-menu.show').forEach(m => { if(m !== menu) m.classList.remove('show'); });
+  menu.classList.toggle('show');
+}
+document.addEventListener('click', () => document.querySelectorAll('.hb-doc-menu.show').forEach(m => m.classList.remove('show')));
+
+function hbOpenTransferFromBtn(btn){
+  const modal = document.getElementById('hbTransferModal');
+  const form = document.getElementById('hbTransferForm');
+  const token = document.getElementById('hbTransferToken');
+  const select = document.getElementById('hbTargetGallerySelect');
+  if(!modal || !form || !token) return;
+  if(select) select.value = "";
+  form.action = btn.dataset.transferUrl;
+  token.value = btn.dataset.transferToken;
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  if(select) setTimeout(() => select.focus(), 80);
+}
+function hbCloseTransfer(){
+  const modal = document.getElementById('hbTransferModal');
+  if(!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') hbCloseTransfer(); });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('hbDocSearchInput');
+  const sortSel = document.getElementById('hbDocSortSelect');
+  const dirBtn = document.getElementById('hbDocSortDirBtn');
+  const icon = document.getElementById('hbDocSortIcon');
+  const grid = document.querySelector('.hb-doc-grid');
+  const items = Array.from(document.querySelectorAll('.hb-doc-item'));
+  let dir = 'desc';
+
+  function matches(el, q){
+    if(!q) return true;
+    const name = el.dataset.name || '';
+    const type = el.dataset.type || '';
+    return name.includes(q) || type.includes(q);
+  }
+  function value(el, field){
+    if(field === 'name') return el.dataset.name || '';
+    if(field === 'type') return el.dataset.type || '';
+    if(field === 'size') return parseFloat(el.dataset.size || '0');
+    return parseInt(el.dataset.date || '0', 10);
+  }
+  function apply(){
+    const q = (input.value || '').toLowerCase().trim();
+    const field = sortSel.value;
+    const visible = items.filter(el => matches(el, q));
+    items.forEach(el => el.style.display = 'none');
+
+    visible.sort((a,b) => {
+      const va = value(a, field);
+      const vb = value(b, field);
+      let c = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
+      return dir === 'asc' ? c : -c;
+    });
+
+    visible.forEach(el => { el.style.display = ''; grid.appendChild(el); });
+  }
+
+  dirBtn.addEventListener('click', () => {
+    dir = (dir === 'asc') ? 'desc' : 'asc';
+    icon.textContent = (dir === 'asc') ? '↑' : '↓';
+    apply();
+  });
+  input.addEventListener('input', apply);
+  sortSel.addEventListener('change', apply);
+  apply();
+});
+</script>
+{% endblock %}

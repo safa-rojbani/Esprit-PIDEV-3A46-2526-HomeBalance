@@ -1,0 +1,252 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Galleries{% endblock %}
+
+{% block content %}
+<style>
+  .hb-headline{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap}
+  .hb-title h4{margin:0}
+  .hb-title p{margin:0}
+  .hb-chip{display:inline-flex;align-items:center;gap:8px;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.70);border:1px solid rgba(67,89,113,.12);color:#566a7f;backdrop-filter:blur(10px)}
+  .hb-grid{margin-top:8px}
+  .hb-album{border-radius:18px;overflow:hidden;border:1px solid rgba(67,89,113,.12);background:#fff;transition:transform .18s ease,box-shadow .18s ease;position:relative}
+  .hb-album:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(67,89,113,.18)}
+  .hb-cover{aspect-ratio:4/3;position:relative;overflow:hidden}
+  .hb-cover::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 220px at 20% 10%,rgba(255,255,255,.55),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.15),rgba(0,0,0,.06));pointer-events:none}
+  .hb-cover .hb-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;opacity:.9}
+  .hb-preview{position:absolute;left:14px;bottom:14px;display:grid;grid-template-columns:repeat(3,18px);grid-auto-rows:18px;gap:6px;opacity:.95}
+  .hb-preview span{border-radius:6px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(10px)}
+  .hb-body{padding:14px 14px 12px;position:relative;z-index:2}
+  .hb-name{font-weight:800;color:#2b2f36;margin-bottom:2px;line-height:1.2;word-break:break-word}
+  .hb-desc{color:#7a8699;font-size:.85rem;margin-top:8px;min-height:36px;word-break:break-word}
+  .hb-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#8592a3;font-size:.82rem;margin-top:8px}
+  .g1{background:linear-gradient(135deg,#9b5cff,#6f7dff)}
+  .g2{background:linear-gradient(135deg,#2dd4bf,#3b82f6)}
+  .g3{background:linear-gradient(135deg,#fb7185,#f59e0b)}
+  .g4{background:linear-gradient(135deg,#a78bfa,#22c55e)}
+  .hb-stretched{position:absolute;inset:0;z-index:1;border-radius:18px}
+
+  .hb-album-actions{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .hb-menu-btn{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);box-shadow:0 10px 22px rgba(0,0,0,.20);opacity:0;transform:translateY(-4px);transition:.18s ease;pointer-events:auto;cursor:pointer;outline:none}
+  .hb-menu-btn::before{content:"⋮";color:rgba(255,255,255,.95);font-size:20px;line-height:1;transform:translateY(-1px);display:block}
+  .hb-album:hover .hb-menu-btn{opacity:1;transform:translateY(0)}
+  @media(max-width:768px){.hb-menu-btn{opacity:1;transform:translateY(0)}}
+  .hb-menu{position:absolute;top:54px;right:10px;min-width:180px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.94);border:1px solid rgba(67,89,113,.14);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(67,89,113,.22);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s ease}
+  .hb-menu.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .hb-menu a,.hb-menu button{width:100%;display:flex;gap:10px;align-items:center;padding:10px 12px;background:transparent;border:0;text-align:left;font-weight:700;color:#566a7f;text-decoration:none}
+  .hb-menu a:hover,.hb-menu button:hover{background:rgba(67,89,113,.06)}
+  .hb-menu .danger{color:#d32f2f}
+
+  .hb-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 16px}
+  .hb-search{flex:1;min-width:240px;position:relative}
+  .hb-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#7a8699;font-size:18px}
+  .hb-search input{width:100%;border-radius:14px;padding:.75rem 1rem .75rem 2.4rem}
+
+  .hb-sort{display:flex;align-items:center}
+  .hb-sort select{border-radius:14px;min-width:220px}
+  .hb-sort .hb-sortbtn{
+    margin-left:8px;
+    border-radius:14px;
+	.hb-sort .input-group{
+  background: rgba(255,255,255,.70);
+  border: 1px solid rgba(67,89,113,.12);
+  backdrop-filter: blur(10px);
+}
+#hbSortDirBtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:900;
+  color:#566a7f;
+  background: transparent;
+}
+
+  }
+</style>
+
+<div class="hb-tools">
+  <div class="hb-search">
+    <i class="bx bx-search"></i>
+    <input id="hbSearchInput" type="text" class="form-control"
+           placeholder="Search galleries… (name, description)" autocomplete="off">
+  </div>
+
+  <div class="hb-sort">
+  <div class="input-group" style="border-radius:14px;overflow:hidden;">
+    <select id="hbSortSelect" class="form-select" style="border:0;">
+      <option value="date" selected>Date</option>
+      <option value="name">Name</option>
+      <option value="description">Description</option>
+      <option value="docs">Documents</option>
+    </select>
+
+    <button id="hbSortDirBtn" class="btn btn-outline-secondary" type="button" style="border:0;border-left:1px solid rgba(67,89,113,.12);min-width:52px;">
+      <span id="hbSortIcon">↓</span>
+    </button>
+  </div>
+</div>
+
+</div>
+
+<div class="hb-headline">
+  <div class="hb-title">
+    <h4 class="fw-bold mb-1">Galleries</h4>
+    <p class="text-muted mb-0">A dreamy album wall ✨</p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
+    {% set activeGalleries = galleries|filter(g => g.etat and g.etat.value == 'actif') %}
+    <span class="hb-chip">
+      <i class="bx bx-collection"></i>
+      {{ activeGalleries|length }} active
+    </span>
+
+    <a href="{{ path('app_gallery_hidden') }}" class="btn btn-outline-secondary">
+      <i class="bx bx-hide me-1"></i>Hidden
+    </a>
+    <a href="{{ path('app_document_trash') }}" class="btn btn-outline-danger">
+      <i class="bx bx-trash me-1"></i>Trash
+    </a>
+    <a href="{{ path('app_gallery_new') }}" class="btn btn-primary">
+      <i class="bx bx-plus me-1"></i>New gallery
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 hb-grid">
+  {% set shown = 0 %}
+  {% set gradients = ['g1','g2','g3','g4'] %}
+
+  {% for gallery in galleries %}
+    {% if gallery.etat and gallery.etat.value == 'actif' %}
+      {% set shown = shown + 1 %}
+      {% set gclass = gradients[(loop.index0) % gradients|length] %}
+      {% set activeDocs = gallery.documents|filter(d => d.etat and d.etat.value == 'actif') %}
+
+      <div class="col-12 col-sm-6 col-lg-4 col-xl-3 hb-item"
+           data-name="{{ gallery.name|lower }}"
+           data-description="{{ (gallery.description ?: '')|lower }}"
+           data-date="{{ (gallery.updatedAt ?: gallery.createdAt)|date('U') }}"
+           data-docs="{{ activeDocs|length }}">
+
+        <div class="hb-album h-100">
+          <div class="hb-cover {{ gclass }}">
+            <div class="hb-icon"><i class="bx bx-photo-album text-white"></i></div>
+
+            <div class="hb-preview">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+
+            <div class="hb-album-actions">
+              <button type="button" class="hb-menu-btn" onclick="event.stopPropagation(); hbToggleMenu(this);" aria-label="Menu"></button>
+
+              <div class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+                <a href="{{ path('app_gallery_show', {'id': gallery.id, 'from': 'index'}) }}">
+                  <i class="bx bx-folder-open"></i>Open
+                </a>
+                <a href="{{ path('app_gallery_edit', {'id': gallery.id, 'from': 'index'}) }}">
+                  <i class="bx bx-edit-alt"></i>Edit
+                </a>
+                <form method="post" action="{{ path('app_gallery_hide', {'id': gallery.id}) }}">
+                  <input type="hidden" name="_token" value="{{ csrf_token('hide' ~ gallery.id) }}">
+                  <button type="submit" class="danger"><i class="bx bx-hide"></i>Hide</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="hb-body">
+            <div class="hb-name">{{ gallery.name }}</div>
+            <div class="hb-desc">{{ gallery.description ?: 'No description yet — add one to make it shine ✨' }}</div>
+
+            <div class="hb-meta">
+              <span><i class="bx bx-file me-1"></i>{{ activeDocs|length }} doc{{ activeDocs|length > 1 ? 's' : '' }}</span>
+            </div>
+
+            <a class="hb-stretched" href="{{ path('app_gallery_show', {'id': gallery.id}) }}" aria-label="Open gallery"></a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if shown == 0 %}
+    <div class="col-12">
+      <div class="alert alert-info mb-0">No active galleries found.</div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function hbToggleMenu(btn) {
+  const card = btn.closest('.hb-album');
+  const menu = card.querySelector('.hb-menu');
+
+  document.querySelectorAll('.hb-menu.show').forEach(m => {
+    if (m !== menu) m.classList.remove('show');
+  });
+
+  menu.classList.toggle('show');
+}
+
+document.addEventListener('click', function () {
+  document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('hbSearchInput');
+  const sortSel = document.getElementById('hbSortSelect');
+  const dirBtn = document.getElementById('hbSortDirBtn');
+  const icon = document.getElementById('hbSortIcon');
+  const grid = document.querySelector('.hb-grid');
+  const items = Array.from(document.querySelectorAll('.hb-item'));
+
+  let dir = 'desc';
+
+  function matches(el, q){
+    if(!q) return true;
+    return (el.dataset.name || '').includes(q) || (el.dataset.description || '').includes(q);
+  }
+
+  function value(el, field){
+    if(field === 'name') return el.dataset.name || '';
+    if(field === 'description') return el.dataset.description || '';
+    if(field === 'docs') return parseInt(el.dataset.docs || '0', 10);
+    return parseInt(el.dataset.date || '0', 10);
+  }
+
+  function apply(){
+    const q = (input.value || '').toLowerCase().trim();
+    const field = sortSel.value;
+
+    const visible = items.filter(el => matches(el, q));
+    items.forEach(el => el.style.display = 'none');
+
+    visible.sort((a,b) => {
+      const va = value(a, field);
+      const vb = value(b, field);
+      let c = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
+      return dir === 'asc' ? c : -c;
+    });
+
+    visible.forEach(el => {
+      el.style.display = '';
+      grid.appendChild(el);
+    });
+  }
+
+ dirBtn.addEventListener('click', () => {
+  dir = (dir === 'asc') ? 'desc' : 'asc';
+  icon.textContent = (dir === 'asc') ? '↑' : '↓';
+  apply();
+});
+
+
+  input.addEventListener('input', apply);
+  sortSel.addEventListener('change', apply);
+
+  apply();
+});
+</script>
+{% endblock %}

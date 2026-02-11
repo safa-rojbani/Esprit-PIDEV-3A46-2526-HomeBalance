@@ -48,6 +48,21 @@ class Document
     #[ORM\JoinColumn(nullable: false)]
     private ?User $uploadedBY = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Gallery $gallery = null;
+
+    public function getGallery(): ?Gallery
+    {
+        return $this->gallery;
+    }
+
+    public function setGallery(?Gallery $gallery): static
+    {
+        $this->gallery = $gallery;
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

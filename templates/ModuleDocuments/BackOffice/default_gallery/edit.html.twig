@@ -1,0 +1,207 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Default Gallery{% endblock %}
+
+{# ✅ If your base uses "content" (like your other premium pages), keep this.
+   If your base uses "body", just rename block content -> body. #}
+{% block content %}
+	<style>
+		/* ===== HomeBalance Admin • Edit Default Gallery (Premium + Phone-like) ===== */
+
+		.hb-page { max-width: 980px; margin: 0 auto; }
+
+		.hb-top{
+			display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;
+		}
+		.hb-title h4{
+			margin:0;font-weight:1000;letter-spacing:.2px;color:#2b2f36;
+		}
+		.hb-title p{ margin:6px 0 0; color:#7a8699; }
+
+		.hb-actions{
+			display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;
+		}
+
+		/* Premium shell */
+		.hb-shell{
+			border-radius:22px; overflow:hidden;
+			border:1px solid rgba(67,89,113,.12);
+			background:rgba(255,255,255,.75);
+			backdrop-filter: blur(14px);
+			box-shadow:0 18px 45px rgba(67,89,113,.16);
+			position:relative;
+		}
+
+		/* Header gradient */
+		.hb-hero{
+			position:relative;
+			padding:18px 18px 16px;
+			background: linear-gradient(135deg, #fb7185, #f59e0b);
+			color:#fff;
+		}
+		.hb-hero::after{
+			content:"";
+			position:absolute; inset:0;
+			background:
+				radial-gradient(800px 300px at 20% 10%, rgba(255,255,255,.35), transparent 60%),
+				linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.10));
+			pointer-events:none;
+		}
+
+		.hb-hero-inner{
+			position:relative; z-index:1;
+			display:flex; align-items:center; justify-content:space-between; gap:14px;
+		}
+
+		.hb-hero-left{
+			display:flex; align-items:center; gap:12px; min-width:0;
+		}
+
+		.hb-hero-icon{
+			width:44px;height:44px;border-radius:14px;
+			display:flex;align-items:center;justify-content:center;
+			background:rgba(0,0,0,.22);
+			border:1px solid rgba(255,255,255,.16);
+			backdrop-filter: blur(10px);
+			box-shadow:0 10px 24px rgba(0,0,0,.18);
+			flex:0 0 auto;
+		}
+
+		.hb-hero-text h5{
+			margin:0;font-weight:1000;letter-spacing:.2px;line-height:1.15;
+		}
+		.hb-hero-text small{ display:block; margin-top:4px; opacity:.92; }
+
+		.hb-chip{
+			display:inline-flex;align-items:center;gap:8px;
+			padding:.45rem .75rem;border-radius:999px;
+			background:rgba(255,255,255,.18);
+			border:1px solid rgba(255,255,255,.20);
+			color:#fff;
+			backdrop-filter: blur(10px);
+			font-weight:900;
+		}
+
+		/* Body */
+		.hb-body{ padding:18px; background:#fff; }
+
+		/* Make included Symfony form look premium */
+		.hb-body form .form-label,
+		.hb-body form label{
+			font-weight:900; color:#2b2f36; margin-bottom:6px;
+		}
+
+		.hb-body form .form-control,
+		.hb-body form input[type="text"],
+		.hb-body form textarea,
+		.hb-body form select{
+			border-radius:14px;
+			border:1px solid rgba(67,89,113,.16);
+			background: rgba(250,251,253,.95);
+			padding:12px 14px;
+			box-shadow:none;
+			transition:.18s ease;
+		}
+
+		.hb-body form .form-control:focus,
+		.hb-body form input[type="text"]:focus,
+		.hb-body form textarea:focus,
+		.hb-body form select:focus{
+			border-color: rgba(245,158,11,.75);
+			box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+			outline:none;
+		}
+
+		.hb-body form textarea{ min-height:140px; resize:vertical; }
+
+		/* Footer */
+		.hb-footer{
+			display:flex;align-items:center;justify-content:space-between;gap:10px;
+			padding:14px 18px;
+			background: rgba(250,251,253,.85);
+			border-top:1px solid rgba(67,89,113,.10);
+			flex-wrap:wrap;
+		}
+
+		.hb-link{
+			display:inline-flex;align-items:center;gap:8px;
+			font-weight:900;color:#566a7f;text-decoration:none;
+			padding:10px 12px;border-radius:12px;
+		}
+		.hb-link:hover{ background:rgba(67,89,113,.06); color:#2b2f36; }
+
+		.hb-btn{
+			border-radius:14px;
+			font-weight:900;
+			padding:10px 14px;
+		}
+
+		.hb-btn-primary{ box-shadow:0 12px 26px rgba(245,158,11,.22); }
+
+		/* Make delete form look premium */
+		.hb-delete form{ margin:0; }
+		.hb-delete button{
+			border-radius:14px !important;
+			font-weight:900 !important;
+			padding:10px 14px !important;
+		}
+
+		@media (max-width:768px){
+			.hb-top{ flex-direction:column; }
+			.hb-actions{ width:100%; justify-content:flex-start; }
+		}
+	</style>
+
+	<div class="hb-page">
+		<div class="hb-top flex-wrap">
+			<div class="hb-title">
+				<h4 class="mb-1">Edit Default Gallery</h4>
+				<p class="mb-0">Update the admin template details ✨</p>
+			</div>
+
+			<div class="hb-actions">
+				<a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary hb-btn">
+					<i class="bx bx-arrow-back me-1"></i>
+					Back
+				</a>
+
+				
+			</div>
+		</div>
+
+		<div class="hb-shell">
+			<div class="hb-hero">
+				<div class="hb-hero-inner">
+					<div class="hb-hero-left">
+						<div class="hb-hero-icon">
+							<i class="bx bx-edit-alt" style="font-size:20px;"></i>
+						</div>
+						<div class="hb-hero-text text-truncate">
+							<h5 class="mb-0">{{ default_gallery.name }}</h5>
+							<small>Edit mode • Keep it clear and reusable</small>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="hb-body">
+				{{ include('ModuleDocuments/BackOffice/default_gallery/_form.html.twig', {'button_label': 'Update'}) }}
+			</div>
+
+			<div class="hb-footer">
+				
+
+				<div class="d-flex gap-2 flex-wrap align-items-center">
+					<a href="{{ path('app_default_gallery_show', {'id': default_gallery.id}) }}" class="btn btn-primary hb-btn hb-btn-primary">
+						<i class="bx bx-show me-1"></i>
+						edit
+					</a>
+
+					<div class="hb-delete">
+						{{ include('ModuleDocuments/BackOffice/default_gallery/_delete_form.html.twig') }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

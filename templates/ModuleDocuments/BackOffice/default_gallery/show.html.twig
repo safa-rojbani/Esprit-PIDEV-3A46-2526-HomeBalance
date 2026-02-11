@@ -1,0 +1,338 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Default Gallery{% endblock %}
+
+{# ✅ If your base uses "content" like your other pages, keep this block.
+   If your base uses "body" instead, just rename block content -> body. #}
+{% block content %}
+	<style>
+		/* ===== HomeBalance Admin • DefaultGallery Show (Premium, Phone-like) ===== */
+
+		.hb-page {
+			max-width: 980px;
+			margin: 0 auto;
+		}
+
+		.hb-top {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 14px;
+			margin-bottom: 14px;
+		}
+
+		.hb-title h4 {
+			margin: 0;
+			font-weight: 1000;
+			letter-spacing: .2px;
+			color: #2b2f36;
+		}
+		.hb-title p {
+			margin: 6px 0 0;
+			color: #7a8699;
+		}
+
+		.hb-actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+		}
+
+		/* Premium shell */
+		.hb-shell {
+			border-radius: 22px;
+			overflow: hidden;
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			background: rgba(255, 255, 255, 0.75);
+			backdrop-filter: blur(14px);
+			box-shadow: 0 18px 45px rgba(67, 89, 113, 0.16);
+			position: relative;
+		}
+
+		/* Header gradient */
+		.hb-hero {
+			position: relative;
+			padding: 18px 18px 16px;
+			background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+			color: #fff;
+		}
+		.hb-hero::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background:
+				radial-gradient(800px 300px at 20% 10%, rgba(255,255,255,.35), transparent 60%),
+				linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.10));
+			pointer-events: none;
+		}
+
+		.hb-hero-inner {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+		}
+
+		.hb-hero-left {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			min-width: 0;
+		}
+
+		.hb-hero-icon {
+			width: 44px;
+			height: 44px;
+			border-radius: 14px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.22);
+			border: 1px solid rgba(255, 255, 255, 0.16);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+			flex: 0 0 auto;
+		}
+
+		.hb-hero-text h5 {
+			margin: 0;
+			font-weight: 1000;
+			letter-spacing: .2px;
+			line-height: 1.15;
+		}
+		.hb-hero-text small {
+			display: block;
+			margin-top: 4px;
+			opacity: .92;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.18);
+			border: 1px solid rgba(255, 255, 255, 0.20);
+			color: #fff;
+			backdrop-filter: blur(10px);
+			font-weight: 900;
+		}
+
+		/* Body */
+		.hb-body {
+			padding: 18px;
+			background: #fff;
+		}
+
+		.hb-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		.hb-field {
+			border-radius: 16px;
+			border: 1px solid rgba(67, 89, 113, 0.12);
+			background: rgba(250, 251, 253, 0.95);
+			padding: 12px 14px;
+		}
+
+		.hb-label {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 1000;
+			color: #2b2f36;
+			margin-bottom: 6px;
+		}
+
+		.hb-value {
+			color: #566a7f;
+			font-weight: 700;
+			word-break: break-word;
+		}
+
+		.hb-desc {
+			grid-column: 1 / -1;
+		}
+
+		.hb-desc .hb-value {
+			white-space: pre-wrap;
+			line-height: 1.55;
+		}
+
+		/* Footer */
+		.hb-footer {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			padding: 14px 18px;
+			background: rgba(250, 251, 253, 0.85);
+			border-top: 1px solid rgba(67, 89, 113, 0.10);
+			flex-wrap: wrap;
+		}
+
+		.hb-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 900;
+			color: #566a7f;
+			text-decoration: none;
+			padding: 10px 12px;
+			border-radius: 12px;
+		}
+		.hb-link:hover {
+			background: rgba(67, 89, 113, 0.06);
+			color: #2b2f36;
+		}
+
+		.hb-btn {
+			border-radius: 14px;
+			font-weight: 900;
+			padding: 10px 14px;
+		}
+
+		.hb-btn-primary {
+			box-shadow: 0 12px 26px rgba(59, 130, 246, 0.22);
+		}
+
+		/* Make the included delete form look premium */
+		.hb-footer form {
+			margin: 0;
+		}
+		.hb-footer form button {
+			border-radius: 14px !important;
+			font-weight: 900 !important;
+			padding: 10px 14px !important;
+		}
+
+		@media (max-width: 768px) {
+			.hb-top { flex-direction: column; }
+			.hb-actions { width: 100%; justify-content: flex-start; }
+			.hb-grid { grid-template-columns: 1fr; }
+		}
+	</style>
+
+	<div class="hb-page">
+		<div class="hb-top flex-wrap">
+			<div class="hb-title">
+				<h4 class="mb-1">Default Gallery</h4>
+				<p class="mb-0">Preview your admin template ✨</p>
+			</div>
+
+			<div class="hb-actions">
+				<a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary hb-btn">
+					<i class="bx bx-arrow-back me-1"></i>
+					Back
+				</a>
+
+				
+			</div>
+		</div>
+
+		<div class="hb-shell">
+			<div class="hb-hero">
+				<div class="hb-hero-inner">
+					<div class="hb-hero-left">
+						<div class="hb-hero-icon">
+							<i class="bx bx-collection" style="font-size:20px;"></i>
+						</div>
+						<div class="hb-hero-text text-truncate">
+							<h5 class="mb-0">{{ default_gallery.name }}</h5>
+							<small>Admin template • Ready to be used by customers</small>
+						</div>
+					</div>
+
+					
+				</div>
+			</div>
+
+			<div class="hb-body">
+				<div class="hb-grid">
+					<div class="hb-field">
+						<div class="hb-label">
+							<i class="bx bx-rename"></i>
+							Name
+						</div>
+						<div class="hb-value">{{ default_gallery.name }}</div>
+					</div>
+
+					<div class="hb-field hb-desc">
+						<div class="hb-label">
+							<i class="bx bx-notepad"></i>
+							Description
+						</div>
+						<div class="hb-value">
+							{{ default_gallery.description ?: 'No description yet — add one to make it shine ✨' }}
+						</div>
+					</div>
+				</div>
+			</div>
+
+            {# ===== Families using this template ===== #}
+{% set families = [] %}
+
+{% for g in default_gallery.galleries %}
+  {% if g.family %}
+    {% set families = families|merge([g.family]) %}
+  {% endif %}
+{% endfor %}
+
+{# remove duplicates by id #}
+{% set uniqueFamilies = {} %}
+{% for f in families %}
+  {% set uniqueFamilies = uniqueFamilies|merge({ (f.id): f }) %}
+{% endfor %}
+
+<div class="hb-field hb-desc" style="margin-top:12px;">
+  <div class="hb-label">
+    <i class="bx bx-home-heart"></i>
+    Families who created this gallery
+    <span class="ms-2 text-muted" style="font-weight:800;">({{ uniqueFamilies|length }})</span>
+  </div>
+
+  {% if uniqueFamilies|length == 0 %}
+    <div class="hb-value">No family has used this template yet.</div>
+  {% else %}
+    <div class="hb-value" style="display:flex; flex-wrap:wrap; gap:8px;">
+      {% for f in uniqueFamilies %}
+        <span style="
+          display:inline-flex; align-items:center; gap:8px;
+          padding:.45rem .75rem; border-radius:999px;
+          background: rgba(67,89,113,.06);
+          border:1px solid rgba(67,89,113,.10);
+          font-weight:900; color:#2b2f36;
+        ">
+          <i class="bx bx-group" style="color:#696cff;"></i>
+          {{ f.name }}
+        </span>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+
+			<div class="hb-footer">
+				
+
+				<div class="d-flex gap-2 flex-wrap">
+					<a href="{{ path('app_default_gallery_edit', {'id': default_gallery.id}) }}" class="btn btn-primary hb-btn hb-btn-primary">
+						<i class="bx bx-edit-alt me-1"></i>
+						Edit
+					</a>
+
+					{# ✅ This keeps your CSRF + POST delete form #}
+					<div>
+						{{ include('ModuleDocuments/BackOffice/default_gallery/_delete_form.html.twig') }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

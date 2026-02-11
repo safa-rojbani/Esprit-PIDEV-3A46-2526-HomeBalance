@@ -1,0 +1,343 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Gallery{% endblock %}
+
+{% block content %}
+<style>
+/* ===== HomeBalance • New Gallery (Elegant WOW, neutral) ===== */
+
+.hb-page{ max-width:1040px; margin:0 auto; }
+
+/* Header */
+.hb-top{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:16px; margin-bottom:14px;
+}
+.hb-top h3{ margin:0; font-weight:1000; letter-spacing:.2px; color:#2b2f36; }
+.hb-top p{ margin:6px 0 0; color:#7a8699; }
+.hb-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+.hb-chip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:.44rem .8rem; border-radius:999px;
+  border:1px solid rgba(67,89,113,.12);
+  background:rgba(255,255,255,.92);
+  color:#566a7f; font-weight:850;
+}
+.hb-chip i{ color:#696cff; }
+
+/* Hero */
+.hb-hero{
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(67,89,113,.12);
+  border-radius:20px;
+  padding:16px 18px;
+  box-shadow:0 14px 40px rgba(67,89,113,.10);
+  margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  backdrop-filter: blur(10px);
+}
+.hb-hero .title{
+  margin:0; display:flex; align-items:center; gap:10px;
+  font-weight:950; color:#2b2f36; font-size:1.06rem;
+}
+.hb-hero .title i{ color:#696cff; font-size:18px; }
+.hb-hero .sub{ margin:6px 0 0; color:#7a8699; line-height:1.35; }
+
+/* Cards */
+.hb-card,.hb-side{
+  background:#fff;
+  border:1px solid rgba(67,89,113,.12);
+  border-radius:20px;
+  box-shadow:0 18px 55px rgba(67,89,113,.10);
+  overflow:hidden;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.hb-card:hover,.hb-side:hover{
+  transform: translateY(-3px);
+  box-shadow:0 26px 70px rgba(67,89,113,.14);
+  border-color: rgba(105,108,255,.22);
+}
+
+.hb-card-header{
+  padding:14px 16px;
+  border-bottom:1px solid rgba(67,89,113,.10);
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.hb-card-header .left{
+  font-weight:950; color:#2b2f36;
+  display:flex; align-items:center; gap:10px;
+}
+.hb-dot{
+  width:10px; height:10px; border-radius:999px;
+  background: rgba(105,108,255,.85);
+  box-shadow:0 10px 22px rgba(105,108,255,.20);
+  display:inline-block;
+}
+.hb-card-body{ padding:18px; }
+
+/* Form base */
+.hb-card-body form{ margin:0; }
+.hb-card-body label{
+  display:block !important;
+  font-weight:850; color:#566a7f;
+  margin-bottom:6px;
+}
+.hb-card-body input,
+.hb-card-body textarea,
+.hb-card-body select{
+  width:100% !important;
+  display:block !important;
+  border-radius:14px !important;
+  background:#fff !important;
+}
+.hb-card-body input:focus,
+.hb-card-body textarea:focus,
+.hb-card-body select:focus{
+  box-shadow:0 0 0 .2rem rgba(105,108,255,.16) !important;
+  border-color: rgba(105,108,255,.55) !important;
+}
+.hb-card-body > form > div{ margin-bottom:14px; }
+.hb-card-body textarea{ min-height:130px; resize:vertical; }
+
+.hb-submit{
+  margin-top:6px;
+  border-radius:14px !important;
+  padding:.82rem 1.1rem !important;
+  font-weight:1000 !important;
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  box-shadow:0 16px 40px rgba(105,108,255,.18);
+}
+
+/* Sidebar */
+.hb-side .card-body{ padding:16px; }
+.hb-side h6{
+  margin:0 0 12px;
+  font-weight:1000; color:#2b2f36;
+  display:flex; align-items:center; gap:10px;
+}
+.hb-side h6 i{ color:#696cff; }
+
+.hb-block{
+  border:1px solid rgba(67,89,113,.10);
+  border-radius:18px;
+  padding:12px 12px;
+  background:rgba(255,255,255,.96);
+}
+.hb-block + .hb-block{ margin-top:12px; }
+.hb-block .t{
+  font-weight:950; color:#566a7f;
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:8px;
+}
+.hb-block .t i{ color:#696cff; }
+.hb-block ul{ margin:0; padding-left:1.1rem; color:#7a8699; }
+.hb-block li{ margin:6px 0; }
+
+/* Entrance */
+.hb-in{ animation: hbIn .25s ease both; }
+@keyframes hbIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+/* ===== Mode Selector (Template / Custom) ===== */
+.hb-mode{
+  border:1px solid rgba(67,89,113,.10);
+  border-radius:18px;
+  background:rgba(255,255,255,.95);
+  padding:12px 12px;
+  margin-bottom:14px;
+}
+.hb-mode-title{
+  display:flex; align-items:center; gap:10px;
+  font-weight:1000; color:#2b2f36;
+  margin-bottom:10px;
+}
+.hb-mode-title i{ color:#696cff; font-size:18px; }
+.hb-mode-sub{ color:#7a8699; font-size:.92rem; margin-top:8px; }
+
+.hb-toggle{
+  display:flex; gap:10px;
+  background:rgba(67,89,113,.05);
+  padding:8px;
+  border-radius:16px;
+  position:relative;
+  z-index:5;
+}
+.hb-pill{
+  flex:1;
+  border:1px solid transparent;
+  background:transparent;
+  border-radius:14px;
+  padding:10px 12px;
+  font-weight:950;
+  color:#566a7f;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:.18s ease;
+
+  position:relative;
+  z-index:6;
+  pointer-events:auto;
+  cursor:pointer;
+  user-select:none;
+}
+.hb-pill.active{
+  background:#fff;
+  border-color:rgba(105,108,255,.25);
+  box-shadow:0 12px 30px rgba(105,108,255,.12);
+  color:#2b2f36;
+}
+.hb-pill i{ color:#696cff; }
+
+.hb-hint{
+  margin-top:10px;
+  border-radius:14px;
+  padding:10px 12px;
+  background:rgba(105,108,255,.06);
+  border:1px solid rgba(105,108,255,.12);
+  color:#566a7f;
+  font-weight:850;
+  display:flex; gap:10px; align-items:flex-start;
+}
+.hb-hint i{ color:#696cff; font-size:18px; margin-top:1px; }
+</style>
+
+<div class="hb-page">
+  <div class="hb-top flex-wrap hb-in">
+    <div>
+      <h3>New Gallery</h3>
+      <p>Choose a template or craft your own album ✨</p>
+    </div>
+
+    <div class="hb-actions">
+      <span class="hb-chip"><i class="bx bx-lock-alt"></i> Private by family</span>
+      <a href="{{ path('app_gallery_index') }}" class="btn btn-outline-secondary">
+        <i class="bx bx-left-arrow-alt me-1"></i> Back
+      </a>
+    </div>
+  </div>
+
+  <div class="hb-hero hb-in">
+    <div>
+      <p class="title"><i class="bx bx-photo-album"></i> Create a new album</p>
+      <p class="sub">Templates save time. Custom gives you full control.</p>
+    </div>
+   
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
+      <div class="hb-card hb-in">
+        <div class="hb-card-header">
+          <div class="left">
+            <span class="hb-dot"></span>
+            Gallery details
+          </div>
+        </div>
+
+        <div class="hb-card-body">
+          {{ include('ModuleDocuments/FrontOffice/gallery/_form.html.twig', { form: form }) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card hb-side hb-in">
+        <div class="card-body">
+          <h6><i class="bx bx-sparkles"></i> Quick guide</h6>
+
+          <div class="hb-block">
+            <div class="t"><i class="bx bx-bulb"></i> Tips</div>
+            <ul>
+              <li>Template: fast setup (Factures, Santé...)</li>
+              <li>Custom: your own naming style</li>
+              <li>You can hide it anytime.</li>
+            </ul>
+          </div>
+
+          <div class="hb-block">
+            <div class="t"><i class="bx bx-shield-quarter"></i> Privacy</div>
+            <ul>
+              <li>Only your family can see this gallery.</li>
+              <li>No cross-family access possible.</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function initNewGallery() {
+    const formEl = document.querySelector('#hbGalleryForm');
+    if (!formEl) return;
+
+    // Avoid double init when navigating back/forward or turbo
+    if (formEl.dataset.hbInit === '1') return;
+    formEl.dataset.hbInit = '1';
+
+    // Ensure Sneat classes
+    formEl.querySelectorAll('input, textarea, select').forEach(el => {
+      if (el.tagName.toLowerCase() === 'select') el.classList.add('form-select');
+      else el.classList.add('form-control');
+    });
+
+    const templateBlock = document.getElementById('hbTemplateBlock');
+    const customBlock = document.getElementById('hbCustomBlock');
+    const pills = formEl.querySelectorAll('.hb-pill');
+
+    const select = formEl.querySelector('select[name$="[defaultGallery]"]');
+    const nameInput = formEl.querySelector('input[name$="[name]"]');
+    const descInput = formEl.querySelector('textarea[name$="[description]"]');
+
+    function setMode(mode) {
+      pills.forEach(p => p.classList.toggle('active', p.dataset.mode === mode));
+
+      if (mode === 'template') {
+        if (templateBlock) templateBlock.style.display = '';
+        if (customBlock) customBlock.style.display = 'none';
+      } else {
+        if (templateBlock) templateBlock.style.display = 'none';
+        if (customBlock) customBlock.style.display = '';
+        if (select) select.value = ''; // custom => no template
+        if (nameInput) nameInput.focus();
+      }
+    }
+
+    pills.forEach(p => {
+      p.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMode(p.dataset.mode);
+      });
+    });
+
+    function applyTemplate() {
+      if (!select || !select.value) return;
+      const opt = select.options[select.selectedIndex];
+
+      const tplName = opt.getAttribute('data-name') || '';
+      const tplDesc = opt.getAttribute('data-description') || '';
+
+      if (nameInput) nameInput.value = tplName;
+      if (descInput) descInput.value = tplDesc;
+    }
+
+    if (select) select.addEventListener('change', applyTemplate);
+
+    // Default mode
+    setMode('template');
+  }
+
+  // Normal full reload
+  document.addEventListener('DOMContentLoaded', initNewGallery);
+
+  // Turbo navigation (if enabled)
+  document.addEventListener('turbo:load', initNewGallery);
+
+  // Back/forward cache (Safari/Chrome sometimes)
+  window.addEventListener('pageshow', initNewGallery);
+})();
+</script>
+
+{% endblock %}

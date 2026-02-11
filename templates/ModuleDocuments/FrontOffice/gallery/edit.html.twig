@@ -1,0 +1,349 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Gallery
+{% endblock %}
+
+{% block content %}
+	<style>
+		/* ===== HomeBalance • Edit Gallery (Elegant WOW, neutral) ===== */
+
+		.hb-page {
+			max-width: 1040px;
+			margin: 0 auto;
+		}
+
+		.hb-top {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 16px;
+			margin-bottom: 14px;
+		}
+		.hb-top h3 {
+			margin: 0;
+			font-weight: 1000;
+			letter-spacing: 0.2px;
+			color: #2b2f36;
+		}
+		.hb-top p {
+			margin: 6px 0 0;
+			color: #7a8699;
+		}
+
+		.hb-actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: flex-end;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.44rem 0.8rem;
+			border-radius: 999px;
+			border: 1px solid rgba(67, 89, 113, .12);
+			background: rgba(255, 255, 255, .92);
+			color: #566a7f;
+			font-weight: 850;
+		}
+		.hb-chip i {
+			color: #696cff;
+		}
+
+		.hb-hero {
+			background: rgba(255, 255, 255, .92);
+			border: 1px solid rgba(67, 89, 113, .12);
+			border-radius: 20px;
+			padding: 16px 18px;
+			box-shadow: 0 14px 40px rgba(67, 89, 113, .10);
+			margin-bottom: 16px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			backdrop-filter: blur(10px);
+		}
+		.hb-hero .title {
+			margin: 0;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 950;
+			color: #2b2f36;
+			font-size: 1.06rem;
+		}
+		.hb-hero .title i {
+			color: #696cff;
+			font-size: 18px;
+		}
+		.hb-hero .sub {
+			margin: 6px 0 0;
+			color: #7a8699;
+			line-height: 1.35;
+		}
+
+		.hb-card {
+			background: #fff;
+			border: 1px solid rgba(67, 89, 113, .12);
+			border-radius: 20px;
+			box-shadow: 0 18px 55px rgba(67, 89, 113, .10);
+			overflow: hidden;
+			transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+		}
+		.hb-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 26px 70px rgba(67, 89, 113, .14);
+			border-color: rgba(105, 108, 255, .22);
+		}
+
+		.hb-card-header {
+			padding: 14px 16px;
+			border-bottom: 1px solid rgba(67, 89, 113, .10);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+		}
+		.hb-card-header .left {
+			font-weight: 950;
+			color: #2b2f36;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+		.hb-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 999px;
+			background: rgba(105, 108, 255, .85);
+			box-shadow: 0 10px 22px rgba(105, 108, 255, .20);
+			display: inline-block;
+		}
+
+		.hb-card-body {
+			padding: 18px;
+		}
+
+		/* Form styling */
+		.hb-card-body form {
+			margin: 0;
+		}
+		.hb-card-body label {
+			display: block !important;
+			font-weight: 850;
+			color: #566a7f;
+			margin-bottom: 6px;
+		}
+		.hb-card-body input,
+		.hb-card-body textarea,
+		.hb-card-body select {
+			width: 100% !important;
+			display: block !important;
+			border-radius: 14px !important;
+			background: #fff !important;
+		}
+		.hb-card-body input:focus,
+		.hb-card-body textarea:focus,
+		.hb-card-body select:focus {
+			box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, .16) !important;
+			border-color: rgba(105, 108, 255, .55) !important;
+		}
+		.hb-card-body > form > div {
+			margin-bottom: 14px;
+		}
+		.hb-card-body textarea {
+			min-height: 130px;
+			resize: vertical;
+		}
+
+		.hb-submit {
+			margin-top: 6px;
+			border-radius: 14px !important;
+			padding: 0.82rem 1.1rem !important;
+			font-weight: 1000 !important;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			box-shadow: 0 16px 40px rgba(105, 108, 255, .18);
+		}
+
+		/* Danger zone */
+		.hb-danger {
+			border: 1px solid rgba(220, 53, 69, .22);
+			background: rgba(220, 53, 69, .03);
+			border-radius: 18px;
+			padding: 14px;
+		}
+		.hb-danger .t {
+			font-weight: 1000;
+			color: #b02a37;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 6px;
+		}
+		.hb-danger .d {
+			color: #7a8699;
+			margin: 0 0 10px;
+		}
+		.hb-danger .actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		/* small entrance */
+		.hb-in {
+			animation: hbIn 0.25s ease both;
+		}
+		@keyframes hbIn {
+			from {
+				opacity: 0;
+				transform: translateY(8px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+	</style>
+
+	<div class="hb-page">
+		<div class="hb-top flex-wrap hb-in">
+			<div>
+				<h3>Edit Gallery</h3>
+				<p>Refine your album details — keep it clean and organized ✨</p>
+			</div>
+
+			<div class="hb-actions">
+				<span class="hb-chip">
+					<i class="bx bx-edit"></i>
+					Update mode</span>
+				{% set backPath = (from is defined and from == 'hidden')
+  ? path('app_gallery_hidden')
+  : path('app_gallery_index')
+%}
+
+				<a href="{{ backPath }}" class="btn btn-outline-secondary">
+					<i class="bx bx-left-arrow-alt me-1"></i>
+					Back
+				</a>
+
+			</div>
+		</div>
+
+		<div class="hb-hero hb-in">
+			<div>
+				<p class="title">
+					<i class="bx bx-photo-album"></i>
+					Editing:
+					<span class="fw-bold">{{ gallery.name }}</span>
+				</p>
+				<p class="sub">Update the name and description. You can also hide or delete this gallery.</p>
+			</div>
+
+			<div class="d-flex gap-2 flex-wrap justify-content-end">
+				<form method="post" action="{{ path('app_gallery_hide', {'id': gallery.id}) }}" style="margin:0;">
+					<input type="hidden" name="_token" value="{{ csrf_token('hide' ~ gallery.id) }}">
+					<button class="btn btn-warning" type="submit">
+						<i class="bx bx-hide me-1"></i>
+						Hide
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="row g-4">
+			<div class="col-12 col-lg-7">
+				<div class="hb-card hb-in">
+					<div class="hb-card-header">
+						<div class="left">
+							<span class="hb-dot"></span>
+							Gallery details
+						</div>
+					</div>
+
+					<div class="hb-card-body">
+						{{ include('ModuleDocuments/FrontOffice/gallery/_form.html.twig', {'button_label': 'Update'}) }}
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-lg-5">
+				<div class="hb-card hb-in">
+					<div class="hb-card-header">
+						<div class="left">
+							<span class="hb-dot" style="background: rgba(220,53,69,.85); box-shadow: 0 10px 22px rgba(220,53,69,.18);"></span>
+							Danger zone
+						</div>
+					</div>
+
+					<div class="hb-card-body">
+						<div class="hb-danger">
+							<div class="t">
+								<i class="bx bx-error-circle"></i>
+								Delete gallery</div>
+							<p class="d">
+								This gallery will be sent to the
+								<b>Trash</b>
+								and can be restored later.
+								              If you just want to remove it from view, use
+								<b>Hide</b>.
+							</p>
+							<div class="actions">
+								{{ include('ModuleDocuments/FrontOffice/gallery/_delete_form.html.twig') }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Make submit button premium even if _form is basic
+document.addEventListener('DOMContentLoaded', () => {
+const form = document.querySelector('.hb-card-body form');
+if (! form) 
+return;
+
+
+form.querySelectorAll('input, textarea, select').forEach(el => {
+if (el.tagName.toLowerCase() === 'select') 
+el.classList.add('form-select');
+ else 
+el.classList.add('form-control');
+
+});
+
+const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+if (btn) {
+btn.classList.add('btn', 'btn-primary', 'hb-submit');
+if (btn.tagName.toLowerCase() === 'button') {
+const text = btn.textContent.trim().toLowerCase();
+if (text === 'update' || text === 'save' || text === 'submit') {
+btn.innerHTML = '<i class="bx bx-save"></i> Update gallery';
+} else if (! btn.querySelector('i')) {
+btn.insertAdjacentHTML('afterbegin', '<i class="bx bx-save"></i> ');
+}
+}
+}
+
+// Style delete button inside delete form (if it exists)
+document.querySelectorAll('form button').forEach(b => {
+const t = (b.textContent || '').toLowerCase();
+if (t.includes('delete')) {
+b.classList.add('btn', 'btn-danger');
+if (!b.querySelector('i')) 
+b.insertAdjacentHTML('afterbegin', '<i class="bx bx-trash"></i> ');
+
+}
+});
+});
+	</script>
+{% endblock %}
