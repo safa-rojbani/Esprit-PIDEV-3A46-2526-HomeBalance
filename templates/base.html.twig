@@ -1,29 +1,43 @@
 <!DOCTYPE html>
-<html>
-   <head>
-  <meta charset="UTF-8">
-  <title>{% block title %}HomeBalance{% endblock %}</title>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}HomeBalance{% endblock %}</title>
 
-  <!-- Sneat CSS -->
-  <link rel="stylesheet" href="{{ asset('assets/css/core.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/css/theme-default.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}">
+    <!-- Sneat CORE CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/core.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-default.css') }}">
 
-  {% block stylesheets %}{% endblock %}
+    {% block stylesheets %}{% endblock %}
 
-  <!-- Sneat JS helpers -->
-  {% block javascripts %}
-    {{ importmap('app') }}
-  {% endblock %}
+    <!-- Sneat helpers -->
+    <script src="{{ asset('assets/js/helpers.js') }}"></script>
 </head>
 
-   <body>
-  {% block body %}{% endblock %}
+<body>
 
-  <!-- Sneat JS -->
-  <script src="{{ asset('assets/js/helpers.js') }}"></script>
-  <script src="{{ asset('assets/js/config.js') }}"></script>
-  <script src="{{ asset('assets/js/main.js') }}"></script>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <div class="layout-page">
+
+            {# MAIN CONTENT #}
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    {% block body %}{% endblock %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Sneat CORE JS -->
+<script src="{{ asset('assets/js/config.js') }}"></script>
+<script src="{{ asset('assets/js/main.js') }}"></script>
+
+{% block javascripts %}
+    {{ importmap('app') }}
+{% endblock %}
+
 </body>
-
 </html>

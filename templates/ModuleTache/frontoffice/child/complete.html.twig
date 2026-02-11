@@ -1,0 +1,8 @@
+<h1>Valider la tâche</h1>
+
+<p><strong>{{ task.title }}</strong></p>
+
+{{ form_start(form, { attr: { enctype: 'multipart/form-data' } }) }}
+    {{ form_row(form.proof) }}
+    <button type="submit">📸 Envoyer la preuve</button>
+{{ form_end(form) }}

@@ -1,0 +1,11 @@
+<h1>Assigner une tâche à un enfant</h1>
+
+{{ form_start(form) }}
+    {{ form_row(form.task) }}
+    {{ form_row(form.user) }}
+    {{ form_row(form.dueDate) }}
+
+    <button type="submit">Assigner</button>
+{{ form_end(form) }}
+
+<a href="{{ path('parent_task_index') }}">← Retour</a>
