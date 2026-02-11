@@ -4,43 +4,36 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260207192006 extends AbstractMigration
+final class Version20260211112634 extends AbstractMigration
 {
     public function getDescription(): string
     {
         return '';
     }
-    private function assertMysqlOrMariaDb(): void
-    {
-    $platformClass = get_class($this->connection->getDatabasePlatform());
-
-    $this->skipIf(
-        !str_contains($platformClass, 'MySQLPlatform') && !str_contains($platformClass, 'MariaDBPlatform'),
-        sprintf('Migration skipped: requires MySQL/MariaDB. Current platform: %s', $platformClass)
-        );
-    }
 
     public function up(Schema $schema): void
     {
-        $this->assertMysqlOrMariaDb();
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE TABLE account_notification (id INT AUTO_INCREMENT NOT NULL, user_id VARCHAR(36) NOT NULL, notification_key VARCHAR(64) NOT NULL, channel VARCHAR(32) NOT NULL, status VARCHAR(32) NOT NULL, payload JSON DEFAULT NULL COMMENT \'(DC2Type:json)\', attempts INT NOT NULL, last_error LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', sent_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_268C608CA76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE achat (id INT AUTO_INCREMENT NOT NULL, categorie_id INT NOT NULL, family_id INT DEFAULT NULL, created_by_id VARCHAR(36) DEFAULT NULL, nom_article VARCHAR(255) NOT NULL, est_achete TINYINT(1) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_26A98456BCF5E72D (categorie_id), INDEX IDX_26A98456C35E566A (family_id), INDEX IDX_26A98456B03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE audit_trail (id INT AUTO_INCREMENT NOT NULL, user_id VARCHAR(36) DEFAULT NULL, family_id INT DEFAULT NULL, action VARCHAR(255) DEFAULT NULL, payload JSON DEFAULT NULL, user_agent LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_B523E178A76ED395 (user_id), INDEX IDX_B523E178C35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE badge (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255) DEFAULT NULL, icon VARCHAR(255) DEFAULT NULL, required_points INT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE audit_trail (id INT AUTO_INCREMENT NOT NULL, user_id VARCHAR(36) DEFAULT NULL, family_id INT DEFAULT NULL, action VARCHAR(255) DEFAULT NULL, payload JSON DEFAULT NULL COMMENT \'(DC2Type:json)\', user_agent LONGTEXT DEFAULT NULL, ip_address VARCHAR(64) DEFAULT NULL, channel VARCHAR(32) DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_B523E178A76ED395 (user_id), INDEX IDX_B523E178C35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE avatar_upload_log (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE badge (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, code VARCHAR(64) NOT NULL, scope VARCHAR(32) NOT NULL, description VARCHAR(255) DEFAULT NULL, icon VARCHAR(255) DEFAULT NULL, required_points INT NOT NULL, UNIQUE INDEX UNIQ_FEF0481D77153098 (code), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE categorie_achat (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, nom_categorie VARCHAR(255) NOT NULL, INDEX IDX_D3D16986C35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE conversation (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, created_by_id VARCHAR(36) NOT NULL, conversation_name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_8A8E26E9C35E566A (family_id), INDEX IDX_8A8E26E9B03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE conversation_participant (id INT AUTO_INCREMENT NOT NULL, conversation_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, joined_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_398016619AC0396 (conversation_id), INDEX IDX_39801661A76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE document (id INT AUTO_INCREMENT NOT NULL, family_id INT DEFAULT NULL, uploaded_by_id VARCHAR(36) NOT NULL, file_name VARCHAR(255) NOT NULL, file_path VARCHAR(255) NOT NULL, file_type VARCHAR(255) NOT NULL, filesize VARCHAR(255) DEFAULT NULL, uploaded_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', etat VARCHAR(255) NOT NULL, created_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_D8698A76C35E566A (family_id), INDEX IDX_D8698A76A2B28FE8 (uploaded_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE evenement (id INT AUTO_INCREMENT NOT NULL, family_id INT DEFAULT NULL, created_by_id VARCHAR(36) DEFAULT NULL, type_evenement_id INT NOT NULL, titre VARCHAR(255) NOT NULL, description LONGTEXT DEFAULT NULL, date_debut DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', date_fin DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', lieu VARCHAR(255) NOT NULL, date_creation DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', date_modification DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_B26681EC35E566A (family_id), INDEX IDX_B26681EB03A8386 (created_by_id), INDEX IDX_B26681E88939516 (type_evenement_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE family (id INT AUTO_INCREMENT NOT NULL, created_by_id VARCHAR(36) NOT NULL, name VARCHAR(255) NOT NULL, join_code VARCHAR(255) DEFAULT NULL, code_expires_at DATETIME DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_A5E6215BB03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE family (id INT AUTO_INCREMENT NOT NULL, created_by_id VARCHAR(36) NOT NULL, name VARCHAR(255) NOT NULL, join_code VARCHAR(255) DEFAULT NULL, code_expires_at DATETIME DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', UNIQUE INDEX UNIQ_A5E6215BE64D7D01 (join_code), INDEX IDX_A5E6215BB03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE family_badge (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, badge_id INT NOT NULL, awarded_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_C287DB6EC35E566A (family_id), INDEX IDX_C287DB6EF7A2C2FC (badge_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE family_invitation (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, created_by_id VARCHAR(36) NOT NULL, invited_email VARCHAR(255) DEFAULT NULL, join_code VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, expires_at DATETIME DEFAULT NULL, INDEX IDX_C2D7B2DDC35E566A (family_id), INDEX IDX_C2D7B2DDB03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE family_memberships (id VARCHAR(36) NOT NULL, family_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, role VARCHAR(32) NOT NULL, joined_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', left_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_46D3E108C35E566A (family_id), INDEX IDX_46D3E108A76ED395 (user_id), UNIQUE INDEX UNIQ_46D3E108C35E566AA76ED395 (family_id, user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE favorite_docs (id INT AUTO_INCREMENT NOT NULL, document_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, created_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_by DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_BF513288C33F7837 (document_id), INDEX IDX_BF513288A76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE gallery (id INT AUTO_INCREMENT NOT NULL, family_id INT DEFAULT NULL, created_by_id VARCHAR(36) NOT NULL, name VARCHAR(255) NOT NULL, description LONGTEXT DEFAULT NULL, etat VARCHAR(255) NOT NULL, created_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', deleted_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_472B783AC35E566A (family_id), INDEX IDX_472B783AB03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE historique_achat (id INT AUTO_INCREMENT NOT NULL, achat_id INT NOT NULL, revenu_id INT DEFAULT NULL, family_id INT DEFAULT NULL, paid_by_id VARCHAR(36) DEFAULT NULL, montant_achete NUMERIC(10, 2) NOT NULL, quantite_achete INT DEFAULT NULL, date_achat DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_68295E25FE95D117 (achat_id), INDEX IDX_68295E259435AF7A (revenu_id), INDEX IDX_68295E25C35E566A (family_id), INDEX IDX_68295E257F9BC654 (paid_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -53,11 +46,13 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('CREATE TABLE support_ticket (id INT AUTO_INCREMENT NOT NULL, conversation_id INT NOT NULL, title VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_1F5A4D539AC0396 (conversation_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE task (id INT AUTO_INCREMENT NOT NULL, family_id INT DEFAULT NULL, created_by_id VARCHAR(36) NOT NULL, title VARCHAR(255) NOT NULL, description VARCHAR(255) NOT NULL, difficulty VARCHAR(50) NOT NULL, recurrence VARCHAR(50) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', is_active TINYINT(1) NOT NULL, INDEX IDX_527EDB25C35E566A (family_id), INDEX IDX_527EDB25B03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE task_assignment (id INT AUTO_INCREMENT NOT NULL, task_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, family_id INT NOT NULL, assigned_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', due_date DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', refused_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', status VARCHAR(50) NOT NULL, INDEX IDX_2CD60F158DB60186 (task_id), INDEX IDX_2CD60F15A76ED395 (user_id), INDEX IDX_2CD60F15C35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE task_completion (id INT AUTO_INCREMENT NOT NULL, task_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, validated_by_id VARCHAR(36) DEFAULT NULL, completed_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', proof VARCHAR(255) NOT NULL, is_validated TINYINT(1) NOT NULL, INDEX IDX_24C57CD18DB60186 (task_id), INDEX IDX_24C57CD1A76ED395 (user_id), INDEX IDX_24C57CD1C69DE5E5 (validated_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE task_completion (id INT AUTO_INCREMENT NOT NULL, task_id INT NOT NULL, user_id VARCHAR(36) NOT NULL, validated_by_id VARCHAR(36) DEFAULT NULL, completed_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', proof VARCHAR(255) NOT NULL, is_validated TINYINT(1) DEFAULT NULL, validated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', parent_comment LONGTEXT DEFAULT NULL, INDEX IDX_24C57CD18DB60186 (task_id), INDEX IDX_24C57CD1A76ED395 (user_id), INDEX IDX_24C57CD1C69DE5E5 (validated_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE type_evenement (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, nom VARCHAR(255) NOT NULL, couleur VARCHAR(255) NOT NULL, description LONGTEXT DEFAULT NULL, date_creation DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_BFE0290EC35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE user (id VARCHAR(36) NOT NULL, family_id INT DEFAULT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, birth_date DATE NOT NULL, avatar_path VARCHAR(255) DEFAULT NULL, locale VARCHAR(255) NOT NULL, time_zone VARCHAR(255) DEFAULT NULL, preferences JSON DEFAULT NULL, status VARCHAR(255) NOT NULL, system_role VARCHAR(255) NOT NULL, family_role VARCHAR(255) NOT NULL, reset_token VARCHAR(255) DEFAULT NULL, reset_expires_at DATETIME DEFAULT NULL, last_login DATETIME DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_8D93D649C35E566A (family_id), UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE user (id VARCHAR(36) NOT NULL, family_id INT DEFAULT NULL, email VARCHAR(180) NOT NULL, username VARCHAR(180) NOT NULL, roles JSON NOT NULL COMMENT \'(DC2Type:json)\', password VARCHAR(255) NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, birth_date DATE NOT NULL, avatar_path VARCHAR(255) DEFAULT NULL, locale VARCHAR(255) NOT NULL, time_zone VARCHAR(255) DEFAULT NULL, preferences JSON DEFAULT NULL COMMENT \'(DC2Type:json)\', status VARCHAR(255) NOT NULL, system_role VARCHAR(255) NOT NULL, family_role VARCHAR(255) NOT NULL, email_verification_token VARCHAR(64) DEFAULT NULL, email_verification_requested_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', email_verified_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', reset_token VARCHAR(255) DEFAULT NULL, reset_expires_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', last_login DATETIME DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_8D93D649C35E566A (family_id), UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), UNIQUE INDEX UNIQ_IDENTIFIER_USERNAME (username), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE user_badges (user_id VARCHAR(36) NOT NULL, badge_id INT NOT NULL, INDEX IDX_1DA448A7A76ED395 (user_id), INDEX IDX_1DA448A7F7A2C2FC (badge_id), PRIMARY KEY(user_id, badge_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE user_badge (id INT AUTO_INCREMENT NOT NULL, user_id VARCHAR(36) NOT NULL, badge_id INT NOT NULL, awarded_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_1C32B345A76ED395 (user_id), INDEX IDX_1C32B345F7A2C2FC (badge_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE messenger_messages (id BIGINT AUTO_INCREMENT NOT NULL, body LONGTEXT NOT NULL, headers LONGTEXT NOT NULL, queue_name VARCHAR(190) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', available_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', delivered_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_75EA56E0FB7336F0E3BD61CE16BA31DBBF396750 (queue_name, available_at, delivered_at, id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('ALTER TABLE account_notification ADD CONSTRAINT FK_268C608CA76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE achat ADD CONSTRAINT FK_26A98456BCF5E72D FOREIGN KEY (categorie_id) REFERENCES categorie_achat (id)');
         $this->addSql('ALTER TABLE achat ADD CONSTRAINT FK_26A98456C35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
         $this->addSql('ALTER TABLE achat ADD CONSTRAINT FK_26A98456B03A8386 FOREIGN KEY (created_by_id) REFERENCES user (id)');
@@ -74,8 +69,12 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('ALTER TABLE evenement ADD CONSTRAINT FK_B26681EB03A8386 FOREIGN KEY (created_by_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE evenement ADD CONSTRAINT FK_B26681E88939516 FOREIGN KEY (type_evenement_id) REFERENCES type_evenement (id)');
         $this->addSql('ALTER TABLE family ADD CONSTRAINT FK_A5E6215BB03A8386 FOREIGN KEY (created_by_id) REFERENCES user (id)');
+        $this->addSql('ALTER TABLE family_badge ADD CONSTRAINT FK_C287DB6EC35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
+        $this->addSql('ALTER TABLE family_badge ADD CONSTRAINT FK_C287DB6EF7A2C2FC FOREIGN KEY (badge_id) REFERENCES badge (id)');
         $this->addSql('ALTER TABLE family_invitation ADD CONSTRAINT FK_C2D7B2DDC35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
         $this->addSql('ALTER TABLE family_invitation ADD CONSTRAINT FK_C2D7B2DDB03A8386 FOREIGN KEY (created_by_id) REFERENCES user (id)');
+        $this->addSql('ALTER TABLE family_memberships ADD CONSTRAINT FK_46D3E108C35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
+        $this->addSql('ALTER TABLE family_memberships ADD CONSTRAINT FK_46D3E108A76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE favorite_docs ADD CONSTRAINT FK_BF513288C33F7837 FOREIGN KEY (document_id) REFERENCES document (id)');
         $this->addSql('ALTER TABLE favorite_docs ADD CONSTRAINT FK_BF513288A76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE gallery ADD CONSTRAINT FK_472B783AC35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
@@ -107,14 +106,16 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('ALTER TABLE task_completion ADD CONSTRAINT FK_24C57CD1C69DE5E5 FOREIGN KEY (validated_by_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE type_evenement ADD CONSTRAINT FK_BFE0290EC35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
         $this->addSql('ALTER TABLE user ADD CONSTRAINT FK_8D93D649C35E566A FOREIGN KEY (family_id) REFERENCES family (id)');
+        $this->addSql('ALTER TABLE user_badges ADD CONSTRAINT FK_1DA448A7A76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE user_badges ADD CONSTRAINT FK_1DA448A7F7A2C2FC FOREIGN KEY (badge_id) REFERENCES badge (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE user_badge ADD CONSTRAINT FK_1C32B345A76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE user_badge ADD CONSTRAINT FK_1C32B345F7A2C2FC FOREIGN KEY (badge_id) REFERENCES badge (id)');
     }
 
     public function down(Schema $schema): void
     {
-        $this->assertMysqlOrMariaDb();
         // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE account_notification DROP FOREIGN KEY FK_268C608CA76ED395');
         $this->addSql('ALTER TABLE achat DROP FOREIGN KEY FK_26A98456BCF5E72D');
         $this->addSql('ALTER TABLE achat DROP FOREIGN KEY FK_26A98456C35E566A');
         $this->addSql('ALTER TABLE achat DROP FOREIGN KEY FK_26A98456B03A8386');
@@ -131,8 +132,12 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('ALTER TABLE evenement DROP FOREIGN KEY FK_B26681EB03A8386');
         $this->addSql('ALTER TABLE evenement DROP FOREIGN KEY FK_B26681E88939516');
         $this->addSql('ALTER TABLE family DROP FOREIGN KEY FK_A5E6215BB03A8386');
+        $this->addSql('ALTER TABLE family_badge DROP FOREIGN KEY FK_C287DB6EC35E566A');
+        $this->addSql('ALTER TABLE family_badge DROP FOREIGN KEY FK_C287DB6EF7A2C2FC');
         $this->addSql('ALTER TABLE family_invitation DROP FOREIGN KEY FK_C2D7B2DDC35E566A');
         $this->addSql('ALTER TABLE family_invitation DROP FOREIGN KEY FK_C2D7B2DDB03A8386');
+        $this->addSql('ALTER TABLE family_memberships DROP FOREIGN KEY FK_46D3E108C35E566A');
+        $this->addSql('ALTER TABLE family_memberships DROP FOREIGN KEY FK_46D3E108A76ED395');
         $this->addSql('ALTER TABLE favorite_docs DROP FOREIGN KEY FK_BF513288C33F7837');
         $this->addSql('ALTER TABLE favorite_docs DROP FOREIGN KEY FK_BF513288A76ED395');
         $this->addSql('ALTER TABLE gallery DROP FOREIGN KEY FK_472B783AC35E566A');
@@ -164,10 +169,14 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('ALTER TABLE task_completion DROP FOREIGN KEY FK_24C57CD1C69DE5E5');
         $this->addSql('ALTER TABLE type_evenement DROP FOREIGN KEY FK_BFE0290EC35E566A');
         $this->addSql('ALTER TABLE user DROP FOREIGN KEY FK_8D93D649C35E566A');
+        $this->addSql('ALTER TABLE user_badges DROP FOREIGN KEY FK_1DA448A7A76ED395');
+        $this->addSql('ALTER TABLE user_badges DROP FOREIGN KEY FK_1DA448A7F7A2C2FC');
         $this->addSql('ALTER TABLE user_badge DROP FOREIGN KEY FK_1C32B345A76ED395');
         $this->addSql('ALTER TABLE user_badge DROP FOREIGN KEY FK_1C32B345F7A2C2FC');
+        $this->addSql('DROP TABLE account_notification');
         $this->addSql('DROP TABLE achat');
         $this->addSql('DROP TABLE audit_trail');
+        $this->addSql('DROP TABLE avatar_upload_log');
         $this->addSql('DROP TABLE badge');
         $this->addSql('DROP TABLE categorie_achat');
         $this->addSql('DROP TABLE conversation');
@@ -175,7 +184,9 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('DROP TABLE document');
         $this->addSql('DROP TABLE evenement');
         $this->addSql('DROP TABLE family');
+        $this->addSql('DROP TABLE family_badge');
         $this->addSql('DROP TABLE family_invitation');
+        $this->addSql('DROP TABLE family_memberships');
         $this->addSql('DROP TABLE favorite_docs');
         $this->addSql('DROP TABLE gallery');
         $this->addSql('DROP TABLE historique_achat');
@@ -191,6 +202,7 @@ final class Version20260207192006 extends AbstractMigration
         $this->addSql('DROP TABLE task_completion');
         $this->addSql('DROP TABLE type_evenement');
         $this->addSql('DROP TABLE user');
+        $this->addSql('DROP TABLE user_badges');
         $this->addSql('DROP TABLE user_badge');
         $this->addSql('DROP TABLE messenger_messages');
     }
