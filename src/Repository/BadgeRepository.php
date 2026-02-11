@@ -16,6 +16,15 @@ class BadgeRepository extends ServiceEntityRepository
         parent::__construct($registry, Badge::class);
     }
 
+    public function findOneByCode(string $code): ?Badge
+    {
+        return $this->createQueryBuilder('b')
+            ->andWhere('b.code = :code')
+            ->setParameter('code', $code)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Badge[] Returns an array of Badge objects
     //     */

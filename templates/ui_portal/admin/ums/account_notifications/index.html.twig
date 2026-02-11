@@ -1,0 +1,71 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Account Notifications{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Account Notifications</h4>
+      <p class="text-muted mb-0">Review notification delivery state per user.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary" href="{{ path('portal_admin_account_notifications_new') }}">New notification</a>
+      <form class="d-flex" method="get" action="{{ path('portal_admin_account_notifications_index') }}">
+        <input type="search" class="form-control me-3" placeholder="Search by key or user" name="q" value="{{ filters.query }}" />
+        <select class="form-select me-3" name="sort">
+          <option value="createdAt" {{ filters.sort == 'createdAt' ? 'selected' }}>Newest</option>
+          <option value="status" {{ filters.sort == 'status' ? 'selected' }}>Status</option>
+          <option value="channel" {{ filters.sort == 'channel' ? 'selected' }}>Channel</option>
+        </select>
+        <select class="form-select me-3" name="dir">
+          <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' }}>Desc</option>
+          <option value="ASC" {{ filters.direction == 'ASC' ? 'selected' }}>Asc</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive text-nowrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Key</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if records is empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-6">No notifications found.</td>
+            </tr>
+          {% else %}
+            {% for record in records %}
+              <tr>
+                <td>{{ record.user ? record.user.getUserIdentifier() : '—' }}</td>
+                <td>{{ record.key }}</td>
+                <td>{{ record.channel }}</td>
+                <td>{{ record.status }}</td>
+                <td>{{ record.createdAt ? record.createdAt|date('Y-m-d H:i') : '—' }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a href="{{ path('portal_admin_account_notifications_edit', { id: record.id }) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="post" action="{{ path('portal_admin_account_notifications_delete', { id: record.id }) }}">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_account_notification_' ~ record.id) }}" />
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
