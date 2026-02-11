@@ -1,0 +1,168 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Calendrier{% endblock %}
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <h4 class="fw-semibold m-0">Calendrier</h4>
+    <form id="calendarFilters" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('app_calendar') }}">
+      <div>
+        <select class="form-select" name="type">
+          <option value="">Tous</option>
+          {% for t in types %}
+            <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
+              {{ t.nom }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
+      </div>
+    </form>
+  </div>
+  <a href="{{ path('app_evenement_new') }}" class="btn btn-primary">+ Ajouter (Client)</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div id="calendar"></div>
+  </div>
+</div>
+
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventModalLabel">Détails évènement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <strong>Titre:</strong>
+          <div id="eventTitle"></div>
+        </div>
+        <div class="mb-2">
+          <strong>Début:</strong>
+          <div id="eventStart"></div>
+        </div>
+        <div class="mb-2">
+          <strong>Fin:</strong>
+          <div id="eventEnd"></div>
+        </div>
+        <div class="mb-2">
+          <strong>Lieu:</strong>
+          <div id="eventLocation">-</div>
+        </div>
+        <div>
+          <strong>Description:</strong>
+          <div id="eventDescription">-</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="eventView" class="btn btn-outline-primary" href="#">Voir</a>
+        <a id="eventEdit" class="btn btn-primary" href="#">Modifier</a>
+        <form id="eventDeleteForm" method="post" action="#" class="d-inline">
+          <input type="hidden" name="_token" id="eventDeleteToken" value="">
+          <button type="submit" class="btn btn-danger" id="eventDeleteBtn">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+      const feedUrl = "{{ path('app_evenements_feed') }}";
+      const params = new URLSearchParams(window.location.search);
+      const eventsUrl = params.toString() ? `${feedUrl}?${params.toString()}` : feedUrl;
+      const showUrlTemplate = "{{ path('app_evenement_show', { id: 0 }) }}";
+      const editUrlTemplate = "{{ path('app_evenement_edit', { id: 0 }) }}";
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        events: eventsUrl,
+        eventClick: function (info) {
+          info.jsEvent.preventDefault();
+
+          const ev = info.event;
+          const props = ev.extendedProps || {};
+
+          document.getElementById('eventTitle').textContent = ev.title || '-';
+          document.getElementById('eventStart').textContent = ev.start ? ev.start.toLocaleString() : '-';
+          document.getElementById('eventEnd').textContent = ev.end ? ev.end.toLocaleString() : '-';
+          document.getElementById('eventLocation').textContent = props.location || '-';
+          document.getElementById('eventDescription').textContent = props.description || '-';
+
+          const showUrl = showUrlTemplate.replace('/0', '/' + ev.id);
+          const editUrl = editUrlTemplate.replace('/0', '/' + ev.id);
+          const viewEl = document.getElementById('eventView');
+          const editEl = document.getElementById('eventEdit');
+          const deleteForm = document.getElementById('eventDeleteForm');
+          const deleteBtn = document.getElementById('eventDeleteBtn');
+          const deleteTokenEl = document.getElementById('eventDeleteToken');
+
+          viewEl.setAttribute('href', showUrl);
+
+          if (props.canEdit) {
+            editEl.setAttribute('href', editUrl);
+            editEl.classList.remove('d-none');
+          } else {
+            editEl.classList.add('d-none');
+          }
+
+          if (props.canDelete && props.deleteUrl && props.deleteToken) {
+            deleteForm.setAttribute('action', props.deleteUrl);
+            deleteTokenEl.value = props.deleteToken;
+            deleteForm.classList.remove('d-none');
+            deleteBtn.disabled = false;
+          } else {
+            deleteForm.classList.add('d-none');
+            deleteBtn.disabled = true;
+          }
+
+          const modalEl = document.getElementById('eventModal');
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+        }
+      });
+
+      calendar.render();
+
+    });
+  </script>
+
+  <script>
+    (function () {
+      const form = document.getElementById('calendarFilters');
+      if (!form) return;
+      let debounce;
+      const submit = () => form.submit();
+      form.querySelectorAll('select').forEach((el) => {
+        el.addEventListener('change', submit);
+      });
+      form.querySelectorAll('input[type="text"]').forEach((el) => {
+        el.addEventListener('input', () => {
+          clearTimeout(debounce);
+          debounce = setTimeout(submit, 300);
+        });
+      });
+    })();
+  </script>
+{% endblock %}

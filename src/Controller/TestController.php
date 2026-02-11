@@ -15,11 +15,4 @@ final class TestController extends AbstractController
             'controller_name' => 'TestController',
         ]);
     }
-
-    #[Route('/login')]
-public function login(): Response
-{
-    return $this->render('auth/login.html.twig');
-}
-
 }

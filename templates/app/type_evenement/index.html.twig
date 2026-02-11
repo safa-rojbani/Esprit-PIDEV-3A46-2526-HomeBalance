@@ -1,0 +1,41 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Event Types{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Event Types (Client)</h4>
+  <a href="{{ path('app_type_evenement_new') }}" class="btn btn-primary">
+    + Add Type
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Color</th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% for t in type_evenements %}
+        <tr>
+          <td>{{ t.id }}</td>
+          <td class="fw-semibold">{{ t.nom }}</td>
+          <td>{{ t.couleur }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="3" class="text-center text-muted">
+            No types found
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

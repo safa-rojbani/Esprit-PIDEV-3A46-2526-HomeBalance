@@ -1,0 +1,65 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Reminders{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Reminders for "{{ evenement.titre }}"</h4>
+  <div>
+    <a href="{{ path('app_evenement_show', { id: evenement.id }) }}" class="btn btn-outline-secondary me-2">
+      Back to Event
+    </a>
+    <a href="{{ path('app_rappel_new', { evenement: evenement.id }) }}" class="btn btn-primary">
+      + Add Reminder
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Minutes Before</th>
+          <th>Channel</th>
+          <th>Active</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% for r in rappels %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.offsetMinutes }}</td>
+          <td>{{ r.canal ?? '' }}</td>
+          <td>{{ r.actif ? 'Yes' : 'No' }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-warning"
+               href="{{ path('app_rappel_edit', { id: r.id }) }}">
+              Edit
+            </a>
+            <form method="post"
+                  action="{{ path('app_rappel_delete', { id: r.id }) }}"
+                  style="display:inline-block"
+                  onsubmit="return confirm('Delete this reminder?');">
+              <input type="hidden" name="_token"
+                     value="{{ csrf_token('delete' ~ r.id) }}">
+              <button class="btn btn-sm btn-outline-danger">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">
+            No reminders found
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

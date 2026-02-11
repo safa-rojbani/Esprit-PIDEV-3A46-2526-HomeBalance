@@ -1,0 +1,21 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Add Event Type{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Add Event Type</h4>
+  <a href="{{ path('app_type_evenement_index') }}" class="btn btn-outline-secondary">
+    Back
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {{ form_start(form) }}
+      {{ form_widget(form) }}
+      <button class="btn btn-primary mt-2">Create</button>
+    {{ form_end(form) }}
+  </div>
+</div>
+{% endblock %}

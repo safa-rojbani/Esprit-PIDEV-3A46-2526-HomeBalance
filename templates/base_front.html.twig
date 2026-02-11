@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+  <title>{% block title %}HomeBalance{% endblock %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ asset('materio/img/favicon/favicon.ico') }}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/fonts/iconify-icons.css') }}" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/css/core.css') }}" />
+  <link rel="stylesheet" href="{{ asset('materio/css/demo.css') }}" />
+
+  <script src="{{ asset('materio/vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('materio/js/config.js') }}"></script>
+
+  <style>
+    .layout-menu {
+      background-color: #f3e8ff;
+    }
+    .notif-bell {
+      color: #ffffff;
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .notif-bell-wrap {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1f1f1f;
+      border-radius: 50%;
+    }
+  </style>
+
+  {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+
+    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+      <div class="app-brand demo px-3 py-2">
+        <a href="{{ path('home') }}" class="app-brand-link text-decoration-none">
+          <span class="app-brand-text demo menu-text fw-bold ms-2">HomeBalance</span>
+        </a>
+      </div>
+
+      <div class="menu-inner-shadow"></div>
+
+      <ul class="menu-inner py-1">
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Client</span>
+        </li>
+
+        <li class="menu-item">
+          <a href="{{ path('app_calendar') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:calendar-blank-outline"></i>
+            <div>Calendar</div>
+          </a>
+        </li>
+
+        <li class="menu-item">
+          <a href="{{ path('app_evenement_index') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:format-list-bulleted"></i>
+            <div>My Events</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ path('app_type_evenement_index') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:tag-outline"></i>
+            <div>Event Types</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ path('app_rappel_history') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:bell-outline"></i>
+            <div>Reminders</div>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <div class="layout-page">
+      <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+           id="layout-navbar">
+        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+          <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+            <i class="iconify mdi-24px" data-icon="mdi:menu"></i>
+          </a>
+        </div>
+
+        <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+          <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+              <i class="iconify mdi-24px lh-0" data-icon="mdi:magnify"></i>
+              <input type="text" class="form-control border-0 shadow-none bg-body" placeholder="Search..." />
+            </div>
+          </div>
+
+          <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item me-3">
+              <a class="nav-link position-relative" href="{{ path('app_notifications') }}" aria-label="Notifications">
+                <span class="notif-bell-wrap">
+                  <svg class="notif-bell" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m6-6V11a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1z"/>
+                  </svg>
+                </span>
+                <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle bg-danger text-white"
+                      style="display:none; width:18px; height:18px; line-height:18px; font-size:11px; border-radius:50%; text-align:center;">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <span class="fw-semibold">HomeBalance</span>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+          {% for label, messages in app.flashes %}
+            {% for message in messages %}
+              <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+            {% endfor %}
+          {% endfor %}
+
+          {% block body %}{% endblock %}
+        </div>
+
+        <footer class="content-footer footer bg-footer-theme">
+          <div class="container-xxl">
+            <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+              <div class="text-body">© {{ "now"|date("Y") }} HomeBalance</div>
+            </div>
+          </div>
+        </footer>
+
+        <div class="content-backdrop fade"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="layout-overlay layout-menu-toggle"></div>
+</div>
+
+<script src="{{ asset('materio/vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/menu.js') }}"></script>
+<script src="{{ asset('materio/js/main.js') }}"></script>
+
+<!-- Notification Toast Container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <div id="notifToast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="notifToastText"></div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    const shown = new Set(JSON.parse(sessionStorage.getItem('shown_notifications') || '[]'));
+
+    const showToast = (text) => {
+      const textEl = document.getElementById('notifToastText');
+      const toastEl = document.getElementById('notifToast');
+      if (!textEl || !toastEl || !window.bootstrap) return;
+      textEl.textContent = text;
+      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 5000 });
+      toast.show();
+    };
+
+    const updateBadge = (count) => {
+      const badge = document.getElementById('notifBadge');
+      if (!badge) return;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    };
+
+    const fetchNotifications = () => {
+      fetch('{{ path('app_notifications_pending') }}')
+        .then((res) => res.json())
+        .then((items) => {
+          updateBadge(items.length);
+          items.forEach((item) => {
+            if (shown.has(item.id)) return;
+            showToast(item.message);
+            shown.add(item.id);
+            sessionStorage.setItem('shown_notifications', JSON.stringify(Array.from(shown)));
+            fetch('{{ path('app_notification_read', { id: 0 }) }}'.replace('/0/', '/' + item.id + '/'), {
+              method: 'POST',
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+          });
+        })
+        .catch(() => {});
+    };
+
+    fetchNotifications();
+    setInterval(fetchNotifications, 30000);
+  })();
+</script>
+
+{% block javascripts %}{% endblock %}
+</body>
+</html>

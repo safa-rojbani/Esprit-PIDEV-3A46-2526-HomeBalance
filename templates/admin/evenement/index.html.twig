@@ -1,0 +1,109 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Events{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <h4 class="fw-semibold m-0">Event List (Admin)</h4>
+    <form id="eventFiltersAdmin" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('admin_evenement_index') }}">
+      <div>
+        <select class="form-select" name="type">
+          <option value="">Tous</option>
+          {% for t in types %}
+            <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
+              {{ t.nom }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
+      </div>
+    </form>
+  </div>
+
+  <div>
+    <a href="{{ path('app_calendar') }}" class="btn btn-outline-secondary me-2">
+      Calendar 
+    </a>
+    <a href="{{ path('admin_evenement_new') }}" class="btn btn-primary">
+      + Add Event
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Location</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="table-border-bottom-0">
+      {% for e in evenements %}
+        <tr>
+          <td>{{ e.id }}</td>
+          <td class="fw-semibold">{{ e.titre }}</td>
+          <td>{{ e.lieu }}</td>
+
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-info"
+               href="{{ path('admin_evenement_show', { id: e.id }) }}">
+              View
+            </a>
+
+            <a class="btn btn-sm btn-outline-warning"
+               href="{{ path('admin_evenement_edit', { id: e.id }) }}">
+              Edit
+            </a>
+
+            <form method="post"
+                  action="{{ path('admin_evenement_delete', { id: e.id }) }}"
+                  style="display:inline-block"
+                  onsubmit="return confirm('Delete this event?');">
+              <input type="hidden" name="_token"
+                     value="{{ csrf_token('delete' ~ e.id) }}">
+              <button class="btn btn-sm btn-outline-danger">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">
+            No events found
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    (function () {
+      const form = document.getElementById('eventFiltersAdmin');
+      if (!form) return;
+      let debounce;
+      const submit = () => form.submit();
+      form.querySelectorAll('select').forEach((el) => {
+        el.addEventListener('change', submit);
+      });
+      form.querySelectorAll('input[type="text"]').forEach((el) => {
+        el.addEventListener('input', () => {
+          clearTimeout(debounce);
+          debounce = setTimeout(submit, 300);
+        });
+      });
+    })();
+  </script>
+{% endblock %}
