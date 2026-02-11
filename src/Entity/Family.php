@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\FamilyRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FamilyRepository::class)]
@@ -16,7 +18,7 @@ class Family
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true, unique: true)]
     private ?string $joinCode = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -31,6 +33,24 @@ class Family
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;
+
+    /**
+     * @var Collection<int, FamilyMembership>
+     */
+    #[ORM\OneToMany(mappedBy: 'family', targetEntity: FamilyMembership::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $memberships;
+
+    /**
+     * @var Collection<int, FamilyBadge>
+     */
+    #[ORM\OneToMany(mappedBy: 'family', targetEntity: FamilyBadge::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $badges;
+
+    public function __construct()
+    {
+        $this->memberships = new ArrayCollection();
+        $this->badges = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -66,7 +86,7 @@ class Family
         return $this->codeExpiresAt;
     }
 
-    public function setCodeExpiresAt(\DateTime $codeExpiresAt): static
+    public function setCodeExpiresAt(?\DateTime $codeExpiresAt): static
     {
         $this->codeExpiresAt = $codeExpiresAt;
 
@@ -105,6 +125,54 @@ class Family
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FamilyMembership>
+     */
+    public function getMemberships(): Collection
+    {
+        return $this->memberships;
+    }
+
+    public function addMembership(FamilyMembership $membership): static
+    {
+        if (!$this->memberships->contains($membership)) {
+            $this->memberships->add($membership);
+        }
+
+        return $this;
+    }
+
+    public function removeMembership(FamilyMembership $membership): static
+    {
+        $this->memberships->removeElement($membership);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FamilyBadge>
+     */
+    public function getBadges(): Collection
+    {
+        return $this->badges;
+    }
+
+    public function addBadge(FamilyBadge $badge): static
+    {
+        if (!$this->badges->contains($badge)) {
+            $this->badges->add($badge);
+        }
+
+        return $this;
+    }
+
+    public function removeBadge(FamilyBadge $badge): static
+    {
+        $this->badges->removeElement($badge);
 
         return $this;
     }

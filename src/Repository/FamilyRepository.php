@@ -16,6 +16,19 @@ class FamilyRepository extends ServiceEntityRepository
         parent::__construct($registry, Family::class);
     }
 
+    public function findOneActiveByJoinCode(string $joinCode): ?Family
+    {
+        $now = new \DateTime();
+
+        return $this->createQueryBuilder('f')
+            ->andWhere('LOWER(f.joinCode) = LOWER(:code)')
+            ->andWhere('f.codeExpiresAt IS NULL OR f.codeExpiresAt > :now')
+            ->setParameter('code', $joinCode)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Family[] Returns an array of Family objects
     //     */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -16,9 +17,19 @@ final class Version20260207192006 extends AbstractMigration
     {
         return '';
     }
+    private function assertMysqlOrMariaDb(): void
+    {
+    $platformClass = get_class($this->connection->getDatabasePlatform());
+
+    $this->skipIf(
+        !str_contains($platformClass, 'MySQLPlatform') && !str_contains($platformClass, 'MariaDBPlatform'),
+        sprintf('Migration skipped: requires MySQL/MariaDB. Current platform: %s', $platformClass)
+        );
+    }
 
     public function up(Schema $schema): void
     {
+        $this->assertMysqlOrMariaDb();
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE TABLE achat (id INT AUTO_INCREMENT NOT NULL, categorie_id INT NOT NULL, family_id INT DEFAULT NULL, created_by_id VARCHAR(36) DEFAULT NULL, nom_article VARCHAR(255) NOT NULL, est_achete TINYINT(1) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_26A98456BCF5E72D (categorie_id), INDEX IDX_26A98456C35E566A (family_id), INDEX IDX_26A98456B03A8386 (created_by_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE audit_trail (id INT AUTO_INCREMENT NOT NULL, user_id VARCHAR(36) DEFAULT NULL, family_id INT DEFAULT NULL, action VARCHAR(255) DEFAULT NULL, payload JSON DEFAULT NULL, user_agent LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_B523E178A76ED395 (user_id), INDEX IDX_B523E178C35E566A (family_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -102,6 +113,7 @@ final class Version20260207192006 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
+        $this->assertMysqlOrMariaDb();
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE achat DROP FOREIGN KEY FK_26A98456BCF5E72D');
         $this->addSql('ALTER TABLE achat DROP FOREIGN KEY FK_26A98456C35E566A');

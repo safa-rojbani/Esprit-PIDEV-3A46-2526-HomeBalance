@@ -1,0 +1,55 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Gamification{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Household badges</h4>
+      <p class="text-muted mb-0">Review automated awards and keep the leaderboard feeling fair.</p>
+    </div>
+    <form method="post" action="{{ path('portal_admin_gamification_award') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('award_badges') }}" />
+      <button type="submit" class="btn btn-primary d-flex align-items-center gap-2">
+        <i class="icon-base bx bx-refresh"></i>
+        <span>Recalculate badges</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Badge</th>
+            <th>Scope</th>
+            <th>Holders</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in badges %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ row.badge.name }}</div>
+                {% if row.badge.description %}
+                  <small class="text-muted">{{ row.badge.description }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-label-{{ row.scope.value == 'user' ? 'primary' : 'success' }}">
+                  {{ row.scope == constant('App\\Enum\\BadgeScope::USER') ? 'Individual' : 'Family' }}
+                </span>
+              </td>
+              <td>{{ row.holders }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="3" class="text-center text-muted">No badges configured yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

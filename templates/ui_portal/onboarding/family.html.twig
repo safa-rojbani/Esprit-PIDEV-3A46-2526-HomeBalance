@@ -1,0 +1,40 @@
+{% extends 'ui_portal/onboarding/layout.html.twig' %}
+
+{% block onboarding_panel %}
+  <div class="panel-head">
+    <h2>Choose how to begin</h2>
+    <p class="text-muted">Create a household or join one with a code shared by a family member.</p>
+  </div>
+
+  <div class="stack-lg">
+    <form method="post" action="{{ path('portal_onboarding_family_create') }}" class="card border-0 shadow-none p-3" novalidate>
+      <input type="hidden" name="_token" value="{{ csrf_token('family_onboarding_create') }}" />
+      <h6 class="mb-2">Create a household</h6>
+      <div class="mb-3">
+        <label class="form-label" for="familyName">Household name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="familyName"
+          name="familyName"
+          placeholder="The Parker Family" />
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Create household</button>
+    </form>
+
+    <form method="post" action="{{ path('portal_onboarding_family_join') }}" class="card border-0 shadow-none p-3" novalidate>
+      <input type="hidden" name="_token" value="{{ csrf_token('family_onboarding_join') }}" />
+      <h6 class="mb-2">Join with a code</h6>
+      <div class="mb-3">
+        <label class="form-label" for="joinCode">Join code</label>
+        <input
+          type="text"
+          class="form-control"
+          id="joinCode"
+          name="joinCode"
+          placeholder="ABC123" />
+      </div>
+      <button type="submit" class="btn btn-outline-primary w-100">Join household</button>
+    </form>
+  </div>
+{% endblock %}
