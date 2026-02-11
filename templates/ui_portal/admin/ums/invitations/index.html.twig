@@ -1,0 +1,71 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Invitations{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Family Invitations</h4>
+      <p class="text-muted mb-0">Track invitation lifecycle and join codes.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary" href="{{ path('portal_admin_invitations_new') }}">New invitation</a>
+      <form class="d-flex" method="get" action="{{ path('portal_admin_invitations_index') }}">
+        <input type="search" class="form-control me-3" placeholder="Search by email or code" name="q" value="{{ filters.query }}" />
+        <select class="form-select me-3" name="sort">
+          <option value="createdAt" {{ filters.sort == 'createdAt' ? 'selected' }}>Newest</option>
+          <option value="status" {{ filters.sort == 'status' ? 'selected' }}>Status</option>
+          <option value="email" {{ filters.sort == 'email' ? 'selected' }}>Email</option>
+        </select>
+        <select class="form-select me-3" name="dir">
+          <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' }}>Desc</option>
+          <option value="ASC" {{ filters.direction == 'ASC' ? 'selected' }}>Asc</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive text-nowrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Code</th>
+            <th>Status</th>
+            <th>Family</th>
+            <th>Expires</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if invitations is empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-6">No invitations found.</td>
+            </tr>
+          {% else %}
+            {% for invitation in invitations %}
+              <tr>
+                <td>{{ invitation.invitedEmail ?? '—' }}</td>
+                <td>{{ invitation.joinCode }}</td>
+                <td>{{ invitation.status ? invitation.status.name|title : '—' }}</td>
+                <td>{{ invitation.family ? invitation.family.name : '—' }}</td>
+                <td>{{ invitation.expiresAt ? invitation.expiresAt|date('Y-m-d H:i') : '—' }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a href="{{ path('portal_admin_invitations_edit', { id: invitation.id }) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="post" action="{{ path('portal_admin_invitations_delete', { id: invitation.id }) }}">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_invitation_' ~ invitation.id) }}" />
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+  <p>Hi {{ name }},</p>
+  <p>Please verify your email address to activate your HomeBalance account.</p>
+  {% if cta %}
+    <p><a class="cta" href="{{ cta }}">Verify email</a></p>
+  {% endif %}
+  <p class="muted">This link expires in 48 hours.</p>
+{% endblock %}

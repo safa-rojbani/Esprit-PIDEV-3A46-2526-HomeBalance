@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\User;
 
 /**
  * @extends ServiceEntityRepository<Task>
@@ -15,6 +16,17 @@ class TaskRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Task::class);
     }
+    public function findAdminTasks(User $admin): array
+{
+    return $this->createQueryBuilder('t')
+        ->where('t.createdBy = :admin')
+        ->andWhere('t.family IS NULL')
+        ->setParameter('admin', $admin)
+        ->orderBy('t.createdAt', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
+
 
 //    /**
 //     * @return Task[] Returns an array of Task objects

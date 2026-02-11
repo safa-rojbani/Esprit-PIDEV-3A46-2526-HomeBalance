@@ -1,0 +1,149 @@
+{% extends 'ui_portal/layouts/auth.html.twig' %}
+
+{% block title %}Create Account · HomeBalance{% endblock %}
+
+{% block hero %}
+  <p class="eyebrow">Family-first setup</p>
+  <h1>Start organizing your home, your way.</h1>
+  <p class="lead">
+    HomeBalance helps you share responsibilities, manage household finances, and keep everything organized — whether you live alone or with others.
+    You can join an existing household with a code, or start on your own.
+  </p>
+  <div class="hero-metrics">
+    <div>
+      <span class="metric">Account first</span>
+      <small>This account belongs to you. Decide later if you join a household.</small>
+    </div>
+    <div>
+      <span class="metric">Flexible</span>
+      <small>No pressure. You can change your setup anytime.</small>
+    </div>
+  </div>
+{% endblock %}
+
+{% block panel_subtitle %}Create your HomeBalance account{% endblock %}
+
+{% block panel %}
+  <div class="panel-head">
+    <h2>Tell us a bit about you</h2>
+    <p class="text-muted">This helps HomeBalance adapt tasks, reminders, and suggestions to you. You can always change this later.</p>
+  </div>
+
+  {% if registrationErrors %}
+    <div class="alert alert-danger" role="alert">
+      <ul class="mb-0 ps-3">
+        {% for error in registrationErrors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form
+    id="formAuthentication"
+    class="stack-lg"
+    method="post"
+    action="{{ path('portal_auth_register') }}"
+    data-controller="registration-form"
+    data-turbo="false"
+    novalidate>
+    <input type="hidden" name="_token" value="{{ csrf_token('register_user') }}" />
+
+    <label class="form-floating">
+      <input
+        type="text"
+        class="form-control"
+        id="username"
+        name="username"
+        placeholder="Username"
+        value="{{ registration.username }}"
+        autocomplete="username"
+        data-registration-form-target="username" />
+      <span>Username</span>
+    </label>
+
+    <div class="row g-3">
+      <div class="col-sm-6">
+        <label class="form-floating">
+          <input
+            type="text"
+            class="form-control"
+            id="first_name"
+            name="first_name"
+            placeholder="First name"
+            value="{{ registration.first_name }}"
+            autocomplete="given-name"
+            data-registration-form-target="firstName" />
+          <span>First name</span>
+        </label>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-floating">
+          <input
+            type="text"
+            class="form-control"
+            id="last_name"
+            name="last_name"
+            placeholder="Last name"
+            value="{{ registration.last_name }}"
+            autocomplete="family-name"
+            data-registration-form-target="lastName" />
+          <span>Last name</span>
+        </label>
+      </div>
+    </div>
+
+    <label class="form-floating">
+      <input
+        type="text"
+        class="form-control"
+        id="email"
+        name="email"
+        placeholder="Email"
+        value="{{ registration.email }}"
+        autocomplete="email" />
+      <span>Email</span>
+    </label>
+    <small class="field-hint text-muted mb-3 d-block">Use the email where you want HomeBalance updates.</small>
+
+    <div class="form-password-toggle" data-controller="password-visibility">
+      <label class="form-floating">
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          name="password"
+          placeholder="Password"
+          autocomplete="new-password"
+          data-password-visibility-target="input" />
+        <span>Password</span>
+        <button
+          class="password-toggle"
+          type="button"
+          aria-label="Toggle password visibility"
+          data-action="password-visibility#toggle"
+          data-password-visibility-target="toggle">
+          <i class="icon-base bx bx-hide"></i>
+        </button>
+      </label>
+      <small class="field-hint text-muted">Choose a password you&apos;ll remember — your household depends on you ;)</small>
+    </div>
+
+    <label class="form-check align-items-start">
+      <input class="form-check-input" type="checkbox" id="terms" name="terms" {{ registration.terms ? 'checked' }} />
+      <span class="form-check-label">
+        I agree to the
+        <a class="link-underline" href="https://homebalance.app/legal" target="_blank" rel="noreferrer">privacy policy & terms</a>.
+      </span>
+    </label>
+    <small class="text-muted d-block mb-3">We'll email you a verification link right after this step.</small>
+
+    <button class="btn btn-primary w-100">Create my account</button>
+    <small class="d-block text-center text-muted mt-3">No pressure — you can revisit any step later.</small>
+  </form>
+
+  <p class="text-center mb-0">
+    <span class="text-muted">Already part of HomeBalance?</span>
+    <a href="{{ path('portal_auth_login') }}" class="link-underline">Sign in instead</a>
+  </p>
+{% endblock %}

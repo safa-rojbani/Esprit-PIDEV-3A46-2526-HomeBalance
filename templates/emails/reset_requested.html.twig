@@ -1,0 +1,10 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+  <p>Hi {{ name }},</p>
+  <p>We received a request to reset your HomeBalance password.</p>
+  {% if cta %}
+    <p><a class="cta" href="{{ cta }}">Reset password</a></p>
+  {% endif %}
+  <p class="muted">This link expires in 1 hour.</p>
+{% endblock %}

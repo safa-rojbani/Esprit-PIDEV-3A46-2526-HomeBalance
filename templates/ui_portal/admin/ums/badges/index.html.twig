@@ -1,0 +1,69 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Badges{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Badges</h4>
+      <p class="text-muted mb-0">Define gamification milestones used in UMS.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary" href="{{ path('portal_admin_badges_new') }}">New badge</a>
+      <form class="d-flex" method="get" action="{{ path('portal_admin_badges_index') }}">
+        <input type="search" class="form-control me-3" placeholder="Search by name or code" name="q" value="{{ filters.query }}" />
+        <select class="form-select me-3" name="sort">
+          <option value="name" {{ filters.sort == 'name' ? 'selected' }}>Name</option>
+          <option value="code" {{ filters.sort == 'code' ? 'selected' }}>Code</option>
+          <option value="points" {{ filters.sort == 'points' ? 'selected' }}>Points</option>
+        </select>
+        <select class="form-select me-3" name="dir">
+          <option value="ASC" {{ filters.direction == 'ASC' ? 'selected' }}>Asc</option>
+          <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' }}>Desc</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive text-nowrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Scope</th>
+            <th>Points</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if badges is empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-6">No badges found.</td>
+            </tr>
+          {% else %}
+            {% for badge in badges %}
+              <tr>
+                <td>{{ badge.name }}</td>
+                <td>{{ badge.code }}</td>
+                <td>{{ badge.scope ? badge.scope.name|title : '—' }}</td>
+                <td>{{ badge.requiredPoints ?? '—' }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a href="{{ path('portal_admin_badges_edit', { id: badge.id }) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="post" action="{{ path('portal_admin_badges_delete', { id: badge.id }) }}">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_badge_' ~ badge.id) }}" />
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

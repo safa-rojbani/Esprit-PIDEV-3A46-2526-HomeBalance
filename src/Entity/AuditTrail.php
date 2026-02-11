@@ -23,6 +23,12 @@ class AuditTrail
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $userAgent = null;
 
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $ipAddress = null;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $channel = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -69,6 +75,30 @@ class AuditTrail
     public function setUserAgent(?string $userAgent): static
     {
         $this->userAgent = $userAgent;
+
+        return $this;
+    }
+
+    public function getIpAddress(): ?string
+    {
+        return $this->ipAddress;
+    }
+
+    public function setIpAddress(?string $ipAddress): static
+    {
+        $this->ipAddress = $ipAddress;
+
+        return $this;
+    }
+
+    public function getChannel(): ?string
+    {
+        return $this->channel;
+    }
+
+    public function setChannel(?string $channel): static
+    {
+        $this->channel = $channel;
 
         return $this;
     }

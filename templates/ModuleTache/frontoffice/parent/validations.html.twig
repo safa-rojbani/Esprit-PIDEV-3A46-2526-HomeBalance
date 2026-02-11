@@ -1,0 +1,20 @@
+<h1>📋 Validations en attente</h1>
+
+{% if completions is empty %}
+    <p>Aucune tâche en attente.</p>
+{% else %}
+    <ul>
+    {% for c in completions %}
+        <li>
+            <strong>{{ c.task.title }}</strong><br>
+            Enfant : {{ c.user.firstName }}<br>
+
+            <img src="/uploads/proofs/{{ c.proof }}" width="200"><br>
+
+            <a href="{{ path('parent_validation_accept', {id: c.id}) }}">✅ Valider</a>
+            <a href="{{ path('parent_validation_refuse', {id: c.id}) }}">❌ Refuser</a>
+        </li>
+        <hr>
+    {% endfor %}
+    </ul>
+{% endif %}
