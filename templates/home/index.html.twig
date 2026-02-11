@@ -1,0 +1,23 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}HomeBalance{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="fw-semibold mb-2">Bienvenue sur HomeBalance</h4>
+        <p class="text-muted mb-4">Choisissez la section à ouvrir.</p>
+
+        <a href="{{ path('app_calendar') }}" class="btn btn-primary me-2">
+          Accéder au client
+        </a>
+        <a href="{{ path('admin_evenement_index') }}" class="btn btn-outline-secondary">
+          Accéder à l'administration
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

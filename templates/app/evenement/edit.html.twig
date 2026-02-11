@@ -1,0 +1,18 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Modifier un événement{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Modifier un événement</h4>
+  <a href="{{ path('app_evenement_index') }}" class="btn btn-outline-secondary">
+    Retour
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {{ include('app/evenement/_form.html.twig', { button_label: 'Mettre à jour' }) }}
+  </div>
+</div>
+{% endblock %}

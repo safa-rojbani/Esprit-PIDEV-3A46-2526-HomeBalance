@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+  <title>{% block title %}HomeBalance{% endblock %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ asset('materio/img/favicon/favicon.ico') }}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/fonts/iconify-icons.css') }}" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/css/core.css') }}" />
+  <link rel="stylesheet" href="{{ asset('materio/css/demo.css') }}" />
+
+  <script src="{{ asset('materio/vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('materio/js/config.js') }}"></script>
+
+  <style>
+    .layout-menu {
+      background-color: #f3e8ff;
+    }
+  </style>
+
+  {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+
+    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+      <div class="app-brand demo px-3 py-2">
+        <a href="{{ path('home') }}" class="app-brand-link text-decoration-none">
+          <span class="app-brand-text demo menu-text fw-bold ms-2">HomeBalance</span>
+        </a>
+      </div>
+
+      <div class="menu-inner-shadow"></div>
+
+      <ul class="menu-inner py-1">
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Admin</span>
+        </li>
+
+        <li class="menu-item">
+          <a href="{{ path('admin_evenement_index') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:format-list-bulleted"></i>
+            <div>Événements</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{ path('admin_calendar') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:calendar-blank-outline"></i>
+            <div>Calendrier</div>
+          </a>
+        </li>
+
+        <li class="menu-item">
+          <a href="{{ path('admin_type_evenement_index') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:tag-outline"></i>
+            <div>Types d'événements</div>
+          </a>
+        </li>
+
+        <li class="menu-item">
+          <a href="{{ path('admin_rappel_index') }}" class="menu-link">
+            <i class="menu-icon iconify" data-icon="mdi:bell-outline"></i>
+            <div>Rappels</div>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <div class="layout-page">
+      <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+           id="layout-navbar">
+        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+          <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+            <i class="iconify mdi-24px" data-icon="mdi:menu"></i>
+          </a>
+        </div>
+
+        <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+          <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+              <i class="iconify mdi-24px lh-0" data-icon="mdi:magnify"></i>
+              <input type="text" class="form-control border-0 shadow-none bg-body" placeholder="Rechercher..." />
+            </div>
+          </div>
+
+          <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item">
+              <span class="fw-semibold">HomeBalance</span>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+          {% for label, messages in app.flashes %}
+            {% for message in messages %}
+              <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+            {% endfor %}
+          {% endfor %}
+
+          {% block body %}{% endblock %}
+        </div>
+
+        <footer class="content-footer footer bg-footer-theme">
+          <div class="container-xxl">
+            <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+              <div class="text-body">© {{ "now"|date("Y") }} HomeBalance</div>
+            </div>
+          </div>
+        </footer>
+
+        <div class="content-backdrop fade"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="layout-overlay layout-menu-toggle"></div>
+</div>
+
+<script src="{{ asset('materio/vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/menu.js') }}"></script>
+<script src="{{ asset('materio/js/main.js') }}"></script>
+
+{% block javascripts %}{% endblock %}
+</body>
+</html>

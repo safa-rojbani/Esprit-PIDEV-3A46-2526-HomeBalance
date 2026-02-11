@@ -17,7 +17,7 @@ class TypeEvenement
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $couleur = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -27,8 +27,13 @@ class TypeEvenement
     private ?\DateTimeImmutable $dateCreation = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Family $family = null;
+
+    public function __toString(): string
+    {
+        return (string) ($this->nom ?? '');
+    }
 
     public function getId(): ?int
     {
@@ -43,7 +48,6 @@ class TypeEvenement
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -52,10 +56,9 @@ class TypeEvenement
         return $this->couleur;
     }
 
-    public function setCouleur(string $couleur): static
+    public function setCouleur(?string $couleur): static
     {
         $this->couleur = $couleur;
-
         return $this;
     }
 
@@ -67,7 +70,6 @@ class TypeEvenement
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -79,7 +81,6 @@ class TypeEvenement
     public function setDateCreation(\DateTimeImmutable $dateCreation): static
     {
         $this->dateCreation = $dateCreation;
-
         return $this;
     }
 
@@ -91,7 +92,6 @@ class TypeEvenement
     public function setFamily(?Family $family): static
     {
         $this->family = $family;
-
         return $this;
     }
 }

@@ -16,6 +16,21 @@ class RappelRepository extends ServiceEntityRepository
         parent::__construct($registry, Rappel::class);
     }
 
+    public function cleanupOrphanedAndPast(): int
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+
+        $sql = '
+            DELETE r
+            FROM rappel r
+            LEFT JOIN evenement e ON e.id = r.evenement_id
+            WHERE e.id IS NULL OR e.date_fin < :now
+        ';
+
+        return $conn->executeStatement($sql, ['now' => $now]);
+    }
+
     //    /**
     //     * @return Rappel[] Returns an array of Rappel objects
     //     */

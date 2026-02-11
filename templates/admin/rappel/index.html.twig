@@ -1,0 +1,44 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Rappels{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Rappels</h4>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Événement</th>
+          <th>Utilisateur</th>
+          <th>Minutes avant</th>
+          <th>Canal</th>
+          <th>Actif</th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% for r in rappels %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.evenement ? r.evenement.titre : '' }}</td>
+          <td>{{ r.user ? r.user.email : '' }}</td>
+          <td>{{ r.offsetMinutes }}</td>
+          <td>{{ r.canal ?? '' }}</td>
+          <td>{{ r.actif ? 'Oui' : 'Non' }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">
+            Aucun rappel trouvé
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

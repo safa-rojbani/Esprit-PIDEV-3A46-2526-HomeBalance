@@ -45,6 +45,9 @@ class Evenement
     #[ORM\JoinColumn(nullable: false)]
     private ?TypeEvenement $TypeEvenement = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $shareWithFamily = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -166,6 +169,18 @@ class Evenement
     public function setTypeEvenement(?TypeEvenement $TypeEvenement): static
     {
         $this->TypeEvenement = $TypeEvenement;
+
+        return $this;
+    }
+
+    public function isShareWithFamily(): bool
+    {
+        return $this->shareWithFamily;
+    }
+
+    public function setShareWithFamily(bool $shareWithFamily): static
+    {
+        $this->shareWithFamily = $shareWithFamily;
 
         return $this;
     }
