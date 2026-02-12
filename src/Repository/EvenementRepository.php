@@ -29,16 +29,17 @@ class EvenementRepository extends ServiceEntityRepository
         }
 
         $family = $user->getFamily();
+
+        $qb = $this->createQueryBuilder('e')
+            ->orderBy('e.dateDebut', 'ASC');
         if ($family === null) {
-            return [];
+            $qb->andWhere('e.family IS NULL');
+        } else {
+            $qb->andWhere('(e.family = :family OR e.family IS NULL)')
+                ->setParameter('family', $family);
         }
 
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.family = :family')
-            ->setParameter('family', $family)
-            ->orderBy('e.dateDebut', 'ASC')
-            ->getQuery()
-            ->getResult();
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -49,7 +50,7 @@ class EvenementRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('e')
             ->orderBy('e.dateDebut', 'ASC');
 
-        $qb->andWhere('e.family = :family')
+        $qb->andWhere('(e.family = :family OR e.family IS NULL)')
             ->setParameter('family', $family);
 
         if ($type !== null) {
@@ -75,6 +76,30 @@ class EvenementRepository extends ServiceEntityRepository
 
         $qb->andWhere('e.family = :family')
             ->setParameter('family', $family);
+
+        if ($type !== null) {
+            $qb->andWhere('e.TypeEvenement = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('e.titre LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return Evenement[]
+     */
+    public function findAdminDefaultsWithFilters(User $admin, ?TypeEvenement $type, ?string $search): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.family IS NULL')
+            ->andWhere('e.createdBy = :admin')
+            ->setParameter('admin', $admin)
+            ->orderBy('e.dateDebut', 'ASC');
 
         if ($type !== null) {
             $qb->andWhere('e.TypeEvenement = :type')

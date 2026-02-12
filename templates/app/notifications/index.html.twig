@@ -2,44 +2,96 @@
 
 {% block title %}Notifications{% endblock %}
 
-{% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-semibold m-0">Notifications</h4>
-  <div>
-    <a href="{{ path('app_notifications', { filter: 'all' }) }}" class="btn btn-outline-secondary {% if filter == 'all' %}active{% endif %}">Toutes</a>
-    <a href="{{ path('app_notifications', { filter: 'unread' }) }}" class="btn btn-outline-secondary {% if filter == 'unread' %}active{% endif %}">Non lues</a>
-  </div>
-</div>
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
-<div class="card">
-  <div class="table-responsive text-nowrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Événement</th>
-          <th>Déclenchement</th>
-          <th>Canal</th>
-          <th>Lu</th>
-          <th>Reçue</th>
-        </tr>
-      </thead>
-      <tbody class="table-border-bottom-0">
-      {% for row in rows %}
-        {% set r = row.rappel %}
-        <tr>
-          <td>{{ row.eventTitle ?? 'Événement supprimé' }}</td>
-          <td>{{ r.scheduledAt ? r.scheduledAt|date('Y-m-d H:i') : '' }}</td>
-          <td>{{ r.canal ?? '' }}</td>
-          <td>{{ r.estLu ? 'Oui' : 'Non' }}</td>
-          <td>{{ r.readAt ? r.readAt|date('Y-m-d H:i') : '' }}</td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="5" class="text-center text-muted">Aucune notification</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+{% block body %}
+<div class="evt-shell">
+  {% set totalRows = rows|length %}
+  {% set unreadRows = 0 %}
+  {% set popupRows = 0 %}
+  {% for row in rows %}
+    {% set r = row.rappel %}
+    {% if not r.estLu %}
+      {% set unreadRows = unreadRows + 1 %}
+    {% endif %}
+    {% if r.canal == 'popup' %}
+      {% set popupRows = popupRows + 1 %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="evt-pagehead d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="evt-title">Notifications</h3>
+      <p class="evt-subtitle">Suivez les rappels recus et ceux qui restent a lire.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ path('app_notifications', { filter: 'all' }) }}" class="btn {{ filter == 'all' ? 'evt-btn-primary' : 'evt-btn-ghost' }}">Toutes</a>
+      <a href="{{ path('app_notifications', { filter: 'unread' }) }}" class="btn {{ filter == 'unread' ? 'evt-btn-primary' : 'evt-btn-ghost' }}">Non lues</a>
+    </div>
+  </div>
+
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Total</span>
+      <span class="value">{{ totalRows }}</span>
+      <span class="meta">notifications</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Non lues</span>
+      <span class="value">{{ unreadRows }}</span>
+      <span class="meta">en attente</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Popup</span>
+      <span class="value">{{ popupRows }}</span>
+      <span class="meta">canal navigateur</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Taux lecture</span>
+      <span class="value">
+        {% if totalRows > 0 %}
+          {{ (((totalRows - unreadRows) / totalRows) * 100)|round(0, 'floor') }}%
+        {% else %}
+          0%
+        {% endif %}
+      </span>
+      <span class="meta">notifications lues</span>
+    </div>
+  </div>
+
+  <div class="card evt-card">
+    <div class="table-responsive">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>Evenement</th>
+            <th>Declenchement</th>
+            <th>Canal</th>
+            <th>Lu</th>
+            <th>Recue</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+          {% set r = row.rappel %}
+          <tr>
+            <td class="evt-title-cell">{{ row.eventTitle ?? 'Evenement supprime' }}</td>
+            <td>{{ r.scheduledAt ? r.scheduledAt|date('Y-m-d H:i') : '-' }}</td>
+            <td><span class="evt-channel {{ r.canal ?: 'popup' }}">{{ r.canal ?? '-' }}</span></td>
+            <td><span class="evt-pill {{ r.estLu ? 'is-yes' : 'is-no' }}">{{ r.estLu ? 'Oui' : 'Non' }}</span></td>
+            <td>{{ r.readAt ? r.readAt|date('Y-m-d H:i') : '-' }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="evt-empty">Aucune notification.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

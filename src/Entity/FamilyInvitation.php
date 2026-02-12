@@ -17,8 +17,9 @@ class FamilyInvitation
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $invitedEmail = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $joinCode = null;
+    #[ORM\Column(length: 64)]
+private ?string $joinCode = null;
+
 
     #[ORM\Column(length: 255)]
     private ?string $status = null;

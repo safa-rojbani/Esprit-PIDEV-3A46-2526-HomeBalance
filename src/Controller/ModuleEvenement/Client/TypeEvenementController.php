@@ -22,7 +22,12 @@ class TypeEvenementController extends AbstractController
     {
         $family = $this->resolveFamily($familyResolver);
 
-        $types = $repo->findBy(['family' => $family]);
+        $types = $repo->createQueryBuilder('t')
+            ->andWhere('(t.family = :family OR t.family IS NULL)')
+            ->setParameter('family', $family)
+            ->orderBy('t.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('app/type_evenement/index.html.twig', [
             'type_evenements' => $types,

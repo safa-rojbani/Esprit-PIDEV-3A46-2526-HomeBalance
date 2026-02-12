@@ -10,27 +10,25 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\ActiveFamilyResolver;
 use App\Entity\User;
-use App\Entity\Family;
 
 #[Route('/portal/admin/evenements/types')]
 class TypeEvenementController extends AbstractController
 {
     #[Route('', name: 'admin_type_evenement_index', methods: ['GET'])]
-    public function index(TypeEvenementRepository $repo, ActiveFamilyResolver $familyResolver): Response
+    public function index(TypeEvenementRepository $repo): Response
     {
-        $family = $this->resolveFamily($familyResolver);
+        $this->requireAdminUser();
 
         return $this->render('admin/type_evenement/index.html.twig', [
-            'type_evenements' => $repo->findBy(['family' => $family]),
+            'type_evenements' => $repo->findBy(['family' => null]),
         ]);
     }
 
     #[Route('/new', name: 'admin_type_evenement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function new(Request $request, EntityManagerInterface $em): Response
     {
-        $family = $this->resolveFamily($familyResolver);
+        $this->requireAdminUser();
 
         $typeEvenement = new TypeEvenement();
         $form = $this->createForm(TypeEvenementType::class, $typeEvenement);
@@ -38,7 +36,7 @@ class TypeEvenementController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $typeEvenement->setDateCreation(new \DateTimeImmutable());
-            $typeEvenement->setFamily($family);
+            $typeEvenement->setFamily(null);
 
             $em->persist($typeEvenement);
             $em->flush();
@@ -53,10 +51,9 @@ class TypeEvenementController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_type_evenement_show', methods: ['GET'])]
-    public function show(TypeEvenement $typeEvenement, ActiveFamilyResolver $familyResolver): Response
+    public function show(TypeEvenement $typeEvenement): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $typeEvenement->getFamily());
+        $this->assertGlobalType($typeEvenement);
 
         return $this->render('admin/type_evenement/show.html.twig', [
             'type_evenement' => $typeEvenement,
@@ -64,10 +61,9 @@ class TypeEvenementController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'admin_type_evenement_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, TypeEvenement $typeEvenement, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function edit(Request $request, TypeEvenement $typeEvenement, EntityManagerInterface $em): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $typeEvenement->getFamily());
+        $this->assertGlobalType($typeEvenement);
 
         $form = $this->createForm(TypeEvenementType::class, $typeEvenement);
         $form->handleRequest($request);
@@ -84,10 +80,9 @@ class TypeEvenementController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_type_evenement_delete', methods: ['POST'])]
-    public function delete(Request $request, TypeEvenement $typeEvenement, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function delete(Request $request, TypeEvenement $typeEvenement, EntityManagerInterface $em): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $typeEvenement->getFamily());
+        $this->assertGlobalType($typeEvenement);
 
         if ($this->isCsrfTokenValid('delete'.$typeEvenement->getId(), $request->request->get('_token'))) {
             $em->remove($typeEvenement);
@@ -97,24 +92,21 @@ class TypeEvenementController extends AbstractController
         return $this->redirectToRoute('admin_type_evenement_index');
     }
 
-    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    private function requireAdminUser(): void
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-
-        $family = $familyResolver->resolveForUser($user);
-        if ($family === null) {
+        if (!$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
         }
-
-        return $family;
     }
 
-    private function assertSameFamily(Family $family, ?Family $targetFamily): void
+    private function assertGlobalType(TypeEvenement $typeEvenement): void
     {
-        if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
+        $this->requireAdminUser();
+        if ($typeEvenement->getFamily() !== null) {
             throw $this->createAccessDeniedException();
         }
     }

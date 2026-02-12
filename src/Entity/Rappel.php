@@ -51,7 +51,7 @@ class Rappel
         return $this->offsetMinutes;
     }
 
-    public function setOffsetMinutes(int $offsetMinutes): static
+    public function setOffsetMinutes(?int $offsetMinutes): static
     {
         $this->offsetMinutes = $offsetMinutes;
 
@@ -63,7 +63,7 @@ class Rappel
         return $this->canal;
     }
 
-    public function setCanal(string $canal): static
+    public function setCanal(?string $canal): static
     {
         $this->canal = $canal;
 
@@ -87,7 +87,7 @@ class Rappel
         return $this->estLu;
     }
 
-    public function setEstLu(bool $estLu): static
+    public function setEstLu(?bool $estLu): static
     {
         $this->estLu = $estLu;
 

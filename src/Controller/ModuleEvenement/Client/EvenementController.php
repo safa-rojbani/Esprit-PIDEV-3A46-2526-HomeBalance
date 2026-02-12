@@ -41,7 +41,7 @@ class EvenementController extends AbstractController
 
         $typesQb = $typeEvenementRepository->createQueryBuilder('t')
             ->orderBy('t.nom', 'ASC');
-        $typesQb->andWhere('t.family = :family')
+        $typesQb->andWhere('(t.family = :family OR t.family IS NULL)')
             ->setParameter('family', $family);
         $types = $typesQb->getQuery()->getResult();
 
@@ -60,7 +60,9 @@ class EvenementController extends AbstractController
         $user = $this->getUser();
 
         $evenement = new Evenement();
-        $form = $this->createForm(EvenementType::class, $evenement);
+        $form = $this->createForm(EvenementType::class, $evenement, [
+            'family' => $family,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -108,7 +110,7 @@ class EvenementController extends AbstractController
     public function show(Evenement $evenement, ActiveFamilyResolver $familyResolver): Response
     {
         $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertCanView($family, $evenement);
 
         return $this->render('app/evenement/show.html.twig', [
             'evenement' => $evenement,
@@ -125,7 +127,9 @@ class EvenementController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $form = $this->createForm(EvenementType::class, $evenement);
+        $form = $this->createForm(EvenementType::class, $evenement, [
+            'family' => $family,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -177,6 +181,18 @@ class EvenementController extends AbstractController
     private function assertSameFamily(Family $family, ?Family $targetFamily): void
     {
         if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+    }
+
+    private function assertCanView(Family $family, Evenement $evenement): void
+    {
+        $eventFamily = $evenement->getFamily();
+        if ($eventFamily === null) {
+            return;
+        }
+
+        if ($eventFamily->getId() !== $family->getId()) {
             throw $this->createAccessDeniedException();
         }
     }

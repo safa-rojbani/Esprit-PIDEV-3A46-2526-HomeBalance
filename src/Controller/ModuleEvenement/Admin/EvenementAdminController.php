@@ -11,9 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\ActiveFamilyResolver;
 use App\Entity\User;
-use App\Entity\Family;
 
 #[Route('/portal/admin/evenements')]
 class EvenementAdminController extends AbstractController
@@ -22,33 +20,34 @@ class EvenementAdminController extends AbstractController
     public function index(
         Request $request,
         EvenementRepository $evenementRepository,
-        TypeEvenementRepository $typeEvenementRepository,
-        ActiveFamilyResolver $familyResolver
+        TypeEvenementRepository $typeEvenementRepository
     ): Response
     {
-        $family = $this->resolveFamily($familyResolver);
+        $admin = $this->requireAdminUser();
 
         $typeId = $request->query->get('type');
         $search = trim((string) $request->query->get('q', ''));
         $selectedType = null;
 
         if ($typeId !== null && $typeId !== '') {
-            $selectedType = $typeEvenementRepository->find($typeId);
+            $selectedType = $typeEvenementRepository->findOneBy([
+                'id' => (int) $typeId,
+                'family' => null,
+            ]);
         }
 
         return $this->render('admin/evenement/index.html.twig', [
-            'evenements' => $evenementRepository->findWithFilters($family, $selectedType, $search),
-            'types' => $typeEvenementRepository->findBy(['family' => $family], ['nom' => 'ASC']),
+            'evenements' => $evenementRepository->findAdminDefaultsWithFilters($admin, $selectedType, $search),
+            'types' => $typeEvenementRepository->findBy(['family' => null], ['nom' => 'ASC']),
             'selectedType' => $selectedType,
             'search' => $search,
         ]);
     }
 
     #[Route('/new', name: 'admin_evenement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $user = $this->getUser();
+        $admin = $this->requireAdminUser();
 
         $evenement = new Evenement();
 
@@ -59,10 +58,9 @@ class EvenementAdminController extends AbstractController
             $now = new \DateTimeImmutable();
             $evenement->setDateCreation($now);
             $evenement->setDateModification($now);
-            $evenement->setFamily($family);
-            if ($user instanceof User) {
-                $evenement->setCreatedBy($user);
-            }
+            $evenement->setFamily(null);
+            $evenement->setCreatedBy($admin);
+            $evenement->setShareWithFamily(true);
 
             $entityManager->persist($evenement);
             $entityManager->flush();
@@ -76,22 +74,20 @@ class EvenementAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_evenement_show', methods: ['GET'])]
-    public function show(Evenement $evenement, ActiveFamilyResolver $familyResolver): Response
+    #[Route('/{id}', name: 'admin_evenement_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(Evenement $evenement): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
 
         return $this->render('admin/evenement/show.html.twig', [
             'evenement' => $evenement,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'admin_evenement_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
+    #[Route('/{id}/edit', name: 'admin_evenement_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
 
         $form = $this->createForm(EvenementAdminType::class, $evenement);
         $form->handleRequest($request);
@@ -109,11 +105,10 @@ class EvenementAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_evenement_delete', methods: ['POST'])]
-    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
+    #[Route('/{id}', name: 'admin_evenement_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
     {
-        $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
 
         if ($this->isCsrfTokenValid('delete'.$evenement->getId(), $request->request->get('_token'))) {
             $entityManager->remove($evenement);
@@ -123,24 +118,23 @@ class EvenementAdminController extends AbstractController
         return $this->redirectToRoute('admin_evenement_index');
     }
 
-    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    private function requireAdminUser(): User
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-
-        $family = $familyResolver->resolveForUser($user);
-        if ($family === null) {
+        if (!$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
         }
 
-        return $family;
+        return $user;
     }
 
-    private function assertSameFamily(Family $family, ?Family $targetFamily): void
+    private function assertDefaultOwnedByAdmin(User $admin, Evenement $evenement): void
     {
-        if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
+        $owner = $evenement->getCreatedBy();
+        if ($evenement->getFamily() !== null || !$owner instanceof User || $owner->getId() !== $admin->getId()) {
             throw $this->createAccessDeniedException();
         }
     }

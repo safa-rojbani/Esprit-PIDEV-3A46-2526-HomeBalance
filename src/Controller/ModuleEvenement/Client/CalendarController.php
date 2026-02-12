@@ -34,7 +34,7 @@ class CalendarController extends AbstractController
         $typesQb = $typeEvenementRepository->createQueryBuilder('t')
             ->orderBy('t.nom', 'ASC');
 
-        $typesQb->andWhere('t.family = :family')
+        $typesQb->andWhere('(t.family = :family OR t.family IS NULL)')
             ->setParameter('family', $family);
         $types = $typesQb->getQuery()->getResult();
 

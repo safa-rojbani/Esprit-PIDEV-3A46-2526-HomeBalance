@@ -1,6 +1,7 @@
 {% set account_menus = ['account', 'notifications', 'preferences'] %}
 {% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
 {% set current_route = app.request.attributes.get('_route') %}
+{% set is_portal_admin = is_granted('ROLE_ADMIN') %}
 {% set module_submenus = module_submenus|default({}) %}
 {% set family_role_value = app.user and app.user.familyRole ? app.user.familyRole.value : null %}
 {% set family_role_name = app.user and app.user.familyRole ? app.user.familyRole.name : null %}
@@ -77,7 +78,7 @@
   },
   {
     key: 'module-events',
-    route: 'app_evenement_index',
+    route: is_portal_admin ? 'admin_calendar' : 'app_calendar',
     label: 'Événements',
     icon: 'bx bx-calendar'
   }
@@ -152,10 +153,14 @@
         {% endif %}
       {% endfor %}
 <<<<<<< HEAD
+      {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-events' and current_route starts with 'portal_account') %}
+=======
+<<<<<<< HEAD
       {% set is_open = active_menu == module.key or sub_active %}
       {% set has_dropdown = subitems|length > 1 and module.key != 'module-tasks' %}
 =======
       {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-charge' and subitems|length) %}
+>>>>>>> origin/main
 >>>>>>> origin/main
       <li class="menu-item {{ is_open ? 'active open' }}">
         <a href="{{ has_dropdown ? 'javascript:void(0);' : (subitems|length == 1 ? path(subitems[0].route) : path(module.route)) }}" class="menu-link {{ has_dropdown ? 'menu-toggle' }}">

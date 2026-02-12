@@ -82,7 +82,7 @@ class Evenement
         return $this->dateDebut;
     }
 
-    public function setDateDebut(\DateTimeImmutable $dateDebut): static
+    public function setDateDebut(?\DateTimeImmutable $dateDebut): static
     {
         $this->dateDebut = $dateDebut;
 
@@ -94,7 +94,7 @@ class Evenement
         return $this->dateFin;
     }
 
-    public function setDateFin(\DateTimeImmutable $dateFin): static
+    public function setDateFin(?\DateTimeImmutable $dateFin): static
     {
         $this->dateFin = $dateFin;
 

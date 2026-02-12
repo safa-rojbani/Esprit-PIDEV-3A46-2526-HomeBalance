@@ -7,19 +7,19 @@
 
   <title>{% block title %}HomeBalance{% endblock %}</title>
 
-  <link rel="icon" type="image/x-icon" href="{{ asset('materio/img/favicon/favicon.ico') }}" />
+  <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ asset('materio/vendor/fonts/iconify-icons.css') }}" />
+  <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
 
-  <link rel="stylesheet" href="{{ asset('materio/vendor/css/core.css') }}" />
-  <link rel="stylesheet" href="{{ asset('materio/css/demo.css') }}" />
+  <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
 
-  <script src="{{ asset('materio/vendor/js/helpers.js') }}"></script>
-  <script src="{{ asset('materio/js/config.js') }}"></script>
+  <script src="{{ asset('vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('js/config.js') }}"></script>
 
   <style>
     .layout-menu {
@@ -99,7 +99,6 @@
       'module-events': [
         {'label': 'Événements', 'route': 'admin_evenement_index'},
         {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
-        {'label': 'Rappels', 'route': 'admin_rappel_index'},
         {'label': 'Calendrier', 'route': 'admin_calendar'}
       ]
     }) %}
@@ -159,12 +158,12 @@
   <div class="layout-overlay layout-menu-toggle"></div>
 </div>
 
-<script src="{{ asset('materio/vendor/libs/jquery/jquery.js') }}"></script>
-<script src="{{ asset('materio/vendor/libs/popper/popper.js') }}"></script>
-<script src="{{ asset('materio/vendor/js/bootstrap.js') }}"></script>
-<script src="{{ asset('materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-<script src="{{ asset('materio/vendor/js/menu.js') }}"></script>
-<script src="{{ asset('materio/js/main.js') }}"></script>
+<script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('vendor/js/menu.js') }}"></script>
+<script src="{{ asset('js/main.js') }}"></script>
 
 {% block javascripts %}{% endblock %}
 </body>

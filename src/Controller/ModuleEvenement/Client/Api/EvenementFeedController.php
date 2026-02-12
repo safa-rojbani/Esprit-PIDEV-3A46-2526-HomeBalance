@@ -33,7 +33,7 @@ class EvenementFeedController extends AbstractController
         $where = [];
         $params = [];
 
-        $where[] = 'e.family_id = :familyId';
+        $where[] = '(e.family_id = :familyId OR e.family_id IS NULL)';
         $params['familyId'] = $family->getId();
 
         $typeId = $request->query->get('type');
@@ -95,7 +95,7 @@ class EvenementFeedController extends AbstractController
                 'url' => $this->generateUrl('app_evenement_show', ['id' => $row['id']]),
                 'extendedProps' => [
                     'typeId' => $row['type_id'] ? (int) $row['type_id'] : null,
-                    'shared' => $row['created_by_id'] === null || $row['family_id'] !== null,
+                    'shared' => $row['family_id'] === null || (int) $row['family_id'] === $family->getId(),
                     'createdByName' => $createdByName !== '' ? $createdByName : null,
                     'description' => $row['description'] ?: null,
                     'location' => $row['lieu'] ?: null,

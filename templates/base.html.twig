@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>{% block title %}HomeBalance{% endblock %}</title>
 
-  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/fonts/boxicons.css') }}">
-  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}">
-  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/theme-default.css') }}">
+  <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}">
+  <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/demo.css') }}">
 
   <style>
     body { background: #f5f5f9; }
@@ -21,8 +21,8 @@
 
   {% block stylesheets %}{% endblock %}
 
-  <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
-  <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
+  <script src="{{ asset('vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('js/config.js') }}"></script>
 
   {% block javascripts %}{% endblock %}
 
@@ -88,7 +88,6 @@
       'module-events': [
         {'label': 'Événements', 'route': 'app_evenement_index'},
         {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
-        {'label': 'Rappels', 'route': 'app_rappel_history'},
         {'label': 'Calendrier', 'route': 'app_calendar'}
       ]
     }) %}
@@ -100,7 +99,7 @@
         <div class="navbar-nav-right d-flex align-items-center w-100">
           <div class="navbar-nav align-items-center">
             <div class="nav-item d-flex align-items-center">
-              <i class="bx bx-search fs-4 lh-0 me-2"></i>
+              <i class="iconify mdi-24px lh-0 me-2" data-icon="mdi:magnify"></i>
               <input class="form-control border-0 shadow-none" placeholder="Search (placeholder)" />
             </div>
           </div>
@@ -127,12 +126,12 @@
 </div>
 <div class="layout-overlay layout-menu-toggle"></div>
 
-<script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
-<script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
-<script src="{{ asset('sneat/assets/vendor/js/bootstrap.js') }}"></script>
-<script src="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-<script src="{{ asset('sneat/assets/vendor/js/menu.js') }}"></script>
-<script src="{{ asset('sneat/assets/js/main.js') }}"></script>
+<script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('vendor/js/menu.js') }}"></script>
+<script src="{{ asset('js/main.js') }}"></script>
 
 </body>
 </html>

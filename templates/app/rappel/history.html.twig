@@ -1,62 +1,100 @@
 {% extends 'base_front.html.twig' %}
 
-{% block title %}Historique des rappels{% endblock %}
+{% block title %}Historique rappels{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-semibold m-0">Historique des rappels</h4>
-</div>
+<div class="evt-shell">
+  {% set totalRows = rows|length %}
+  {% set activeRows = 0 %}
+  {% set unreadRows = 0 %}
+  {% for row in rows %}
+    {% set r = row.rappel %}
+    {% if r.actif %}
+      {% set activeRows = activeRows + 1 %}
+    {% endif %}
+    {% if not r.estLu %}
+      {% set unreadRows = unreadRows + 1 %}
+    {% endif %}
+  {% endfor %}
 
-<div class="card">
-  <div class="table-responsive text-nowrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Événement</th>
-          <th>Décalage minutes</th>
-          <th>Canal</th>
-          <th>Actif</th>
-          <th>Lu</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="table-border-bottom-0">
-      {% for row in rows %}
-        {% set r = row.rappel %}
-        <tr>
-          <td>{{ r.id }}</td>
-          <td>{{ row.eventTitle ?? 'Événement supprimé' }}</td>
-          <td>{{ r.offsetMinutes }}</td>
-          <td>{{ r.canal ?? '' }}</td>
-          <td>{{ r.actif ? 'Oui' : 'Non' }}</td>
-          <td>{{ r.estLu ? 'Oui' : 'Non' }}</td>
-          <td class="text-end">
-            <a class="btn btn-sm btn-outline-warning"
-               href="{{ path('app_rappel_edit', { id: r.id }) }}">
-              Modifier
-            </a>
-            <form method="post"
-                  action="{{ path('app_rappel_delete', { id: r.id }) }}"
-                  style="display:inline-block"
-                  onsubmit="return confirm('Supprimer ce rappel ?');">
-              <input type="hidden" name="_token"
-                     value="{{ csrf_token('delete' ~ r.id) }}">
-              <button class="btn btn-sm btn-outline-danger">
-                Supprimer
-              </button>
-            </form>
-          </td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="7" class="text-center text-muted">
-            Aucun rappel trouvé
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="evt-pagehead">
+    <h3 class="evt-title">Historique des rappels</h3>
+    <p class="evt-subtitle">Consultez les rappels declenches et leur statut de lecture.</p>
+  </div>
+
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Total</span>
+      <span class="value">{{ totalRows }}</span>
+      <span class="meta">rappels</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Actifs</span>
+      <span class="value">{{ activeRows }}</span>
+      <span class="meta">rappels actifs</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Non lus</span>
+      <span class="value">{{ unreadRows }}</span>
+      <span class="meta">a traiter</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Lus</span>
+      <span class="value">{{ totalRows - unreadRows }}</span>
+      <span class="meta">deja consultes</span>
+    </div>
+  </div>
+
+  <div class="card evt-card">
+    <div class="table-responsive">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Evenement</th>
+            <th>Decalage</th>
+            <th>Canal</th>
+            <th>Actif</th>
+            <th>Lu</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+          {% set r = row.rappel %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td class="evt-title-cell">{{ row.eventTitle ?? 'Evenement supprime' }}</td>
+            <td>{{ r.offsetMinutes }} min</td>
+            <td><span class="evt-channel {{ r.canal ?: 'popup' }}">{{ r.canal ?? '-' }}</span></td>
+            <td><span class="evt-pill {{ r.actif ? 'is-yes' : 'is-no' }}">{{ r.actif ? 'Oui' : 'Non' }}</span></td>
+            <td><span class="evt-pill {{ r.estLu ? 'is-yes' : 'is-no' }}">{{ r.estLu ? 'Oui' : 'Non' }}</span></td>
+            <td class="text-end">
+              <div class="evt-actions">
+                <a class="btn btn-sm btn-outline-warning" href="{{ path('app_rappel_edit', { id: r.id }) }}">Modifier</a>
+                <form method="post"
+                      action="{{ path('app_rappel_delete', { id: r.id }) }}"
+                      style="display:inline-block"
+                      onsubmit="return confirm('Supprimer ce rappel ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ r.id) }}">
+                  <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="evt-empty">Aucun rappel trouve.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
