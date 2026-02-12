@@ -89,6 +89,22 @@
         or route starts with 'admin_task') ? 'module-tasks'
       : 'dashboard'
     ) %}
+<<<<<<< HEAD
+    {% set module_charge_items = is_granted('ROLE_ADMIN')
+      ? [
+        {'label': 'Categories achat', 'route': 'app_categorie_achat_index'}
+      ]
+      : [
+        {'label': 'Achats', 'route': 'app_achat_index'},
+        {'label': 'Historique', 'route': 'app_historique_achat_index'},
+        {'label': 'Categories achat', 'route': 'app_categorie_achat_index'},
+        {'label': 'Revenus', 'route': 'app_revenu_index'},
+        {'label': 'Budget', 'route': 'app_revenu_budget'}
+      ]
+    %}
+    {% set module_submenus = module_submenus|default({
+      'module-charge': module_charge_items,
+=======
     {% set module_submenus = module_submenus|default({
       'module-charge': [
         {'label': 'Achats', 'route': 'app_achat_index'},
@@ -96,6 +112,7 @@
         {'label': 'Revenus', 'route': 'app_revenu_index'},
         {'label': 'Budget', 'route': 'app_revenu_budget'}
       ],
+>>>>>>> origin/main
       'module-documents': [
         {'label': 'Galeries', 'route': 'app_gallery_index'},
         {'label': 'Documents', 'route': 'app_document_index'},
@@ -251,3 +268,7 @@
 {% block javascripts %}{% endblock %}
 </body>
 </html>
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/main
