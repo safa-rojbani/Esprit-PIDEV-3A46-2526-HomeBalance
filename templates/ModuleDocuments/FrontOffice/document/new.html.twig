@@ -1,10 +1,10 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}New Document{% endblock %}
+{% block title %}Nouveau document{% endblock %}
 
 {% block content %}
 <style>
-  /* ===== HomeBalance • New Document (Clean + Phone-like) ===== */
+  /* ===== HomeBalance â€¢ New Document (Clean + Phone-like) ===== */
   .hb-page{max-width:1040px;margin:0 auto;}
   .hb-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;}
   .hb-top h3{margin:0;font-weight:1000;letter-spacing:.2px;color:#2b2f36;}
@@ -37,7 +37,7 @@
   @keyframes hbIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 
-  /* ===== HB Camera Overlay • Landscape • High-Contrast ===== */
+  /* ===== HB Camera Overlay â€¢ Landscape â€¢ High-Contrast ===== */
   .hb-cam-overlay{position:fixed; inset:0; z-index:99999; display:none; background:rgba(10,16,28,.72); backdrop-filter:blur(10px); padding:18px;}
   .hb-cam-wrap{height:100%;display:flex;align-items:center;justify-content:center;}
   .hb-cam-modal{width:min(1120px,100%); aspect-ratio:16/9; border-radius:26px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,.14); box-shadow:0 55px 160px rgba(0,0,0,.55); position:relative;}
@@ -92,19 +92,19 @@
 <div class="hb-page">
   <div class="hb-top flex-wrap hb-in">
     <div>
-      <h3>New Document</h3>
-      <p class="mb-0">Add a file to your gallery — simple & clean ✨</p>
+      <h3>Nouveau document</h3>
+      <p class="mb-0">Ajoutez un fichier a votre galerie.</p>
     </div>
 
     <div class="d-flex gap-2 flex-wrap">
       <button type="button" class="btn btn-outline-primary" id="hbOpenCam">
-        <i class="bx bx-camera"></i> Open camera
+        <i class="bx bx-camera"></i> Ouvrir la camera
       </button>
     </div>
 
     <div class="hb-actions">
       <a href="{{ path('app_gallery_show', {'id': galleryId}) }}" class="btn btn-outline-secondary">
-        <i class="bx bx-left-arrow-alt me-1"></i> Back to gallery
+        <i class="bx bx-left-arrow-alt me-1"></i> Retour a la galerie
       </a>
     </div>
   </div>
@@ -125,12 +125,12 @@
               <button type="button" id="hbModeVideo">VIDEO</button>
             </div>
 
-            <button type="button" class="hb-cam-btn" id="hbRetake" title="Retake">
-              <i class="bx bx-undo"></i> Retake
+            <button type="button" class="hb-cam-btn" id="hbRetake" title="Reprendre">
+              <i class="bx bx-undo"></i> Reprendre
             </button>
 
-            <button type="button" class="hb-cam-x" id="hbCloseCam2" aria-label="Close">
-              <span aria-hidden="true">×</span>
+            <button type="button" class="hb-cam-x" id="hbCloseCam2" aria-label="Fermer">
+              <span aria-hidden="true">x</span>
             </button>
           </div>
         </div>
@@ -138,23 +138,23 @@
         <div class="hb-cam-stage">
           <video id="hbVideo" autoplay playsinline muted></video>
           <canvas id="hbCanvas" style="display:none;"></canvas>
-          <img id="hbPreview" alt="preview"/>
+          <img id="hbPreview" alt="apercu"/>
           <video id="hbVidPreview" controls playsinline></video>
         </div>
 
         <div class="hb-cam-bottom">
-          <div class="hb-cam-msg" id="hbApiMsg">Open camera ✅</div>
+          <div class="hb-cam-msg" id="hbApiMsg">Ouvrez la camera</div>
 
           <div class="hb-cam-center">
-            <button type="button" class="hb-shutter" id="hbSnap" title="Take photo"></button>
-            <button type="button" class="hb-rec" id="hbRec" title="Record video" style="display:none;"></button>
+            <button type="button" class="hb-shutter" id="hbSnap" title="Prendre une photo"></button>
+            <button type="button" class="hb-rec" id="hbRec" title="Enregistrer une video" style="display:none;"></button>
           </div>
 
           <div class="hb-cam-right">
-            <button type="button" class="hb-cam-btn primary" id="hbUploadApi" title="Upload">
-              <i class="bx bx-cloud-upload"></i> Upload
+            <button type="button" class="hb-cam-btn primary" id="hbUploadApi" title="Televerser">
+              <i class="bx bx-cloud-upload"></i> Televerser
             </button>
-            <button type="button" class="hb-cam-btn icon" id="hbBackToGallery" title="Back">
+            <button type="button" class="hb-cam-btn icon" id="hbBackToGallery" title="Retour">
               <i class="bx bx-left-arrow-alt"></i>
             </button>
           </div>
@@ -166,11 +166,11 @@
 
   <div class="hb-hero hb-in">
     <div>
-      <p class="title"><i class="bx bx-upload"></i> Upload a new file</p>
-      <p class="sub">Choose your document, then save — it will appear instantly in the gallery.</p>
+      <p class="title"><i class="bx bx-upload"></i> Televerser un nouveau fichier</p>
+      <p class="sub">Choisissez votre document, puis enregistrez-le. Il apparaitra dans la galerie.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap justify-content-end">
-      <span class="hb-chip"><i class="bx bx-lock-alt"></i> Family space</span>
+      <span class="hb-chip"><i class="bx bx-lock-alt"></i> Espace famille</span>
     </div>
   </div>
 
@@ -178,7 +178,7 @@
     <div class="col-12 col-lg-7">
       <div class="hb-card hb-in">
         <div class="hb-card-header">
-          <div class="left"><span class="hb-dot"></span> Document details</div>
+          <div class="left"><span class="hb-dot"></span> Details du document</div>
         </div>
         <div class="hb-card-body">
           {{ include('ModuleDocuments/FrontOffice/document/_form.html.twig') }}
@@ -189,19 +189,19 @@
     <div class="col-12 col-lg-5">
       <div class="card hb-side hb-in">
         <div class="card-body">
-          <h6><i class="bx bx-bulb"></i> Tips</h6>
+          <h6><i class="bx bx-bulb"></i> Conseils</h6>
           <ul>
-            <li>Prefer clear file names.</li>
-            <li>Images & PDF preview well.</li>
-            <li>You can hide/delete later.</li>
+            <li>Utilisez des noms de fichiers clairs.</li>
+            <li>Les images et PDF sont bien previsualises.</li>
+            <li>Vous pouvez masquer/supprimer plus tard.</li>
           </ul>
 
           <hr class="my-3">
 
-          <h6><i class="bx bx-shield-quarter"></i> Privacy</h6>
+          <h6><i class="bx bx-shield-quarter"></i> Confidentialite</h6>
           <ul>
-            <li>Only your family can see this document.</li>
-            <li>No cross-family access.</li>
+            <li>Seule votre famille peut voir ce document.</li>
+            <li>Aucun acces entre familles n'est possible.</li>
           </ul>
         </div>
       </div>
@@ -213,7 +213,7 @@
 (function(){
   function hbInitCameraNewDoc(){
     const galleryId = {{ galleryId|json_encode|raw }};
-    const apiUrl   = `/api/galleries/${galleryId}/camera-upload`;
+    const apiUrl   = `/portal/documents/api/galleries/${galleryId}/camera-upload`;
     const backUrl  = {{ path('app_gallery_show', {'id': galleryId})|json_encode|raw }};
 
     const openBtn  = document.getElementById('hbOpenCam');
@@ -288,31 +288,38 @@
     function closeCamera(){
       stopCamera();
       resetPreview();
-      setMsg('Closed.');
+      setMsg('Fermee.');
       hideOverlay();
     }
 
     async function openCamera(){
       try{
         showOverlay();
-        setMsg('Requesting camera permission...');
+        setMsg('Demande de permission camera...');
         resetPreview();
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setMsg('API camera indisponible dans ce navigateur.');
+          alert('API camera indisponible. Utilisez HTTPS ou localhost sur un navigateur moderne.');
+          closeCamera();
+          return;
+        }
 
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} },
-          audio: true // ✅ لازم للفيديو
+          audio: true // âœ… Ù„Ø§Ø²Ù… Ù„Ù„ÙÙŠØ¯ÙŠÙˆ
         });
 
         video.srcObject = stream;
 
         video.onloadedmetadata = async () => {
           try { await video.play(); } catch(e) {}
-          setMsg(mode === "photo" ? 'Ready ✅ Press shutter' : 'Ready ✅ Press REC');
+          setMsg(mode === "photo" ? 'Pret. Appuyez pour capturer.' : 'Pret. Appuyez sur REC.');
         };
       } catch(e){
         console.error(e);
-        setMsg(`Camera error ❌ ${e?.name || ''} ${e?.message || ''}`);
-        alert('Camera blocked: use localhost or HTTPS + allow permissions.');
+        setMsg(`Erreur camera: ${e?.name || ''} ${e?.message || ''}`);
+        alert('Camera bloquee: utilisez localhost ou HTTPS et autorisez les permissions.');
         closeCamera();
       }
     }
@@ -325,7 +332,7 @@
     }
 
     function takePhoto(){
-      if(!video.videoWidth){ setMsg('Video not ready...'); return; }
+      if(!video.videoWidth){ setMsg('Video non prete...'); return; }
       doFlash();
 
       canvas.width = video.videoWidth;
@@ -335,7 +342,7 @@
       ctx.drawImage(video, 0, 0);
 
       canvas.toBlob((b) => {
-        if(!b){ setMsg('Capture failed ❌'); return; }
+        if(!b){ setMsg('Echec de capture.'); return; }
 
         capturedBlob = b;
         capturedType = "image";
@@ -348,7 +355,7 @@
 
         setDisabled(uploadBtn, false);
         setDisabled(retakeBtn, false);
-        setMsg('Captured ✅ Upload or Retake');
+        setMsg('Capture terminee. Televersez ou reprenez.');
       }, 'image/jpeg', 0.92);
     }
 
@@ -368,8 +375,8 @@
     }
 
     function startRecording(){
-      if (!stream) { setMsg('Open camera first ❌'); return; }
-      if (!window.MediaRecorder) { setMsg('MediaRecorder not supported ❌'); return; }
+      if (!stream) { setMsg('Ouvrez d abord la camera.'); return; }
+      if (!window.MediaRecorder) { setMsg('MediaRecorder n est pas supporte.'); return; }
 
       resetPreview();
 
@@ -380,7 +387,7 @@
         recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       } catch (e) {
         console.error(e);
-        setMsg('Recorder init failed ❌');
+        setMsg('Echec d initialisation de l enregistreur.');
         return;
       }
 
@@ -403,13 +410,13 @@
 
         setDisabled(uploadBtn, false);
         setDisabled(retakeBtn, false);
-        setMsg('Video ready ✅ Upload or Retake');
+        setMsg('Video prete. Televersez ou reprenez.');
       };
 
       recorder.start();
       isRecording = true;
       recBtn.classList.add('recording');
-      setMsg('Recording... ⏺ Click REC again to stop');
+      setMsg('Enregistrement... cliquez encore sur REC pour arreter.');
     }
 
     function stopRecording(){
@@ -417,7 +424,7 @@
       try { recorder.stop(); } catch(e) {}
       isRecording = false;
       recBtn.classList.remove('recording');
-      setMsg('Processing video...');
+      setMsg('Traitement de la video...');
     }
 
     function toggleRec(){
@@ -429,17 +436,17 @@
     function retake(){
       if (isRecording) stopRecording();
       resetPreview();
-      setMsg(mode === "photo" ? 'Ready ✅ Press shutter' : 'Ready ✅ Press REC');
+      setMsg(mode === "photo" ? 'Pret. Appuyez pour capturer.' : 'Pret. Appuyez sur REC.');
     }
 
     async function uploadToApi(){
       if(!capturedBlob || !capturedType){
-        setMsg('Take photo / record video first ❌');
+        setMsg('Prenez une photo ou enregistrez une video d abord.');
         return;
       }
 
       setDisabled(uploadBtn, true);
-      setMsg('Uploading...');
+      setMsg('Televersement...');
 
       let filename = '';
       let filetype = capturedBlob.type || (capturedType === "image" ? 'image/jpeg' : 'video/webm');
@@ -465,12 +472,12 @@
       const data = await res.json().catch(() => ({}));
 
       if(!res.ok || !data.ok){
-        setMsg('Upload failed ❌ ' + (data.error || ('HTTP ' + res.status)));
+        setMsg('Echec du televersement: ' + (data.error || ('HTTP ' + res.status)));
         setDisabled(uploadBtn, false);
         return;
       }
 
-      setMsg('Uploaded ✅ Redirecting...');
+      setMsg('Televerse. Redirection...');
       closeCamera();
       window.location.href = backUrl;
     }
@@ -489,7 +496,7 @@
       // stop recording if switching
       if (isRecording) stopRecording();
       resetPreview();
-      setMsg(mode === "photo" ? 'Ready ✅ Press shutter' : 'Ready ✅ Press REC');
+      setMsg(mode === "photo" ? 'Pret. Appuyez pour capturer.' : 'Pret. Appuyez sur REC.');
     }
 
     // events
@@ -525,3 +532,8 @@
 })();
 </script>
 {% endblock %}
+
+
+
+
+

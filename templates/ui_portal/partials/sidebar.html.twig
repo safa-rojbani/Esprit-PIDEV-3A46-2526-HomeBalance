@@ -2,6 +2,7 @@
 {% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
 {% set current_route = app.request.attributes.get('_route') %}
 {% set module_submenus = module_submenus|default({}) %}
+{% set documents_main_route = is_granted('ROLE_ADMIN') ? 'app_default_gallery_index' : 'app_gallery_index' %}
 {% set module_items = [
   {
     key: 'module-charge',
@@ -11,7 +12,7 @@
   },
   {
     key: 'module-documents',
-    route: 'app_gallery_index',
+    route: documents_main_route,
     label: 'Documents',
     icon: 'bx bx-folder'
   },
@@ -87,18 +88,20 @@
     {% for module in module_items %}
       {% set subitems = module_submenus[module.key]|default([]) %}
       {% set sub_active = false %}
-      {% for item in subitems %}
-        {% if current_route == item.route %}
-          {% set sub_active = true %}
-        {% endif %}
-      {% endfor %}
-      {% set is_open = active_menu == module.key or sub_active %}
-      <li class="menu-item {{ is_open ? 'active open' }}">
-        <a href="{{ subitems|length ? 'javascript:void(0);' : path(module.route) }}" class="menu-link {{ subitems|length ? 'menu-toggle' }}">
+    {% for item in subitems %}
+      {% if current_route == item.route %}
+        {% set sub_active = true %}
+      {% endif %}
+    {% endfor %}
+    {% set is_open = active_menu == module.key or sub_active %}
+    {% set direct_route = module.key == 'module-documents' and is_granted('ROLE_ADMIN') %}
+    {% set has_toggle = subitems|length and not direct_route %}
+    <li class="menu-item {{ is_open ? 'active open' }}">
+        <a href="{{ has_toggle ? 'javascript:void(0);' : path(module.route) }}" class="menu-link {{ has_toggle ? 'menu-toggle' }}">
           <i class="menu-icon tf-icons {{ module.icon }}"></i>
           <div class="text-truncate">{{ module.label }}</div>
         </a>
-        {% if subitems|length %}
+        {% if subitems|length and not direct_route %}
           <ul class="menu-sub">
             {% for item in subitems %}
               <li class="menu-item {{ current_route == item.route ? 'active' }}">

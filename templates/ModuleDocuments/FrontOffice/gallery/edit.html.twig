@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Edit Gallery
+{% block title %}Modifier la galerie
 {% endblock %}
 
 {% block content %}
 	<style>
-		/* ===== HomeBalance • Edit Gallery (Elegant WOW, neutral) ===== */
+		/* ===== HomeBalance â€¢ Edit Gallery (Elegant WOW, neutral) ===== */
 
 		.hb-page {
 			max-width: 1040px;
@@ -211,19 +211,101 @@
 			}
 		}
 
+		/* ===== Mode Selector (Template / Custom) ===== */
+		.hb-mode {
+			border: 1px solid rgba(67, 89, 113, .10);
+			border-radius: 18px;
+			background: rgba(255, 255, 255, .95);
+			padding: 12px 12px;
+			margin-bottom: 14px;
+		}
+		.hb-mode-title {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 1000;
+			color: #2b2f36;
+			margin-bottom: 10px;
+		}
+		.hb-mode-title i {
+			color: #696cff;
+			font-size: 18px;
+		}
+		.hb-mode-sub {
+			color: #7a8699;
+			font-size: .92rem;
+			margin-top: 8px;
+		}
+
+		.hb-toggle {
+			display: flex;
+			gap: 10px;
+			background: rgba(67, 89, 113, .05);
+			padding: 8px;
+			border-radius: 16px;
+			position: relative;
+			z-index: 5;
+		}
+		.hb-pill {
+			flex: 1;
+			border: 1px solid transparent;
+			background: transparent;
+			border-radius: 14px;
+			padding: 10px 12px;
+			font-weight: 950;
+			color: #566a7f;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			transition: .18s ease;
+			position: relative;
+			z-index: 6;
+			pointer-events: auto;
+			cursor: pointer;
+			user-select: none;
+		}
+		.hb-pill.active {
+			background: #fff;
+			border-color: rgba(105, 108, 255, .25);
+			box-shadow: 0 12px 30px rgba(105, 108, 255, .12);
+			color: #2b2f36;
+		}
+		.hb-pill i {
+			color: #696cff;
+		}
+
+		.hb-hint {
+			margin-top: 10px;
+			border-radius: 14px;
+			padding: 10px 12px;
+			background: rgba(105, 108, 255, .06);
+			border: 1px solid rgba(105, 108, 255, .12);
+			color: #566a7f;
+			font-weight: 850;
+			display: flex;
+			gap: 10px;
+			align-items: flex-start;
+		}
+		.hb-hint i {
+			color: #696cff;
+			font-size: 18px;
+			margin-top: 1px;
+		}
+
 	</style>
 
 	<div class="hb-page">
 		<div class="hb-top flex-wrap hb-in">
 			<div>
-				<h3>Edit Gallery</h3>
-				<p>Refine your album details — keep it clean and organized ✨</p>
+				<h3>Modifier la galerie</h3>
+				<p>Ajustez les details de la galerie pour garder un espace bien organise.</p>
 			</div>
 
 			<div class="hb-actions">
 				<span class="hb-chip">
 					<i class="bx bx-edit"></i>
-					Update mode</span>
+					Mode modification</span>
 				{% set backPath = (from is defined and from == 'hidden')
   ? path('app_gallery_hidden')
   : path('app_gallery_index')
@@ -231,7 +313,7 @@
 
 				<a href="{{ backPath }}" class="btn btn-outline-secondary">
 					<i class="bx bx-left-arrow-alt me-1"></i>
-					Back
+					Retour
 				</a>
 
 			</div>
@@ -241,10 +323,10 @@
 			<div>
 				<p class="title">
 					<i class="bx bx-photo-album"></i>
-					Editing:
+					Edition :
 					<span class="fw-bold">{{ gallery.name }}</span>
 				</p>
-				<p class="sub">Update the name and description. You can also hide or delete this gallery.</p>
+				<p class="sub">Mettez a jour le nom et la description. Vous pouvez aussi masquer ou supprimer cette galerie.</p>
 			</div>
 
 			<div class="d-flex gap-2 flex-wrap justify-content-end">
@@ -252,7 +334,7 @@
 					<input type="hidden" name="_token" value="{{ csrf_token('hide' ~ gallery.id) }}">
 					<button class="btn btn-warning" type="submit">
 						<i class="bx bx-hide me-1"></i>
-						Hide
+						Masquer
 					</button>
 				</form>
 			</div>
@@ -264,12 +346,12 @@
 					<div class="hb-card-header">
 						<div class="left">
 							<span class="hb-dot"></span>
-							Gallery details
+							Details de la galerie
 						</div>
 					</div>
 
 					<div class="hb-card-body">
-						{{ include('ModuleDocuments/FrontOffice/gallery/_form.html.twig', {'button_label': 'Update'}) }}
+						{{ include('ModuleDocuments/FrontOffice/gallery/_form.html.twig', {'form': form, 'button_label': 'Mettre a jour'}) }}
 					</div>
 				</div>
 			</div>
@@ -279,7 +361,7 @@
 					<div class="hb-card-header">
 						<div class="left">
 							<span class="hb-dot" style="background: rgba(220,53,69,.85); box-shadow: 0 10px 22px rgba(220,53,69,.18);"></span>
-							Danger zone
+							Zone sensible
 						</div>
 					</div>
 
@@ -287,13 +369,13 @@
 						<div class="hb-danger">
 							<div class="t">
 								<i class="bx bx-error-circle"></i>
-								Delete gallery</div>
+								Supprimer la galerie</div>
 							<p class="d">
-								This gallery will be sent to the
-								<b>Trash</b>
-								and can be restored later.
-								              If you just want to remove it from view, use
-								<b>Hide</b>.
+								Cette galerie sera envoyee dans la
+								<b>Corbeille</b>
+								et pourra etre restauree plus tard.
+								              Si vous voulez seulement la retirer de la vue, utilisez
+								<b>Masquer</b>.
 							</p>
 							<div class="actions">
 								{{ include('ModuleDocuments/FrontOffice/gallery/_delete_form.html.twig') }}
@@ -306,44 +388,45 @@
 	</div>
 
 	<script>
-		// Make submit button premium even if _form is basic
-document.addEventListener('DOMContentLoaded', () => {
-const form = document.querySelector('.hb-card-body form');
-if (! form) 
-return;
+		(function () {
+			function initEditGallery() {
+				const form = document.querySelector('#hbGalleryForm');
+				if (!form) return;
+				if (form.dataset.hbEditInit === '1') return;
+				form.dataset.hbEditInit = '1';
 
+				form.querySelectorAll('input, textarea, select').forEach(el => {
+					if (el.tagName.toLowerCase() === 'select') el.classList.add('form-select');
+					else el.classList.add('form-control');
+				});
 
-form.querySelectorAll('input, textarea, select').forEach(el => {
-if (el.tagName.toLowerCase() === 'select') 
-el.classList.add('form-select');
- else 
-el.classList.add('form-control');
+				const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+				if (btn && btn.tagName.toLowerCase() === 'button') {
+					btn.classList.add('btn', 'btn-primary', 'hb-submit');
+					if (!btn.querySelector('i')) {
+						btn.insertAdjacentHTML('afterbegin', '<i class="bx bx-save"></i> ');
+					}
+				}
 
-});
+				document.querySelectorAll('form button').forEach(b => {
+					const t = (b.textContent || '').toLowerCase();
+					if (t.includes('delete') || t.includes('supprimer')) {
+						b.classList.add('btn', 'btn-danger');
+						if (!b.querySelector('i')) {
+							b.insertAdjacentHTML('afterbegin', '<i class="bx bx-trash"></i> ');
+						}
+					}
+				});
+			}
 
-const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-if (btn) {
-btn.classList.add('btn', 'btn-primary', 'hb-submit');
-if (btn.tagName.toLowerCase() === 'button') {
-const text = btn.textContent.trim().toLowerCase();
-if (text === 'update' || text === 'save' || text === 'submit') {
-btn.innerHTML = '<i class="bx bx-save"></i> Update gallery';
-} else if (! btn.querySelector('i')) {
-btn.insertAdjacentHTML('afterbegin', '<i class="bx bx-save"></i> ');
-}
-}
-}
-
-// Style delete button inside delete form (if it exists)
-document.querySelectorAll('form button').forEach(b => {
-const t = (b.textContent || '').toLowerCase();
-if (t.includes('delete')) {
-b.classList.add('btn', 'btn-danger');
-if (!b.querySelector('i')) 
-b.insertAdjacentHTML('afterbegin', '<i class="bx bx-trash"></i> ');
-
-}
-});
-});
+			document.addEventListener('DOMContentLoaded', initEditGallery);
+			document.addEventListener('turbo:load', initEditGallery);
+			window.addEventListener('pageshow', initEditGallery);
+		})();
 	</script>
 {% endblock %}
+
+
+
+
+

@@ -1,12 +1,12 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}New Default Gallery{% endblock %}
+{% block title %}Nouveau modele par defaut{% endblock %}
 
-{# ✅ If your base uses "content" like your other pages, keep this block.
+{# âœ… If your base uses "content" like your other pages, keep this block.
    If your base uses "body" instead, just rename block content -> body. #}
 {% block content %}
 	<style>
-		/* ===== HomeBalance Admin • New Default Gallery (Premium + Phone-like) ===== */
+		/* ===== HomeBalance Admin â€¢ New Default Gallery (Premium + Phone-like) ===== */
 
 		.hb-page {
 			max-width: 980px;
@@ -200,14 +200,14 @@
 	<div class="hb-page">
 		<div class="hb-top flex-wrap">
 			<div class="hb-title">
-				<h4 class="mb-1">New Default Gallery</h4>
-				<p class="mb-0">Create an admin template for families ✨</p>
+				<h4 class="mb-1">Nouveau modele par defaut</h4>
+				<p class="mb-0">Creer un modele admin pour les familles.</p>
 			</div>
 
 			<div class="hb-actions">
 				<a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary">
 					<i class="bx bx-arrow-back me-1"></i>
-					Back
+					Retour
 				</a>
 			</div>
 		</div>
@@ -220,8 +220,8 @@
 							<i class="bx bx-collection" style="font-size:20px;"></i>
 						</div>
 						<div class="hb-hero-text text-truncate">
-							<h5 class="mb-0">Template details</h5>
-							<small>Give it a clear name + a helpful description</small>
+							<h5 class="mb-0">Details du modele</h5>
+							<small>Donnez-lui un nom clair et une description utile</small>
 						</div>
 					</div>
 
@@ -230,7 +230,7 @@
 			</div>
 
 			<div class="hb-body">
-				{# ✅ Your generated form partial #}
+				{# âœ… Your generated form partial #}
 				{{ include('ModuleDocuments/BackOffice/default_gallery/_form.html.twig') }}
 			</div>
 
@@ -238,3 +238,8 @@
 		</div>
 	</div>
 {% endblock %}
+
+
+
+
+

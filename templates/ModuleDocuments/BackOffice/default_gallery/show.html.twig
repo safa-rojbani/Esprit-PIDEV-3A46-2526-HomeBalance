@@ -1,12 +1,12 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Default Gallery{% endblock %}
+{% block title %}Modele par defaut{% endblock %}
 
-{# ✅ If your base uses "content" like your other pages, keep this block.
+{# âœ… If your base uses "content" like your other pages, keep this block.
    If your base uses "body" instead, just rename block content -> body. #}
 {% block content %}
 	<style>
-		/* ===== HomeBalance Admin • DefaultGallery Show (Premium, Phone-like) ===== */
+		/* ===== HomeBalance Admin â€¢ DefaultGallery Show (Premium, Phone-like) ===== */
 
 		.hb-page {
 			max-width: 980px;
@@ -222,14 +222,14 @@
 	<div class="hb-page">
 		<div class="hb-top flex-wrap">
 			<div class="hb-title">
-				<h4 class="mb-1">Default Gallery</h4>
-				<p class="mb-0">Preview your admin template ✨</p>
+				<h4 class="mb-1">Modele par defaut</h4>
+				<p class="mb-0">Apercu du modele admin.</p>
 			</div>
 
 			<div class="hb-actions">
 				<a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary hb-btn">
 					<i class="bx bx-arrow-back me-1"></i>
-					Back
+					Retour
 				</a>
 
 				
@@ -245,7 +245,7 @@
 						</div>
 						<div class="hb-hero-text text-truncate">
 							<h5 class="mb-0">{{ default_gallery.name }}</h5>
-							<small>Admin template • Ready to be used by customers</small>
+							<small>Modele admin - pret a etre utilise par les familles</small>
 						</div>
 					</div>
 
@@ -258,7 +258,7 @@
 					<div class="hb-field">
 						<div class="hb-label">
 							<i class="bx bx-rename"></i>
-							Name
+							Nom
 						</div>
 						<div class="hb-value">{{ default_gallery.name }}</div>
 					</div>
@@ -269,7 +269,7 @@
 							Description
 						</div>
 						<div class="hb-value">
-							{{ default_gallery.description ?: 'No description yet — add one to make it shine ✨' }}
+							{{ default_gallery.description ?: 'Aucune description pour le moment.' }}
 						</div>
 					</div>
 				</div>
@@ -293,12 +293,12 @@
 <div class="hb-field hb-desc" style="margin-top:12px;">
   <div class="hb-label">
     <i class="bx bx-home-heart"></i>
-    Families who created this gallery
+    Familles qui ont cree cette galerie
     <span class="ms-2 text-muted" style="font-weight:800;">({{ uniqueFamilies|length }})</span>
   </div>
 
   {% if uniqueFamilies|length == 0 %}
-    <div class="hb-value">No family has used this template yet.</div>
+    <div class="hb-value">Aucune famille n a encore utilise ce modele.</div>
   {% else %}
     <div class="hb-value" style="display:flex; flex-wrap:wrap; gap:8px;">
       {% for f in uniqueFamilies %}
@@ -324,10 +324,10 @@
 				<div class="d-flex gap-2 flex-wrap">
 					<a href="{{ path('app_default_gallery_edit', {'id': default_gallery.id}) }}" class="btn btn-primary hb-btn hb-btn-primary">
 						<i class="bx bx-edit-alt me-1"></i>
-						Edit
+						Modifier
 					</a>
 
-					{# ✅ This keeps your CSRF + POST delete form #}
+					{# âœ… This keeps your CSRF + POST delete form #}
 					<div>
 						{{ include('ModuleDocuments/BackOffice/default_gallery/_delete_form.html.twig') }}
 					</div>
@@ -336,3 +336,9 @@
 		</div>
 	</div>
 {% endblock %}
+
+
+
+
+
+

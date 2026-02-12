@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}{{ gallery.name }}{% endblock %}
 
@@ -49,7 +49,7 @@
 
   .hb-doc-actions{position:absolute;top:10px;right:10px;z-index:50;pointer-events:none}
   .hb-doc-menu-btn{pointer-events:auto;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);box-shadow:0 10px 22px rgba(0,0,0,.20);opacity:0;transform:translateY(-4px);transition:.18s ease;cursor:pointer;outline:none}
-  .hb-doc-menu-btn::before{content:"⋮";color:rgba(255,255,255,.95);font-size:20px;line-height:1;transform:translateY(-1px);display:block}
+  .hb-doc-menu-btn i{color:rgba(255,255,255,.95);font-size:20px;line-height:1;display:block}
   .hb-doc:hover .hb-doc-menu-btn{opacity:1;transform:translateY(0)}
   @media(max-width:768px){.hb-doc-menu-btn{opacity:1;transform:translateY(0)}}
 
@@ -80,13 +80,13 @@
 </style>
 
 {% set activeDocs = documents|filter(d => d.etat and d.etat.value == 'actif') %}
-{% set createdLabel = gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '—' %}
+{% set createdLabel = gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '-' %}
 
 <div class="hb-page">
   <div class="hb-topbar">
     <div class="hb-top-left">
       <h3 class="hb-album-name">{{ gallery.name }}</h3>
-      <p class="hb-album-sub">{{ gallery.description ?: 'No description yet — add one ✨' }}</p>
+      <p class="hb-album-sub">{{ gallery.description ?: 'Aucune description pour le moment.' }}</p>
 
       <div class="hb-mini">
         <span class="hb-chip"><i class="bx bx-file"></i>{{ activeDocs|length }} doc{{ activeDocs|length > 1 ? 's' : '' }}</span>
@@ -97,9 +97,9 @@
     <div class="hb-actions">
       {% set backPath = (from is defined and from == 'hidden') ? path('app_gallery_hidden') : path('app_gallery_index') %}
 
-      <a href="{{ backPath }}" class="btn btn-outline-secondary"><i class="bx bx-left-arrow-alt me-1"></i>Back</a>
-      <a class="hb-pill" href="{{ path('app_gallery_edit', {'id': gallery.id}) }}"><i class="bx bx-edit-alt"></i>Edit</a>
-      <a class="hb-pill primary" href="{{ path('app_document_new', {'galleryId': gallery.id}) }}"><i class="bx bx-plus"></i>Add document</a>
+      <a href="{{ backPath }}" class="btn btn-outline-secondary"><i class="bx bx-left-arrow-alt me-1"></i>Retour</a>
+      <a class="hb-pill" href="{{ path('app_gallery_edit', {'id': gallery.id, 'from': from|default('index')}) }}"><i class="bx bx-edit-alt"></i>Modifier</a>
+      <a class="hb-pill primary" href="{{ path('app_document_new', {'galleryId': gallery.id}) }}"><i class="bx bx-plus"></i>Ajouter un document</a>
       <span class="hb-delete-wrap">{{ include('ModuleDocuments/FrontOffice/gallery/_delete_form.html.twig') }}</span>
     </div>
   </div>
@@ -107,19 +107,19 @@
   <div class="hb-tools">
     <div class="hb-search">
       <i class="bx bx-search"></i>
-      <input id="hbDocSearchInput" type="text" class="form-control" placeholder="Search documents… (name, type)" autocomplete="off">
+      <input id="hbDocSearchInput" type="text" class="form-control" placeholder="Rechercher des documents (nom, type)" autocomplete="off">
     </div>
 
     <div class="hb-sort">
       <div class="input-group hb-sortgroup">
         <select id="hbDocSortSelect" class="form-select">
           <option value="date" selected>Date</option>
-          <option value="name">Name</option>
+          <option value="name">Nom</option>
           <option value="type">Type</option>
-          <option value="size">Size</option>
+          <option value="size">Taille</option>
         </select>
-        <button id="hbDocSortDirBtn" class="btn" type="button" aria-label="Toggle sort direction">
-          <span id="hbDocSortIcon">↓</span>
+        <button id="hbDocSortDirBtn" class="btn" type="button" aria-label="Inverser le tri">
+          <i id="hbDocSortIcon" class="bx bx-sort-down"></i>
         </button>
       </div>
     </div>
@@ -128,12 +128,12 @@
   <div class="hb-section-title">
     <div>
       <h5>Documents</h5>
-      <p class="text-muted">Focus here: images, PDFs, and files</p>
+      <p class="text-muted">Espace documents : images, PDF et fichiers</p>
     </div>
   </div>
 
   {% if activeDocs|length == 0 %}
-    <div class="alert alert-info mb-0">No active documents in this gallery.</div>
+    <div class="alert alert-info mb-0">Aucun document actif dans cette galerie.</div>
   {% else %}
     <div class="hb-doc-grid">
       {% for document in activeDocs %}
@@ -144,23 +144,25 @@
              data-size="{{ document.filesize ?: '0' }}">
 
           <div class="hb-doc-actions" onclick="event.stopPropagation();">
-            <button type="button" class="hb-doc-menu-btn" onclick="event.stopPropagation(); hbToggleDocMenu(this);" aria-label="Menu"></button>
+            <button type="button" class="hb-doc-menu-btn" onclick="event.stopPropagation(); hbToggleDocMenu(this);" aria-label="Menu">
+              <i class="bx bx-dots-vertical-rounded"></i>
+            </button>
 
             <div class="hb-doc-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
-              <a href="{{ path('app_document_show', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-show"></i>Open</a>
-              <a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-edit-alt"></i>Edit</a>
-              <a href="{{ asset(document.filePath) }}" download="{{ document.fileName }}"><i class="bx bx-download"></i>Save</a>
+              <a href="{{ path('app_document_show', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-show"></i>Ouvrir</a>
+              <a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': gallery.id}) }}"><i class="bx bx-edit-alt"></i>Modifier</a>
+              <a href="{{ asset(document.filePath) }}" download="{{ document.fileName }}"><i class="bx bx-download"></i>Telecharger</a>
 
               <button type="button"
                       data-transfer-url="{{ path('app_document_transfer', {id: document.id}) }}"
                       data-transfer-token="{{ csrf_token('transfer' ~ document.id) }}"
                       onclick="hbOpenTransferFromBtn(this);">
-                <i class="bx bx-transfer-alt"></i>Transfer
+                <i class="bx bx-transfer-alt"></i>Transférer
               </button>
 
-              <form method="post" action="{{ path('app_document_hide', { id: document.id }) }}" onsubmit="return confirm('Hide this document ?');">
+              <form method="post" action="{{ path('app_document_hide', { id: document.id }) }}" onsubmit="return confirm('Masquer ce document ?');">
                 <input type="hidden" name="_token" value="{{ csrf_token('hide' ~ document.id) }}">
-                <button type="submit" class="danger"><i class="bx bx-hide"></i>Hide</button>
+                <button type="submit" class="danger"><i class="bx bx-hide"></i>Masquer</button>
               </form>
             </div>
           </div>
@@ -178,7 +180,7 @@
                 <span class="hb-doc-type"><i class="bx bxs-video me-1"></i>Video</span>
               {% else %}
                 <i class="bx bx-file" style="font-size:44px;opacity:.55;"></i>
-                <span class="hb-doc-type"><i class="bx bx-file me-1"></i>File</span>
+                <span class="hb-doc-type"><i class="bx bx-file me-1"></i>Fichier</span>
               {% endif %}
             </div>
 
@@ -199,18 +201,18 @@
     <div class="hb-modal-card" role="dialog" aria-modal="true">
       <div class="hb-modal-head">
         <div>
-          <div class="hb-modal-title"><i class="bx bx-transfer-alt"></i>Transfer document</div>
-          <div class="hb-modal-sub">Choose a target gallery from your family ✨</div>
+          <div class="hb-modal-title"><i class="bx bx-transfer-alt"></i>Transferer le document</div>
+          <div class="hb-modal-sub">Choisissez une galerie cible de votre famille.</div>
         </div>
-        <button type="button" class="hb-modal-x" onclick="hbCloseTransfer()" aria-label="Close">✕</button>
+        <button type="button" class="hb-modal-x" onclick="hbCloseTransfer()" aria-label="Fermer">x</button>
       </div>
 
       <form method="post" id="hbTransferForm" class="hb-modal-body">
         <input type="hidden" name="_token" id="hbTransferToken" value="">
 
-        <label class="hb-modal-label">Target gallery</label>
+        <label class="hb-modal-label">Galerie cible</label>
         <select class="form-select" id="hbTargetGallerySelect" name="target_gallery_id" required>
-          <option value="">— Choose a gallery —</option>
+          <option value="">— Choisir une galerie —</option>
           {% for g in familyGalleries %}
             {% if g.etat and g.etat.value == 'actif' and g.id != gallery.id %}
               <option value="{{ g.id }}">{{ g.name }}</option>
@@ -219,8 +221,8 @@
         </select>
 
         <div class="hb-modal-actions">
-          <button type="button" class="btn btn-outline-secondary" onclick="hbCloseTransfer()">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="bx bx-check-circle me-1"></i>Transfer</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="hbCloseTransfer()">Annuler</button>
+          <button type="submit" class="btn btn-primary"><i class="bx bx-check-circle me-1"></i>Transferer</button>
         </div>
       </form>
     </div>
@@ -296,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   dirBtn.addEventListener('click', () => {
     dir = (dir === 'asc') ? 'desc' : 'asc';
-    icon.textContent = (dir === 'asc') ? '↑' : '↓';
+    icon.className = (dir === 'asc') ? 'bx bx-sort-up' : 'bx bx-sort-down';
     apply();
   });
   input.addEventListener('input', apply);
@@ -305,3 +307,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 {% endblock %}
+
+

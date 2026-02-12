@@ -65,6 +65,13 @@
         {'label': 'Calendrier', 'route': 'app_calendar'}
       ]
     }) %}
+    {% if is_granted('ROLE_ADMIN') %}
+      {% set module_submenus = module_submenus|merge({
+        'module-documents': module_submenus['module-documents']|merge([
+          {'label': 'Default galleries', 'route': 'app_default_gallery_index'}
+        ])
+      }) %}
+    {% endif %}
 
     {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
 

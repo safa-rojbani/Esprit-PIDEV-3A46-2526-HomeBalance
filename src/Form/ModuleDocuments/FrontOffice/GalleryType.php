@@ -3,9 +3,7 @@
 namespace App\Form\ModuleDocuments\FrontOffice;
 
 use App\Entity\DefaultGallery;
-use App\Entity\Family;
 use App\Entity\Gallery;
-use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -39,6 +37,9 @@ class GalleryType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Gallery::class,
+            'attr' => [
+                'novalidate' => 'novalidate',
+            ],
         ]);
     }
 }

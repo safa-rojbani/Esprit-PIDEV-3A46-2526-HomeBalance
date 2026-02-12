@@ -1,5 +1,7 @@
-<form method="post" action="{{ path('app_document_delete', {'id': document.id, 'galleryId': galleryId}) }}" 
-      onsubmit="return confirm('Are you sure you want to delete this item?');">
+﻿<form method="post" action="{{ path('app_document_delete', {'id': document.id, 'galleryId': galleryId}) }}" 
+      onsubmit="return confirm('Confirmer la suppression de ce document ?');">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ document.id) }}">
-    <button class="btn btn-danger">Delete</button>
+    <button class="btn btn-danger">Supprimer</button>
 </form>
+
+
