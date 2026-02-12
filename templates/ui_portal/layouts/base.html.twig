@@ -37,6 +37,7 @@
 
   <body>
     <div class="layout-wrapper layout-content-navbar">
+<<<<<<< HEAD
       <div class="layout-container">
         {% set route = app.request.attributes.get('_route') %}
         {% set active_menu = active_menu|default(
@@ -97,6 +98,10 @@
           ]
         }) %}
         {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
+=======
+      <div class="layout-container">
+        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu|default('account') } %}
+>>>>>>> origin/main
         <div class="layout-page">
           {% include 'ui_portal/partials/navbar.html.twig' %}
 

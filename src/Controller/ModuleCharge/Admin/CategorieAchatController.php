@@ -25,7 +25,11 @@ final class CategorieAchatController extends AbstractController
         $family = $this->resolveFamily($familyResolver);
 
         return $this->render('module_charge/Admin/categorie_achat/index.html.twig', [
+<<<<<<< HEAD
             'categorie_achats' => $family ? $Service->findAllByFamily($family) : $Service->findAll(),
+=======
+            'categorie_achats' => $Service->findAllByFamily($family),
+>>>>>>> origin/main
         ]);
     }
 
@@ -104,17 +108,24 @@ final class CategorieAchatController extends AbstractController
         return $this->redirectToRoute('app_categorie_achat_index', [], Response::HTTP_SEE_OTHER);
     }
 
+<<<<<<< HEAD
     private function resolveFamily(ActiveFamilyResolver $familyResolver): ?Family
+=======
+    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+>>>>>>> origin/main
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
 
+<<<<<<< HEAD
         if ($this->isGranted('ROLE_ADMIN')) {
             return $familyResolver->resolveForUser($user);
         }
 
+=======
+>>>>>>> origin/main
         $family = $familyResolver->resolveForUser($user);
         if ($family === null) {
             throw $this->createAccessDeniedException();
@@ -123,12 +134,17 @@ final class CategorieAchatController extends AbstractController
         return $family;
     }
 
+<<<<<<< HEAD
     private function assertSameFamily(?Family $family, ?Family $targetFamily): void
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             return;
         }
 
+=======
+    private function assertSameFamily(Family $family, ?Family $targetFamily): void
+    {
+>>>>>>> origin/main
         if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
             throw $this->createAccessDeniedException();
         }

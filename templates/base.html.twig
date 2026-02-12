@@ -11,8 +11,20 @@
   <style>
     body { background: #f5f5f9; }
   </style>
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/fonts/boxicons.css') }}">
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}">
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/theme-default.css') }}">
+
+  <style>
+    body { background: #f5f5f9; }
+  </style>
 
   {% block stylesheets %}{% endblock %}
+
+  <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
+
+  {% block javascripts %}{% endblock %}
 
   <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
   <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
