@@ -1,0 +1,128 @@
+<style>
+  .task-module {
+    --tm-accent: #696cff;
+    --tm-accent-soft: rgba(105, 108, 255, 0.12);
+    --tm-border: rgba(67, 89, 113, 0.12);
+    --tm-muted: #8592a3;
+  }
+
+  .task-module .tm-page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .task-module .tm-title {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .task-module .tm-subtitle {
+    margin: 0.35rem 0 0 0;
+    color: var(--tm-muted);
+    font-size: 0.92rem;
+  }
+
+  .task-module .tm-card {
+    border: 1px solid var(--tm-border);
+    border-radius: 0.95rem;
+    box-shadow: 0 10px 24px rgba(67, 89, 113, 0.08);
+  }
+
+  .task-module .tm-card .card-header {
+    border-bottom: 1px solid var(--tm-border);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 255, 0.8));
+  }
+
+  .task-module .tm-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .task-module .tm-badge.info {
+    background: var(--tm-accent-soft);
+    color: #4b4fd8;
+  }
+
+  .task-module .tm-badge.success {
+    background: rgba(113, 221, 55, 0.15);
+    color: #348314;
+  }
+
+  .task-module .tm-badge.warning {
+    background: rgba(255, 171, 0, 0.14);
+    color: #9a6a00;
+  }
+
+  .task-module .tm-badge.danger {
+    background: rgba(255, 62, 29, 0.14);
+    color: #b5280b;
+  }
+
+  .task-module .tm-task-list .list-group-item {
+    border-color: var(--tm-border);
+  }
+
+  .task-module .tm-task-name {
+    font-weight: 600;
+    color: #233446;
+  }
+
+  .task-module .tm-meta {
+    margin-top: 0.25rem;
+    color: var(--tm-muted);
+    font-size: 0.85rem;
+  }
+
+  .task-module .tm-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .task-module .tm-proof {
+    width: 132px;
+    height: 92px;
+    object-fit: cover;
+    border-radius: 0.6rem;
+    border: 1px solid var(--tm-border);
+    margin-top: 0.55rem;
+  }
+
+  .task-module .tm-empty {
+    padding: 1.25rem;
+    border: 1px dashed var(--tm-border);
+    border-radius: 0.8rem;
+    background: #fff;
+    color: var(--tm-muted);
+    font-size: 0.92rem;
+    text-align: center;
+  }
+
+  .task-module .tm-form-wrap {
+    max-width: 760px;
+  }
+
+  @media (max-width: 767.98px) {
+    .task-module .tm-page-head {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .task-module .tm-proof {
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+      aspect-ratio: 4 / 3;
+    }
+  }
+</style>

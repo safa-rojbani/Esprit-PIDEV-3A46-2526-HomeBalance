@@ -3,7 +3,7 @@
 {% block body %}
   <p>Hi {{ name }},</p>
   <p>An administrator updated your HomeBalance account.</p>
-  {% if payload.actor %}
+  {% if payload.actor is defined and payload.actor %}
     <p class="muted">Actioned by {{ payload.actor }}.</p>
   {% endif %}
   {% if cta %}

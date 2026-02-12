@@ -118,6 +118,10 @@ final class SendAccountNotificationHandler
             $subject = 'HomeBalance family update';
             $template = 'emails/family_action.html.twig';
             $context['cta'] = $this->urlGenerator->generate('portal_family_settings', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        } elseif ($key === 'password_reset') {
+            $subject = 'HomeBalance account update';
+            $template = 'emails/account_action.html.twig';
+            $context['cta'] = $this->urlGenerator->generate('portal_auth_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
         } elseif (str_contains($key, 'status') || str_contains($key, 'reset')) {
             $subject = 'HomeBalance account update';
             $template = 'emails/admin_action.html.twig';

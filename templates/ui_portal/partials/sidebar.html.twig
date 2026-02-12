@@ -2,6 +2,32 @@
 {% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
 {% set current_route = app.request.attributes.get('_route') %}
 {% set module_submenus = module_submenus|default({}) %}
+{% set family_role_value = app.user and app.user.familyRole ? app.user.familyRole.value : null %}
+{% set family_role_name = app.user and app.user.familyRole ? app.user.familyRole.name : null %}
+{% set is_parent_member = family_role_value == 'PARENT' or family_role_name == 'PARENT' %}
+{% set is_child_member = family_role_value == 'CHILD' or family_role_name == 'CHILD' %}
+{% set task_subitems = is_granted('ROLE_ADMIN')
+  ? [
+      {label: 'Taches globales', route: 'admin_task_index'}
+    ]
+  : (is_parent_member
+    ? [
+        {label: 'Taches parent', route: 'parent_task_index'},
+        {label: 'Mes taches parent', route: 'parent_self_task_index'},
+        {label: 'Assignations parent', route: 'parent_task_assign'},
+        {label: 'Taches famille', route: 'family_task_list'},
+        {label: 'Valider taches', route: 'parent_validation_index'}
+      ]
+    : (is_child_member
+      ? [
+          {label: 'Taches enfant', route: 'child_task_index'},
+          {label: 'Taches famille', route: 'family_task_list'}
+        ]
+      : []
+    )
+  )
+%}
+{% set module_submenus = module_submenus|merge({'module-tasks': task_subitems}) %}
 {% set module_items = [
   {
     key: 'module-charge',
@@ -17,7 +43,7 @@
   },
   {
     key: 'module-tasks',
-    route: 'parent_task_index',
+    route: is_granted('ROLE_ADMIN') ? 'admin_task_index' : (is_child_member ? 'child_task_index' : 'parent_task_index'),
     label: 'Tâches',
     icon: 'bx bx-task'
   },
@@ -125,13 +151,18 @@
           {% set sub_active = true %}
         {% endif %}
       {% endfor %}
+<<<<<<< HEAD
+      {% set is_open = active_menu == module.key or sub_active %}
+      {% set has_dropdown = subitems|length > 1 and module.key != 'module-tasks' %}
+=======
       {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-charge' and subitems|length) %}
+>>>>>>> origin/main
       <li class="menu-item {{ is_open ? 'active open' }}">
-        <a href="{{ subitems|length ? 'javascript:void(0);' : path(module.route) }}" class="menu-link {{ subitems|length ? 'menu-toggle' }}">
+        <a href="{{ has_dropdown ? 'javascript:void(0);' : (subitems|length == 1 ? path(subitems[0].route) : path(module.route)) }}" class="menu-link {{ has_dropdown ? 'menu-toggle' }}">
           <i class="menu-icon tf-icons {{ module.icon }}"></i>
           <div class="text-truncate">{{ module.label }}</div>
         </a>
-        {% if subitems|length %}
+        {% if subitems|length > 1 %}
           <ul class="menu-sub">
             {% for item in subitems %}
               <li class="menu-item {{ current_route == item.route ? 'active' }}">
