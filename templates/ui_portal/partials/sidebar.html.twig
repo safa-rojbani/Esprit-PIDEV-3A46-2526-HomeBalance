@@ -3,6 +3,60 @@
 {% set current_route = app.request.attributes.get('_route') %}
 {% set is_portal_admin = is_granted('ROLE_ADMIN') %}
 {% set module_submenus = module_submenus|default({}) %}
+{% set family_role_value = app.user and app.user.familyRole ? app.user.familyRole.value : null %}
+{% set family_role_name = app.user and app.user.familyRole ? app.user.familyRole.name : null %}
+{% set is_parent_member = family_role_value == 'PARENT' or family_role_name == 'PARENT' %}
+{% set is_child_member = family_role_value == 'CHILD' or family_role_name == 'CHILD' %}
+{% set task_subitems = is_granted('ROLE_ADMIN')
+  ? [
+      {label: 'Taches globales', route: 'admin_task_index'}
+    ]
+  : (is_parent_member
+    ? [
+        {label: 'Taches parent', route: 'parent_task_index'},
+        {label: 'Mes taches parent', route: 'parent_self_task_index'},
+        {label: 'Assignations parent', route: 'parent_task_assign'},
+        {label: 'Taches famille', route: 'family_task_list'},
+        {label: 'Valider taches', route: 'parent_validation_index'}
+      ]
+    : (is_child_member
+      ? [
+          {label: 'Taches enfant', route: 'child_task_index'},
+          {label: 'Taches famille', route: 'family_task_list'}
+        ]
+      : []
+    )
+  )
+%}
+{% set module_submenus = module_submenus|merge({'module-tasks': task_subitems}) %}
+{% set module_items = [
+  {
+    key: 'module-charge',
+    route: 'app_achat_index',
+    label: 'Budget',
+    icon: 'bx bx-wallet'
+  },
+  {
+    key: 'module-documents',
+    route: 'app_gallery_index',
+    label: 'Documents',
+    icon: 'bx bx-folder'
+  },
+  {
+    key: 'module-tasks',
+    route: is_granted('ROLE_ADMIN') ? 'admin_task_index' : (is_child_member ? 'child_task_index' : 'parent_task_index'),
+    label: 'Tâches',
+    icon: 'bx bx-task'
+  },
+  {
+    key: 'module-events',
+    route: 'app_evenement_index',
+    label: 'Événements',
+    icon: 'bx bx-calendar'
+  }
+] %}
+{% set current_route = app.request.attributes.get('_route') %}
+{% set module_submenus = module_submenus|default({}) %}
 {% set module_items = [
   {
     key: 'module-charge',
@@ -54,9 +108,11 @@
       <a href="{{ path('portal_dashboard') }}" class="menu-link">
         <i class="menu-icon tf-icons bx bx-home-circle"></i>
         <div class="text-truncate">Accueil</div>
+        <div class="text-truncate">Accueil</div>
       </a>
     </li>
 
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Votre foyer</span></li>
     <li class="menu-header small text-uppercase"><span class="menu-header-text">Votre foyer</span></li>
     <li class="menu-item {{ active_menu in account_menus ? 'active open' }}">
       <a
@@ -64,10 +120,12 @@
         class="menu-link">
         <i class="menu-icon tf-icons bx bx-dock-top"></i>
         <div class="text-truncate">Compte et profil</div>
+        <div class="text-truncate">Compte et profil</div>
       </a>
       <ul class="menu-sub" id="account-settings-menu">
         <li class="menu-item {{ active_menu == 'account' ? 'active' }}">
           <a href="{{ path('portal_account') }}" class="menu-link">
+            <div class="text-truncate">Informations personnelles</div>
             <div class="text-truncate">Informations personnelles</div>
           </a>
         </li>
@@ -78,6 +136,7 @@
         </li>
         <li class="menu-item {{ active_menu == 'preferences' ? 'active' }}">
           <a href="{{ path('portal_account_preferences') }}" class="menu-link">
+            <div class="text-truncate">Préférences</div>
             <div class="text-truncate">Préférences</div>
           </a>
         </li>
@@ -93,13 +152,22 @@
           {% set sub_active = true %}
         {% endif %}
       {% endfor %}
+<<<<<<< HEAD
       {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-events' and current_route starts with 'portal_account') %}
+=======
+<<<<<<< HEAD
+      {% set is_open = active_menu == module.key or sub_active %}
+      {% set has_dropdown = subitems|length > 1 and module.key != 'module-tasks' %}
+=======
+      {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-charge' and subitems|length) %}
+>>>>>>> origin/main
+>>>>>>> origin/main
       <li class="menu-item {{ is_open ? 'active open' }}">
-        <a href="{{ subitems|length ? 'javascript:void(0);' : path(module.route) }}" class="menu-link {{ subitems|length ? 'menu-toggle' }}">
+        <a href="{{ has_dropdown ? 'javascript:void(0);' : (subitems|length == 1 ? path(subitems[0].route) : path(module.route)) }}" class="menu-link {{ has_dropdown ? 'menu-toggle' }}">
           <i class="menu-icon tf-icons {{ module.icon }}"></i>
           <div class="text-truncate">{{ module.label }}</div>
         </a>
-        {% if subitems|length %}
+        {% if subitems|length > 1 %}
           <ul class="menu-sub">
             {% for item in subitems %}
               <li class="menu-item {{ current_route == item.route ? 'active' }}">
@@ -115,15 +183,18 @@
 
     {% if is_granted('ROLE_ADMIN') %}
       <li class="menu-header small text-uppercase"><span class="menu-header-text">Administration</span></li>
+      <li class="menu-header small text-uppercase"><span class="menu-header-text">Administration</span></li>
       <li class="menu-item {{ active_menu == 'admin-users' ? 'active' }}">
         <a href="{{ path('portal_admin_users') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
+          <div class="text-truncate">Utilisateurs</div>
           <div class="text-truncate">Utilisateurs</div>
         </a>
       </li>
       <li class="menu-item {{ active_menu == 'admin-families' ? 'active' }}">
         <a href="{{ path('portal_admin_families_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-home-heart"></i>
+          <div class="text-truncate">Familles</div>
           <div class="text-truncate">Familles</div>
         </a>
       </li>
@@ -137,6 +208,7 @@
         <a href="{{ path('portal_admin_memberships_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-group"></i>
           <div class="text-truncate">Adhésions</div>
+          <div class="text-truncate">Adhésions</div>
         </a>
       </li>
       <li class="menu-item {{ active_menu == 'admin-ums-badges' ? 'active' }}">
@@ -149,17 +221,20 @@
         <a href="{{ path('portal_admin_family_badges_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-medal"></i>
           <div class="text-truncate">Badges famille</div>
+          <div class="text-truncate">Badges famille</div>
         </a>
       </li>
       <li class="menu-item {{ active_menu == 'admin-account-notifications' ? 'active' }}">
         <a href="{{ path('portal_admin_account_notifications_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-bell"></i>
           <div class="text-truncate">Notifications compte</div>
+          <div class="text-truncate">Notifications compte</div>
         </a>
       </li>
       <li class="menu-item {{ active_menu == 'admin-audit-trails' ? 'active' }}">
         <a href="{{ path('portal_admin_audit_trails_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-list-check"></i>
+          <div class="text-truncate">Journal d’audit</div>
           <div class="text-truncate">Journal d’audit</div>
         </a>
       </li>

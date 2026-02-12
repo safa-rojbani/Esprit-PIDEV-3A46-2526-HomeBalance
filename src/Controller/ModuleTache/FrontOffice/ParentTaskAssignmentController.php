@@ -2,17 +2,19 @@
 
 namespace App\Controller\ModuleTache\FrontOffice;
 
-use App\Entity\User;
 use App\Entity\Family;
 use App\Entity\TaskAssignment;
+use App\Entity\User;
+use App\Enum\FamilyRole;
 use App\Enum\TaskAssignmentStatus;
 use App\Form\TaskAssignmentType;
+use App\Repository\FamilyMembershipRepository;
+use App\Service\ActiveFamilyResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\ActiveFamilyResolver;
 
 #[Route('/portal/tasks/parent/assignments')]
 class ParentTaskAssignmentController extends AbstractController
@@ -21,26 +23,26 @@ class ParentTaskAssignmentController extends AbstractController
     public function assign(
         Request $request,
         EntityManagerInterface $em,
+        FamilyMembershipRepository $membershipRepository,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
+        $this->ensureParent($parent);
 
         $assignment = new TaskAssignment();
 
         $form = $this->createForm(TaskAssignmentType::class, $assignment, [
-            'family' => $family
+            'family' => $family,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            // 🔐 Sécurité finale (bonne pratique)
-            if ($assignment->getTask()->getFamily() !== $family) {
-                throw new \Exception('Tâche invalide pour cette famille');
+            if ($assignment->getTask()->getFamily()?->getId() !== $family->getId()) {
+                throw new \Exception('Tache invalide pour cette famille');
             }
 
-            if ($assignment->getUser()->getFamily() !== $family) {
-                throw new \Exception('Cet enfant ne fait pas partie de la famille');
+            if ($membershipRepository->findActiveMembership($family, $assignment->getUser()) === null) {
+                throw new \Exception('Cet utilisateur ne fait pas partie de la famille');
             }
 
             $assignment->setFamily($family);
@@ -74,5 +76,12 @@ class ParentTaskAssignmentController extends AbstractController
         }
 
         return [$user, $family];
+    }
+
+    private function ensureParent(User $user): void
+    {
+        if ($user->getFamilyRole() !== FamilyRole::PARENT) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

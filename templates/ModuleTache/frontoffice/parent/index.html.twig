@@ -1,40 +1,97 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Espace parent - taches{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+{% endblock %}
+
 {% block body %}
-<h1>Espace Parent</h1>
+<div class="task-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">Espace parent</h1>
+            <p class="tm-subtitle">Ajoutez des taches globales et gerez les taches de votre famille.</p>
+        </div>
+        <a href="{{ path('parent_task_new') }}" class="btn btn-primary">
+            <i class="bx bx-plus"></i>
+            Nouvelle tache personnalisee
+        </a>
+    </div>
 
-<a href="{{ path('parent_task_new') }}">➕ Nouvelle tâche personnalisée</a>
+    <div class="row g-4">
+        <div class="col-12 col-xl-6">
+            <div class="card tm-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Taches admin disponibles</h5>
+                </div>
+                <div class="card-body">
+                    {% if adminTasks is empty %}
+                        <div class="tm-empty">Aucune tache globale disponible.</div>
+                    {% else %}
+                        <ul class="list-group tm-task-list">
+                            {% for task in adminTasks %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <div class="tm-task-name">{{ task.title }}</div>
+                                        <div class="tm-meta">{{ task.description }}</div>
+                                        <div class="mt-2 d-flex gap-2">
+                                            <span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span>
+                                            <span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span>
+                                        </div>
+                                    </div>
+                                    <form method="post" action="{{ path('parent_task_add', {id: task.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('add_admin_task_' ~ task.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Ajouter</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-<hr>
-
-<h2>Tâches admin</h2>
-<ul>
-    {% for task in adminTasks %}
-        <li>
-            {{ task.title }}
-            <a href="{{ path('parent_task_add', {id: task.id}) }}">➕ Ajouter</a>
-        </li>
-    {% endfor %}
-</ul>
-
-<hr>
-
-<h2>Tâches de la famille</h2>
-<ul>
-    {% for task in familyTasks %}
-        <li>
-            <strong>{{ task.title }}</strong>
-            <a href="{{ path('parent_task_edit', {id: task.id}) }}">✏️</a>
-
-            <form method="post"
-                  action="{{ path('parent_task_delete', {id: task.id}) }}"
-                  style="display:inline"
-                  onsubmit="return confirm('Supprimer cette tâche ?')">
-                <input type="hidden" name="_token"
-                       value="{{ csrf_token('delete_task_' ~ task.id) }}">
-                <button type="submit">🗑️</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
+        <div class="col-12 col-xl-6">
+            <div class="card tm-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Taches de la famille</h5>
+                </div>
+                <div class="card-body">
+                    {% if familyTasks is empty %}
+                        <div class="tm-empty">Aucune tache familiale pour le moment.</div>
+                    {% else %}
+                        <ul class="list-group tm-task-list">
+                            {% for task in familyTasks %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <div class="tm-task-name">{{ task.title }}</div>
+                                        <div class="tm-meta">{{ task.description }}</div>
+                                    </div>
+                                    <div class="tm-actions">
+                                        <a href="{{ path('parent_task_edit', {id: task.id}) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-edit-alt"></i>
+                                            Modifier
+                                        </a>
+                                        <form method="post"
+                                              action="{{ path('parent_task_delete', {id: task.id}) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Supprimer cette tache ?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_task_' ~ task.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bx bx-trash"></i>
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

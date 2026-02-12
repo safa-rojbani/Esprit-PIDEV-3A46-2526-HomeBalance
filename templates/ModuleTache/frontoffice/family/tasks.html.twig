@@ -1,26 +1,90 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Taches de la famille{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+{% endblock %}
+
 {% block body %}
-<h1>Tâches de la famille</h1>
+<div class="task-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">Taches de la famille</h1>
+            <p class="tm-subtitle">Vue globale des taches actives de votre foyer.</p>
+        </div>
+        {% if app.user and app.user.familyRole and app.user.familyRole.value == 'PARENT' %}
+            <a href="{{ path('parent_task_index') }}" class="btn btn-primary">
+                <i class="bx bx-cog"></i>
+                Gerer les taches
+            </a>
+        {% endif %}
+    </div>
 
-{% if tasks is empty %}
-    <p>Aucune tâche pour le moment.</p>
-{% else %}
-    <ul>
-        {% for task in tasks %}
-            <li>
-                <strong>{{ task.title }}</strong><br>
-                {{ task.description }}<br>
-                Difficulté : {{ task.difficulty.value }} |
-                Récurrence : {{ task.recurrence.value }}
-            </li>
-        {% endfor %}
-    </ul>
-{% endif %}
+    <div class="card tm-card">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-6">
+                    <label for="family-task-search" class="form-label mb-1">Recherche</label>
+                    <input
+                        id="family-task-search"
+                        type="search"
+                        name="q"
+                        value="{{ currentSearch|default('') }}"
+                        class="form-control form-control-sm"
+                        placeholder="Rechercher par titre ou description"
+                    >
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="family-task-sort" class="form-label mb-1">Trier</label>
+                    <select id="family-task-sort" name="sort" class="form-select form-select-sm">
+                        <option value="newest" {{ currentSort == 'newest' ? 'selected' : '' }}>Plus recentes</option>
+                        <option value="oldest" {{ currentSort == 'oldest' ? 'selected' : '' }}>Plus anciennes</option>
+                        <option value="title_az" {{ currentSort == 'title_az' ? 'selected' : '' }}>Titre A-Z</option>
+                        <option value="title_za" {{ currentSort == 'title_za' ? 'selected' : '' }}>Titre Z-A</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-grid gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary">Appliquer</button>
+                    <a href="{{ path('family_task_list') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
 
-<hr>
-
-<a href="{{ path('parent_task_index') }}">
-    ➕ Ajouter / gérer les tâches
-</a>
+        <div class="card-body p-0 border-top">
+            {% if tasks is empty %}
+                <div class="p-3">
+                    <div class="tm-empty">Aucune tache trouvee pour cette recherche.</div>
+                </div>
+            {% else %}
+                <div class="px-3 pt-3 small text-muted">
+                    {{ tasks|length }} tache(s) trouvee(s)
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Description</th>
+                                <th>Difficulte</th>
+                                <th>Recurrence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for task in tasks %}
+                            <tr>
+                                <td class="fw-semibold">{{ task.title }}</td>
+                                <td>{{ task.description }}</td>
+                                <td><span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span></td>
+                                <td><span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
