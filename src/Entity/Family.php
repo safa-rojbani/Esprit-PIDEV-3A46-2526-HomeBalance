@@ -18,8 +18,9 @@ class Family
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255, nullable: true, unique: true)]
-    private ?string $joinCode = null;
+    #[ORM\Column(length: 64, nullable: true, unique: true)]
+private ?string $joinCode = null;
+
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTime $codeExpiresAt = null;

@@ -6,17 +6,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\ActiveFamilyResolver;
 use App\Entity\User;
-use App\Entity\Family;
 
 #[Route('/portal/admin/evenements')]
 class CalendarAdminController extends AbstractController
 {
     #[Route('/calendar', name: 'admin_calendar')]
-    public function calendar(EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function calendar(EntityManagerInterface $em): Response
     {
-        $family = $this->resolveFamily($familyResolver);
+        $admin = $this->requireAdminUser();
         $conn = $em->getConnection();
 
         $sql = '
@@ -28,11 +26,12 @@ class CalendarAdminController extends AbstractController
                 te.couleur AS type_color
             FROM evenement e
             LEFT JOIN type_evenement te ON te.id = e.type_evenement_id
-            WHERE e.family_id = :familyId
+            WHERE e.family_id IS NULL
+              AND e.created_by_id = :adminId
             ORDER BY e.date_debut ASC
         ';
 
-        $rows = $conn->fetchAllAssociative($sql, ['familyId' => $family->getId()]);
+        $rows = $conn->fetchAllAssociative($sql, ['adminId' => $admin->getId()]);
         $data = [];
         foreach ($rows as $row) {
             $start = new \DateTimeImmutable($row['date_debut']);
@@ -52,18 +51,16 @@ class CalendarAdminController extends AbstractController
         ]);
     }
 
-    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    private function requireAdminUser(): User
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-
-        $family = $familyResolver->resolveForUser($user);
-        if ($family === null) {
+        if (!$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
         }
 
-        return $family;
+        return $user;
     }
 }

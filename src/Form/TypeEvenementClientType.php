@@ -16,7 +16,7 @@ class TypeEvenementClientType extends AbstractType
         $builder
             ->add('nom', null, [
                 'label' => 'Nom',
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(message: 'Le nom est obligatoire.')],
                 'attr' => ['placeholder' => 'Ex: Anniversaire'],
             ])
             ->add('couleur', ColorType::class, [

@@ -1,93 +1,114 @@
 {% extends 'base_front.html.twig' %}
 
-{% block title %}Événements{% endblock %}
+{% block title %}Evenements{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="d-flex align-items-center gap-3 flex-wrap">
-    <h4 class="fw-semibold m-0">Mes événements</h4>
-    <form id="eventFilters" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('app_evenement_index') }}">
-      <div>
-        <select class="form-select" name="type">
-          <option value="">Tous</option>
-          {% for t in types %}
-            <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
-              {{ t.nom }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
-      </div>
+<div class="evt-shell">
+  {% set totalEvents = evenements|length %}
+  {% set sharedEvents = 0 %}
+  {% for e in evenements %}
+    {% if e.shareWithFamily %}
+      {% set sharedEvents = sharedEvents + 1 %}
+    {% endif %}
+  {% endfor %}
+  <div class="evt-pagehead">
+    <h3 class="evt-title">Mes evenements</h3>
+    <p class="evt-subtitle">Organisez vos moments familiaux avec un suivi clair et rapide.</p>
+  </div>
+
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Total</span>
+      <span class="value">{{ totalEvents }}</span>
+      <span class="meta">evenements visibles</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Partages</span>
+      <span class="value">{{ sharedEvents }}</span>
+      <span class="meta">avec la famille</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Filtres</span>
+      <span class="value">{{ selectedType ? 1 : 0 }}</span>
+      <span class="meta">{{ selectedType ? 'type actif' : 'aucun type actif' }}</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Recherche</span>
+      <span class="value">{{ search ? 1 : 0 }}</span>
+      <span class="meta">{{ search ? 'texte applique' : 'pas de texte' }}</span>
+    </div>
+  </div>
+
+  <div class="evt-toolbar">
+    <form id="eventFilters" class="evt-filter-form" method="get" action="{{ path('app_evenement_index') }}">
+      <select class="form-select" name="type">
+        <option value="">Tous les types</option>
+        {% for t in types %}
+          <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>{{ t.nom }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Rechercher un titre...">
     </form>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ path('app_calendar') }}" class="btn evt-btn-ghost">Calendrier</a>
+      <a href="{{ path('app_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter un evenement</a>
+    </div>
   </div>
 
-  <div>
-    <a href="{{ path('app_calendar') }}" class="btn btn-outline-secondary me-2">
-      Calendrier
-    </a>
-    <a href="{{ path('app_evenement_new') }}" class="btn btn-primary">
-      + Ajouter un événement
-    </a>
-  </div>
-</div>
-
-<div class="card">
-  <div class="table-responsive text-nowrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Titre</th>
-          <th>Lieu</th>
-          <th>Partagé</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="table-border-bottom-0">
-      {% for e in evenements %}
-        <tr>
-          <td>{{ e.id }}</td>
-          <td class="fw-semibold">{{ e.titre }}</td>
-          <td>{{ e.lieu }}</td>
-          <td>{{ e.shareWithFamily ? 'Oui' : 'Non' }}</td>
-          <td class="text-end">
-            <a class="btn btn-sm btn-outline-info"
-               href="{{ path('app_evenement_show', { id: e.id }) }}">
-              Voir
-            </a>
-            {% if e.createdBy == app.user %}
-              <a class="btn btn-sm btn-outline-warning"
-                 href="{{ path('app_evenement_edit', { id: e.id }) }}">
-                Modifier
-              </a>
-              <form method="post"
-                    action="{{ path('app_evenement_delete', { id: e.id }) }}"
-                    style="display:inline-block"
-                    onsubmit="return confirm('Supprimer cet événement ?');">
-                <input type="hidden" name="_token"
-                       value="{{ csrf_token('delete' ~ e.id) }}">
-                <button class="btn btn-sm btn-outline-danger">
-                  Supprimer
-                </button>
-              </form>
-            {% endif %}
-            <a class="btn btn-sm btn-outline-secondary"
-               href="{{ path('app_evenement_rappels', { id: e.id }) }}">
-              Rappels
-            </a>
-          </td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="5" class="text-center text-muted">
-            Aucun événement trouvé
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="card evt-card">
+    <div class="table-responsive">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Lieu</th>
+            <th>Partage</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for e in evenements %}
+          <tr>
+            <td>{{ e.id }}</td>
+            <td class="evt-title-cell">{{ e.titre }}</td>
+            <td>{{ e.lieu }}</td>
+            <td>
+              <span class="evt-pill {{ e.shareWithFamily ? 'is-yes' : 'is-no' }}">
+                {{ e.shareWithFamily ? 'Oui' : 'Non' }}
+              </span>
+            </td>
+            <td class="text-end">
+              <div class="evt-actions">
+                <a class="btn btn-sm btn-outline-info" href="{{ path('app_evenement_show', { id: e.id }) }}">Voir</a>
+                {% if e.createdBy == app.user %}
+                  <a class="btn btn-sm btn-outline-warning" href="{{ path('app_evenement_edit', { id: e.id }) }}">Modifier</a>
+                  <form method="post"
+                        action="{{ path('app_evenement_delete', { id: e.id }) }}"
+                        style="display:inline-block"
+                        onsubmit="return confirm('Supprimer cet evenement ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ e.id) }}">
+                    <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                  </form>
+                {% endif %}
+                <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_evenement_rappels', { id: e.id }) }}">Rappels</a>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="evt-empty">Aucun evenement trouve.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

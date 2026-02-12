@@ -6,35 +6,40 @@ use App\Repository\RappelRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\ActiveFamilyResolver;
 use App\Entity\User;
-use App\Entity\Family;
 
 #[Route('/portal/admin/evenements/rappels')]
 class RappelAdminController extends AbstractController
 {
     #[Route('', name: 'admin_rappel_index', methods: ['GET'])]
-    public function index(RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
+    public function index(RappelRepository $rappelRepository): Response
     {
-        $family = $this->resolveFamily($familyResolver);
+        $admin = $this->requireAdminUser();
+        $rappels = $rappelRepository->createQueryBuilder('r')
+            ->leftJoin('r.evenement', 'e')
+            ->addSelect('e')
+            ->andWhere('e.family IS NULL')
+            ->andWhere('e.createdBy = :admin')
+            ->setParameter('admin', $admin)
+            ->orderBy('r.id', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('admin/rappel/index.html.twig', [
-            'rappels' => $rappelRepository->findBy(['family' => $family], ['id' => 'DESC']),
+            'rappels' => $rappels,
         ]);
     }
 
-    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    private function requireAdminUser(): User
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-
-        $family = $familyResolver->resolveForUser($user);
-        if ($family === null) {
+        if (!$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
         }
 
-        return $family;
+        return $user;
     }
 }

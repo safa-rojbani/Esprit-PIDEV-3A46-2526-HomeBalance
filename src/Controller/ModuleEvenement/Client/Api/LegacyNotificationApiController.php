@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Controller\ModuleEvenement\Client\Api;
+
+use App\Entity\Family;
+use App\Entity\Rappel;
+use App\Entity\User;
+use App\Repository\RappelRepository;
+use App\Service\ActiveFamilyResolver;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/app/notifications')]
+class LegacyNotificationApiController extends AbstractController
+{
+    #[Route('/pending', name: 'app_notifications_pending_legacy', methods: ['GET'])]
+    public function pending(RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): JsonResponse
+    {
+        $user = $this->getUser();
+        if ($user === null) {
+            return $this->json([]);
+        }
+        $family = $this->resolveFamily($familyResolver);
+
+        $rappelRepository->cleanupOrphanedAndPast();
+        $now = new \DateTimeImmutable();
+
+        $qb = $rappelRepository->createQueryBuilder('r')
+            ->innerJoin('r.evenement', 'e')
+            ->andWhere('r.user = :user')
+            ->andWhere('e.family = :family')
+            ->andWhere('(r.actif = true OR r.actif IS NULL)')
+            ->andWhere('(r.estLu = false OR r.estLu IS NULL)')
+            ->andWhere('r.scheduledAt <= :now')
+            ->andWhere('e.dateFin >= :now')
+            ->setParameter('user', $user)
+            ->setParameter('family', $family)
+            ->setParameter('now', $now)
+            ->orderBy('r.scheduledAt', 'DESC');
+
+        $rappels = $qb->getQuery()->getResult();
+
+        $data = [];
+        foreach ($rappels as $rappel) {
+            $eventTitle = null;
+            $eventId = null;
+            try {
+                $event = $rappel->getEvenement();
+                if ($event !== null) {
+                    $eventTitle = $event->getTitre();
+                    $eventId = $event->getId();
+                }
+            } catch (EntityNotFoundException $exception) {
+                $eventTitle = null;
+            }
+
+            $title = $eventTitle ?? 'Evenement';
+            $offset = $rappel->getOffsetMinutes();
+            $message = $offset > 0
+                ? sprintf('Rappel : %s (dans %d min)', $title, $offset)
+                : sprintf('Rappel : %s', $title);
+
+            $data[] = [
+                'id' => $rappel->getId(),
+                'message' => $message,
+                'scheduledAt' => $rappel->getScheduledAt()?->format('c'),
+                'eventId' => $eventId,
+                'eventTitle' => $title,
+                'canal' => $rappel->getCanal(),
+            ];
+        }
+
+        return $this->json($data);
+    }
+
+    #[Route('/{id}/read', name: 'app_notification_read_legacy', methods: ['POST'])]
+    public function markRead(int $id, RappelRepository $rappelRepository, EntityManagerInterface $em, Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        if ($user === null) {
+            return $this->json(['ok' => false], 401);
+        }
+
+        $rappel = $rappelRepository->find($id);
+        if (!$rappel instanceof Rappel || $rappel->getUser() !== $user) {
+            return $this->json(['ok' => false], 404);
+        }
+
+        $rappel->setEstLu(true);
+        $rappel->setReadAt(new \DateTimeImmutable());
+        $em->flush();
+
+        return $this->json(['ok' => true]);
+    }
+
+    private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $family;
+    }
+}

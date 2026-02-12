@@ -1,41 +1,86 @@
 {% extends 'base_front.html.twig' %}
 
-{% block title %}Types d'événements{% endblock %}
+{% block title %}Types evenement{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-semibold m-0">Types d'événements</h4>
-  <a href="{{ path('app_type_evenement_new') }}" class="btn btn-primary">
-    + Ajouter un type
-  </a>
-</div>
+<div class="evt-shell">
+  {% set totalTypes = type_evenements|length %}
+  {% set coloredTypes = 0 %}
+  {% for t in type_evenements %}
+    {% if t.couleur %}
+      {% set coloredTypes = coloredTypes + 1 %}
+    {% endif %}
+  {% endfor %}
 
-<div class="card">
-  <div class="table-responsive text-nowrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nom</th>
-          <th>Couleur</th>
-        </tr>
-      </thead>
-      <tbody class="table-border-bottom-0">
-      {% for t in type_evenements %}
-        <tr>
-          <td>{{ t.id }}</td>
-          <td class="fw-semibold">{{ t.nom }}</td>
-          <td>{{ t.couleur }}</td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="3" class="text-center text-muted">
-            Aucun type trouvé
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="evt-pagehead d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="evt-title">Types d'evenement</h3>
+      <p class="evt-subtitle">Classifiez vos evenements avec des categories claires.</p>
+    </div>
+    <a href="{{ path('app_type_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter un type</a>
+  </div>
+
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Total</span>
+      <span class="value">{{ totalTypes }}</span>
+      <span class="meta">types disponibles</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Couleur</span>
+      <span class="value">{{ coloredTypes }}</span>
+      <span class="meta">types avec code couleur</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Sans couleur</span>
+      <span class="value">{{ totalTypes - coloredTypes }}</span>
+      <span class="meta">a completer</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Identite</span>
+      <span class="value">{{ totalTypes > 0 ? 'OK' : 'VIDE' }}</span>
+      <span class="meta">base de classification</span>
+    </div>
+  </div>
+
+  <div class="card evt-card">
+    <div class="table-responsive">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Couleur</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in type_evenements %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td class="evt-title-cell">{{ t.nom }}</td>
+            <td>
+              {% if t.couleur %}
+                <span class="evt-color-chip" style="background: {{ t.couleur }};"></span>{{ t.couleur }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>{{ t.description ?: '-' }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4" class="evt-empty">Aucun type trouve.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

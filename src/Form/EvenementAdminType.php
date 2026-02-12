@@ -3,9 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Evenement;
-use App\Entity\Family;
 use App\Entity\TypeEvenement;
-use App\Entity\User;
+use App\Repository\TypeEvenementRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -23,15 +22,15 @@ class EvenementAdminType extends AbstractType
             ->add('titre', null, [
                 'label' => 'Titre',
                 'constraints' => [new Assert\NotBlank()],
-                'attr' => ['placeholder' => 'Ex: Réunion famille'],
+                'attr' => ['placeholder' => 'Ex: Reunion familiale'],
             ])
             ->add('description', null, [
                 'label' => 'Description',
                 'required' => false,
-                'attr' => ['placeholder' => 'Détails de l\'événement'],
+                'attr' => ['placeholder' => "Details de l'evenement"],
             ])
             ->add('dateDebut', null, [
-                'label' => 'Date de début',
+                'label' => 'Date de debut',
                 'widget' => 'single_text',
                 'constraints' => [new Assert\NotBlank()],
             ])
@@ -46,29 +45,19 @@ class EvenementAdminType extends AbstractType
                 'attr' => ['placeholder' => 'Ex: Maison'],
             ])
             ->add('typeEvenement', EntityType::class, [
-                'label' => 'Type d\'événement',
+                'label' => "Type d'evenement",
                 'class' => TypeEvenement::class,
                 'choice_label' => 'nom',
+                'query_builder' => static fn (TypeEvenementRepository $repo) => $repo
+                    ->createQueryBuilder('t')
+                    ->andWhere('t.family IS NULL')
+                    ->orderBy('t.nom', 'ASC'),
                 'constraints' => [new Assert\NotNull()],
                 'placeholder' => 'Choisir un type',
             ])
             ->add('shareWithFamily', CheckboxType::class, [
                 'required' => false,
-                'label' => 'Partager avec la famille',
-            ])
-            ->add('family', EntityType::class, [
-                'class' => Family::class,
-                'choice_label' => 'id',
-                'required' => false,
-                'placeholder' => 'Aucune',
-                'label' => 'Famille',
-            ])
-            ->add('createdBy', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'email',
-                'required' => false,
-                'placeholder' => 'Aucun',
-                'label' => 'Créé par',
+                'label' => 'Visible pour toutes les familles',
             ]);
     }
 
@@ -88,7 +77,7 @@ class EvenementAdminType extends AbstractType
         $end = $evenement->getDateFin();
 
         if ($start !== null && $end !== null && $end <= $start) {
-            $context->buildViolation('La date de fin doit être après la date de début.')
+            $context->buildViolation('La date de fin doit etre apres la date de debut.')
                 ->atPath('dateFin')
                 ->addViolation();
         }

@@ -1,6 +1,7 @@
 {% set account_menus = ['account', 'notifications', 'preferences'] %}
 {% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
 {% set current_route = app.request.attributes.get('_route') %}
+{% set is_portal_admin = is_granted('ROLE_ADMIN') %}
 {% set module_submenus = module_submenus|default({}) %}
 {% set module_items = [
   {
@@ -23,7 +24,7 @@
   },
   {
     key: 'module-events',
-    route: 'app_evenement_index',
+    route: is_portal_admin ? 'admin_calendar' : 'app_calendar',
     label: 'Événements',
     icon: 'bx bx-calendar'
   }
@@ -92,7 +93,7 @@
           {% set sub_active = true %}
         {% endif %}
       {% endfor %}
-      {% set is_open = active_menu == module.key or sub_active %}
+      {% set is_open = active_menu == module.key or sub_active or (module.key == 'module-events' and current_route starts with 'portal_account') %}
       <li class="menu-item {{ is_open ? 'active open' }}">
         <a href="{{ subitems|length ? 'javascript:void(0);' : path(module.route) }}" class="menu-link {{ subitems|length ? 'menu-toggle' }}">
           <i class="menu-icon tf-icons {{ module.icon }}"></i>
