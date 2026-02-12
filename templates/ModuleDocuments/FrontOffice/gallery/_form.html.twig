@@ -1,43 +1,113 @@
-{{ form_start(form, {
+﻿{{ form_start(form, {
   'attr': {
     'id': 'hbGalleryForm',
     'novalidate': 'novalidate'
   }
 }) }}
 
+  {{ form_errors(form) }}
+  {% set submit_label = button_label|default('Creer la galerie') %}
+  {% set has_template = form.defaultGallery.vars.value is not empty %}
+
   <div class="hb-mode">
     <div class="hb-mode-title">
       <i class="bx bx-wand"></i>
-      Choose how to create
+      Choisissez le mode de creation
     </div>
 
     <div class="hb-toggle">
-      <button type="button" class="hb-pill active" data-mode="template">
-        <i class="bx bx-layer"></i> Default Gallery
+      <button type="button" class="hb-pill {{ has_template ? 'active' : '' }}" data-mode="template">
+        <i class="bx bx-layer"></i> Galerie par defaut
       </button>
-      <button type="button" class="hb-pill" data-mode="custom">
-        <i class="bx bx-edit"></i> Custom
+      <button type="button" class="hb-pill {{ not has_template ? 'active' : '' }}" data-mode="custom">
+        <i class="bx bx-edit"></i> Personnalisee
       </button>
     </div>
 
-    <div class="hb-mode-sub">Pick a Default Gallery or build your own ✨</div>
+    <div class="hb-mode-sub">Choisissez une galerie par defaut ou creez la votre.</div>
   </div>
 
-  <div id="hbTemplateBlock" class="hb-block-form">
+  <div id="hbTemplateBlock" class="hb-block-form" style="{{ has_template ? '' : 'display:none;' }}">
     {{ form_row(form.defaultGallery) }}
     <div class="hb-hint">
       <i class="bx bx-info-circle"></i>
-      Selecting a gallery will auto-fill the name & description.
+      La selection d'une galerie remplit automatiquement le nom et la description.
     </div>
   </div>
 
-  <div id="hbCustomBlock" class="hb-block-form" style="display:none;">
+  <div id="hbCustomBlock" class="hb-block-form" style="{{ has_template ? 'display:none;' : '' }}">
     {{ form_row(form.name) }}
     {{ form_row(form.description) }}
   </div>
 
   <button type="submit" class="btn btn-primary hb-submit">
-    <i class="bx bx-check-circle"></i> Create gallery
+    <i class="bx bx-check-circle"></i> {{ submit_label }}
   </button>
 
 {{ form_end(form) }}
+
+<script>
+(function () {
+  function initGalleryMode() {
+    const formEl = document.getElementById('hbGalleryForm');
+    if (!formEl || formEl.dataset.hbModeInit === '1') return;
+    formEl.dataset.hbModeInit = '1';
+
+    const templateBlock = document.getElementById('hbTemplateBlock');
+    const customBlock = document.getElementById('hbCustomBlock');
+    const pills = formEl.querySelectorAll('.hb-pill');
+    const select = formEl.querySelector('select[name$="[defaultGallery]"]');
+    const nameInput = formEl.querySelector('input[name$="[name]"]');
+    const descInput = formEl.querySelector('textarea[name$="[description]"]');
+
+    function setMode(mode, keepSelection) {
+      pills.forEach((pill) => pill.classList.toggle('active', pill.dataset.mode === mode));
+
+      if (mode === 'template') {
+        if (templateBlock) templateBlock.style.display = '';
+        if (customBlock) customBlock.style.display = 'none';
+        return;
+      }
+
+      if (templateBlock) templateBlock.style.display = 'none';
+      if (customBlock) customBlock.style.display = '';
+      if (select && !keepSelection) select.value = '';
+      if (nameInput) nameInput.focus();
+    }
+
+    function applyTemplate() {
+      if (!select || !select.value) return;
+      const option = select.options[select.selectedIndex];
+      if (!option) return;
+
+      const tplName = option.getAttribute('data-name') || '';
+      const tplDesc = option.getAttribute('data-description') || '';
+      if (nameInput) nameInput.value = tplName;
+      if (descInput) descInput.value = tplDesc;
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', (event) => {
+        event.preventDefault();
+        setMode(pill.dataset.mode, false);
+      });
+    });
+
+    if (select) {
+      select.addEventListener('change', () => {
+        applyTemplate();
+        if (select.value) setMode('template', true);
+      });
+    }
+
+    if (select && select.value) setMode('template', true);
+    else setMode('custom', true);
+  }
+
+  document.addEventListener('DOMContentLoaded', initGalleryMode);
+  document.addEventListener('turbo:load', initGalleryMode);
+  window.addEventListener('pageshow', initGalleryMode);
+})();
+</script>
+
+

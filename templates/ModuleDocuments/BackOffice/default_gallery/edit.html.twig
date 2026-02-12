@@ -1,12 +1,12 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Edit Default Gallery{% endblock %}
+{% block title %}Modifier le modele par defaut{% endblock %}
 
-{# ✅ If your base uses "content" (like your other premium pages), keep this.
+{# âœ… If your base uses "content" (like your other premium pages), keep this.
    If your base uses "body", just rename block content -> body. #}
 {% block content %}
 	<style>
-		/* ===== HomeBalance Admin • Edit Default Gallery (Premium + Phone-like) ===== */
+		/* ===== HomeBalance Admin â€¢ Edit Default Gallery (Premium + Phone-like) ===== */
 
 		.hb-page { max-width: 980px; margin: 0 auto; }
 
@@ -155,14 +155,14 @@
 	<div class="hb-page">
 		<div class="hb-top flex-wrap">
 			<div class="hb-title">
-				<h4 class="mb-1">Edit Default Gallery</h4>
-				<p class="mb-0">Update the admin template details ✨</p>
+				<h4 class="mb-1">Modifier le modele par defaut</h4>
+				<p class="mb-0">Mettez a jour les details du modele admin</p>
 			</div>
 
 			<div class="hb-actions">
 				<a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary hb-btn">
 					<i class="bx bx-arrow-back me-1"></i>
-					Back
+					Retour
 				</a>
 
 				
@@ -178,14 +178,14 @@
 						</div>
 						<div class="hb-hero-text text-truncate">
 							<h5 class="mb-0">{{ default_gallery.name }}</h5>
-							<small>Edit mode • Keep it clear and reusable</small>
+							<small>Mode edition - gardez-le clair et reutilisable</small>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<div class="hb-body">
-				{{ include('ModuleDocuments/BackOffice/default_gallery/_form.html.twig', {'button_label': 'Update'}) }}
+				{{ include('ModuleDocuments/BackOffice/default_gallery/_form.html.twig', {'button_label': 'Mettre a jour'}) }}
 			</div>
 
 			<div class="hb-footer">
@@ -194,7 +194,7 @@
 				<div class="d-flex gap-2 flex-wrap align-items-center">
 					<a href="{{ path('app_default_gallery_show', {'id': default_gallery.id}) }}" class="btn btn-primary hb-btn hb-btn-primary">
 						<i class="bx bx-show me-1"></i>
-						edit
+						Afficher
 					</a>
 
 					<div class="hb-delete">
@@ -205,3 +205,8 @@
 		</div>
 	</div>
 {% endblock %}
+
+
+
+
+

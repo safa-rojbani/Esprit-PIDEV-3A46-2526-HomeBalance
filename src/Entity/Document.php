@@ -5,8 +5,15 @@ namespace App\Entity;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\EtatDocument;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
+#[UniqueEntity(
+    fields: ['family', 'fileName'],
+    message: 'Un document avec ce nom existe deja dans votre famille.'
+)]
 class Document
 {
     #[ORM\Id]
@@ -15,15 +22,31 @@ class Document
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Le nom du fichier ne peut pas depasser {{ limit }} caracteres.'
+    )]
     private ?string $fileName = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Le chemin du fichier ne peut pas depasser {{ limit }} caracteres.'
+    )]
     private ?string $filePath = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Le type du fichier ne peut pas depasser {{ limit }} caracteres.'
+    )]
     private ?string $fileType = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Regex(
+        pattern: '/^\d+$/',
+        message: 'La taille du fichier doit etre une valeur numerique.'
+    )]
     private ?string $filesize = null;
 
     #[ORM\Column(nullable: true)]
@@ -52,6 +75,35 @@ class Document
     #[ORM\JoinColumn(nullable: false)]
     private ?Gallery $gallery = null;
 
+    #[Assert\NotNull(message: 'Veuillez selectionner un fichier.', groups: ['document_create'])]
+    #[Assert\File(
+        maxSize: '20M',
+        maxSizeMessage: 'Le fichier ne doit pas depasser 20 Mo.',
+        mimeTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'application/pdf',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'video/ogg',
+            'video/x-matroska',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'text/plain',
+            'application/zip',
+            'application/x-zip-compressed'
+        ],
+        mimeTypesMessage: 'Type de fichier non autorise.'
+    )]
+    private ?UploadedFile $file = null;
+
     public function getGallery(): ?Gallery
     {
         return $this->gallery;
@@ -60,6 +112,17 @@ class Document
     public function setGallery(?Gallery $gallery): static
     {
         $this->gallery = $gallery;
+        return $this;
+    }
+
+    public function getFile(): ?UploadedFile
+    {
+        return $this->file;
+    }
+
+    public function setFile(?UploadedFile $file): static
+    {
+        $this->file = $file;
         return $this;
     }
 

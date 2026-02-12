@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}Galerie
 {% endblock %}
@@ -12,18 +12,18 @@
 				<div class="gallery-item">
 					<img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
 				</div>
-				<a href="{{ path('app_document_show', {'id': document.id}) }}">show</a>
-				<a href="{{ path('app_document_edit', {'id': document.id}) }}">edit</a>
+				<a href="{{ path('app_document_show', {'id': document.id, 'galleryId': document.gallery.id}) }}">afficher</a>
+				<a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': document.gallery.id}) }}">modifier</a>
 			{% endif %}
 		{% else %}
-			<p>Aucune image trouvée.</p>
+			<p>Aucune image trouvee.</p>
 		{% endfor %}
 	</div>
 
 
 
 	<style>
-		/* style simple type galerie téléphone */
+		/* style simple type galerie tÃ©lÃ©phone */
 		.gallery {
 			display: flex;
 			flex-wrap: wrap;
@@ -45,3 +45,5 @@
 		}
 	</style>
 {% endblock %}
+
+

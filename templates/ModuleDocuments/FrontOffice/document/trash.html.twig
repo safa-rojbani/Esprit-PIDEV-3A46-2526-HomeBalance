@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Trash
+{% block title %}Corbeille
 {% endblock %}
 
 {% block content %}
 	<style>
-		/* ===== HomeBalance • Trash (same look as your example cards) ===== */
+		/* ===== HomeBalance â€¢ Trash (same look as your example cards) ===== */
 
 		.hb-headline {
 			display: flex;
@@ -43,7 +43,7 @@
 		}
 		.hb-col {
 			max-width: 280px; /* garde la taille */
-			margin-inline: 0; /* ✅ enlève le centre qui crée des trous */
+			margin-inline: 0; /* âœ… enlÃ¨ve le centre qui crÃ©e des trous */
 		}
 
 
@@ -63,10 +63,10 @@
 
 		/* ===== COVER: exactly like example ===== */
 		.hb-cover {
-			height: 170px; /* ✅ compact cover */
+			height: 170px; /* âœ… compact cover */
 			position: relative;
 			overflow: hidden;
-			background: #f2f3f5; /* ✅ clean PDF bg */
+			background: #f2f3f5; /* âœ… clean PDF bg */
 		}
 
 		/* Image preview */
@@ -162,16 +162,14 @@
 			outline: none;
 		}
 
-		.hb-menu-btn::before {
-			content: "⋮";
+		.hb-menu-btn i {
 			color: rgba(255, 255, 255, .95);
 			font-size: 20px;
 			line-height: 1;
-			transform: translateY(-1px);
 			display: block;
 		}
 
-		/* ✅ show dots only on hover like galleries */
+		/* âœ… show dots only on hover like galleries */
 		.hb-doc:hover .hb-menu-btn {
 			opacity: 1;
 			transform: translateY(0);
@@ -276,33 +274,33 @@
 
 	<div class="hb-headline flex-wrap hb-in">
 		<div class="hb-title">
-			<h4 class="fw-bold mb-1">Trash</h4>
-			<p class="mb-0">Documents in recycle bin 🗑️</p>
+			<h4 class="fw-bold mb-1">Corbeille</h4>
+			<p class="mb-0">Documents dans la corbeille</p>
 		</div>
 
 		<div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
-  <span class="hb-chip">🗑️ {{ documents|length }} item{{ documents|length > 1 ? 's' : '' }}</span>
+  <span class="hb-chip"><i class="bx bx-trash"></i> {{ documents|length }} element{{ documents|length > 1 ? 's' : '' }}</span>
 
   {% if documents is not empty %}
     <form method="post" action="{{ path('app_document_restore_all') }}">
       <input type="hidden" name="_token" value="{{ csrf_token('restore_all') }}">
       <button type="submit" class="btn btn-outline-primary">
-        Restore all
+        Tout restaurer
       </button>
     </form>
 
     <form method="post"
           action="{{ path('app_document_delete_all_permanently') }}"
-          onsubmit="return confirm('Delete ALL permanently?');">
+          onsubmit="return confirm('Supprimer TOUS les documents definitivement ?');">
       <input type="hidden" name="_token" value="{{ csrf_token('delete_all_permanently') }}">
       <button type="submit" class="btn btn-outline-danger">
-        Delete all permanently
+        Tout supprimer definitivement
       </button>
     </form>
   {% endif %}
 
   <a href="{{ path('app_gallery_index') }}" class="btn btn-outline-secondary">
-    Back to galleries
+    Retour aux galeries
   </a>
 </div>
 
@@ -311,7 +309,7 @@
 	<div class="row g-2 g-md-2 hb-grid hb-in">
 		{% if documents is empty %}
 			<div class="col-12">
-				<div class="alert alert-info mb-0">Trash is empty 🗑️</div>
+				<div class="alert alert-info mb-0">La corbeille est vide</div>
 			</div>
 		{% endif %}
 
@@ -329,26 +327,26 @@
 							<span class="hb-type-badge">PDF</span>
 							<div class="hb-file-clean"></div>
 						{% else %}
-							<span class="hb-type-badge">File</span>
+							<span class="hb-type-badge">Fichier</span>
 							<div class="hb-file-clean"></div>
 						{% endif %}
 
 						<div class="hb-actions">
-							<button type="button" class="hb-menu-btn" onclick="event.stopPropagation(); hbToggleTrashMenu(this);" aria-label="Menu"></button>
+							<button type="button" class="hb-menu-btn" onclick="event.stopPropagation(); hbToggleTrashMenu(this);" aria-label="Menu"><i class="bx bx-dots-vertical-rounded"></i></button>
 
 							<div
 								class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
 
-								{# ✅ Restore #}
+								{# âœ… Restore #}
 								<form method="post" action="{{ path('app_document_restore', {id: document.id}) }}">
 									<input type="hidden" name="_token" value="{{ csrf_token('restore' ~ document.id) }}">
-									<button type="submit" class="hb-menu-link">Restore</button>
+									<button type="submit" class="hb-menu-link">Restaurer</button>
 								</form>
 
-								{# ✅ Delete permanently #}
-								<form method="post" action="{{ path('app_document_delete_permanently', {id: document.id}) }}" onsubmit="return confirm('Delete permanently?');">
+								{# âœ… Delete permanently #}
+								<form method="post" action="{{ path('app_document_delete_permanently', {id: document.id}) }}" onsubmit="return confirm('Supprimer definitivement ?');">
 									<input type="hidden" name="_token" value="{{ csrf_token('delete_permanently' ~ document.id) }}">
-									<button type="submit" class="hb-menu-link danger">Delete permanently</button>
+									<button type="submit" class="hb-menu-link danger">Supprimer definitivement</button>
 								</form>
 							</div>
 
@@ -384,3 +382,7 @@ document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show
 });
 	</script>
 {% endblock %}
+
+
+
+

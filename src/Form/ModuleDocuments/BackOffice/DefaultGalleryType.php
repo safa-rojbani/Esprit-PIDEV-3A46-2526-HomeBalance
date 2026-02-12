@@ -21,6 +21,9 @@ class DefaultGalleryType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => DefaultGallery::class,
+            'attr' => [
+                'novalidate' => 'novalidate',
+            ],
         ]);
     }
 }

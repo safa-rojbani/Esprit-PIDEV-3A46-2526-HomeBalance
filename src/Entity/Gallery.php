@@ -8,9 +8,15 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Enum\EtatGallery;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: GalleryRepository::class)]
+#[UniqueEntity(
+    fields: ['family', 'name'],
+    message: 'Une galerie avec ce nom existe deja dans votre famille.'
+)]
 class Gallery
 {
     #[ORM\Id]
@@ -19,9 +25,21 @@ class Gallery
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom de la galerie est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le nom de la galerie doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le nom de la galerie ne peut pas depasser {{ limit }} caracteres.'
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\NotBlank(message: 'La description de la galerie est obligatoire.')]
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: 'La description ne peut pas depasser {{ limit }} caracteres.'
+    )]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]

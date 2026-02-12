@@ -1,10 +1,10 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Edit Document{% endblock %}
+{% block title %}Modifier le document{% endblock %}
 
 {% block content %}
 <style>
-  /* ===== HomeBalance • Edit Document (Clean + Phone vibe) ===== */
+  /* ===== HomeBalance â€¢ Edit Document (Clean + Phone vibe) ===== */
 
   .hb-page{ max-width: 1040px; margin: 0 auto; }
 
@@ -156,15 +156,15 @@
 
   <div class="hb-top flex-wrap hb-in">
     <div>
-      <h3>Edit Document</h3>
-      <p class="mb-0">Update details — keep your gallery tidy ✨</p>
+      <h3>Modifier le document</h3>
+      <p class="mb-0">Mettez a jour les details pour garder votre galerie organisee.</p>
     </div>
 
     <div class="hb-actions">
-      <span class="hb-chip"><i class="bx bx-edit"></i> Update mode</span>
+      <span class="hb-chip"><i class="bx bx-edit"></i> Mode modification</span>
 
       <a href="{{ path('app_gallery_show', {'id': galleryId}) }}" class="btn btn-outline-secondary">
-        <i class="bx bx-left-arrow-alt me-1"></i> Back to gallery
+        <i class="bx bx-left-arrow-alt me-1"></i> Retour a la galerie
       </a>
     </div>
   </div>
@@ -173,10 +173,10 @@
     <div>
       <p class="title">
         <i class="bx bx-file"></i>
-        Editing: <span class="fw-bold">{{ document.fileName }}</span>
+        Edition : <span class="fw-bold">{{ document.fileName }}</span>
       </p>
       <p class="sub">
-        You can update the file info. Use delete only if you really want to remove it.
+        Vous pouvez modifier les informations du fichier. Utilisez la suppression uniquement si necessaire.
       </p>
     </div>
   </div>
@@ -187,12 +187,12 @@
         <div class="hb-card-header">
           <div class="left">
             <span class="hb-dot"></span>
-            <span class="hb-title-ell">Document details</span>
+            <span class="hb-title-ell">Details du document</span>
           </div>
         </div>
 
         <div class="hb-card-body">
-          {{ include('ModuleDocuments/FrontOffice/document/_form.html.twig', {'button_label': 'Update'}) }}
+          {{ include('ModuleDocuments/FrontOffice/document/_form.html.twig', {'button_label': 'Mettre a jour'}) }}
         </div>
       </div>
     </div>
@@ -202,14 +202,14 @@
         <div class="hb-card-header">
           <div class="left">
             <span class="hb-dot" style="background: rgba(220,53,69,.85); box-shadow: 0 10px 22px rgba(220,53,69,.18);"></span>
-            Danger zone
+            Zone sensible
           </div>
         </div>
 
         <div class="hb-card-body">
           <div class="hb-danger">
-            <div class="t"><i class="bx bx-trash"></i> Delete document</div>
-            <p class="d">This action removes the document. If you have a trash feature, it can be restored from there.</p>
+            <div class="t"><i class="bx bx-trash"></i> Supprimer le document</div>
+            <p class="d">Cette action supprime le document. S'il passe par la corbeille, vous pourrez le restaurer depuis celle-ci.</p>
 
             {{ include('ModuleDocuments/FrontOffice/document/_delete_form.html.twig', {
               document: document,
@@ -242,8 +242,8 @@
       btn.classList.add('btn','btn-primary','hb-submit');
       if(btn.tagName.toLowerCase() === 'button'){
         const text = btn.textContent.trim().toLowerCase();
-        if(text === 'update' || text === 'save' || text === 'submit'){
-          btn.innerHTML = '<i class="bx bx-save"></i> Update document';
+        if(text === 'update' || text === 'save' || text === 'submit' || text === 'mettre a jour' || text === 'enregistrer'){
+          btn.innerHTML = '<i class="bx bx-save"></i> Mettre a jour le document';
         } else if(!btn.querySelector('i')){
           btn.insertAdjacentHTML('afterbegin','<i class="bx bx-save"></i> ');
         }
@@ -263,3 +263,6 @@
   });
 </script>
 {% endblock %}
+
+
+
