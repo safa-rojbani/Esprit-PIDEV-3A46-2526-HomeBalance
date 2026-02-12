@@ -7,19 +7,19 @@
 
   <title>{% block title %}HomeBalance{% endblock %}</title>
 
-  <link rel="icon" type="image/x-icon" href="{{ asset('materio/img/favicon/favicon.ico') }}" />
+  <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ asset('materio/vendor/fonts/iconify-icons.css') }}" />
+  <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
 
-  <link rel="stylesheet" href="{{ asset('materio/vendor/css/core.css') }}" />
-  <link rel="stylesheet" href="{{ asset('materio/css/demo.css') }}" />
+  <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
 
-  <script src="{{ asset('materio/vendor/js/helpers.js') }}"></script>
-  <script src="{{ asset('materio/js/config.js') }}"></script>
+  <script src="{{ asset('vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('js/config.js') }}"></script>
 
   <style>
     .layout-menu {
@@ -89,6 +89,22 @@
         or route starts with 'admin_task') ? 'module-tasks'
       : 'dashboard'
     ) %}
+<<<<<<< HEAD
+    {% set module_charge_items = is_granted('ROLE_ADMIN')
+      ? [
+        {'label': 'Categories achat', 'route': 'app_categorie_achat_index'}
+      ]
+      : [
+        {'label': 'Achats', 'route': 'app_achat_index'},
+        {'label': 'Historique', 'route': 'app_historique_achat_index'},
+        {'label': 'Categories achat', 'route': 'app_categorie_achat_index'},
+        {'label': 'Revenus', 'route': 'app_revenu_index'},
+        {'label': 'Budget', 'route': 'app_revenu_budget'}
+      ]
+    %}
+    {% set module_submenus = module_submenus|default({
+      'module-charge': module_charge_items,
+=======
     {% set module_submenus = module_submenus|default({
       'module-charge': [
         {'label': 'Achats', 'route': 'app_achat_index'},
@@ -96,6 +112,7 @@
         {'label': 'Revenus', 'route': 'app_revenu_index'},
         {'label': 'Budget', 'route': 'app_revenu_budget'}
       ],
+>>>>>>> origin/main
       'module-documents': [
         {'label': 'Galeries', 'route': 'app_gallery_index'},
         {'label': 'Documents', 'route': 'app_document_index'},
@@ -104,6 +121,7 @@
       ],
       'module-tasks': [
         {'label': 'Tâches parent', 'route': 'parent_task_index'},
+        {'label': 'Assignations parent', 'route': 'parent_task_assign'},
         {'label': 'Tâches enfant', 'route': 'child_task_index'},
         {'label': 'Tâches famille', 'route': 'family_task_list'},
         {'label': 'Validations', 'route': 'parent_validation_index'}
@@ -189,12 +207,12 @@
   <div class="layout-overlay layout-menu-toggle"></div>
 </div>
 
-<script src="{{ asset('materio/vendor/libs/jquery/jquery.js') }}"></script>
-<script src="{{ asset('materio/vendor/libs/popper/popper.js') }}"></script>
-<script src="{{ asset('materio/vendor/js/bootstrap.js') }}"></script>
-<script src="{{ asset('materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-<script src="{{ asset('materio/vendor/js/menu.js') }}"></script>
-<script src="{{ asset('materio/js/main.js') }}"></script>
+<script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('vendor/js/menu.js') }}"></script>
+<script src="{{ asset('js/main.js') }}"></script>
 
 <!-- Notification Toast Container -->
   <div class="toast-container position-fixed p-3" style="z-index: 1080;">
@@ -257,3 +275,15 @@
 {% block javascripts %}{% endblock %}
 </body>
 </html>
+<<<<<<< HEAD
+
+
+
+
+
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main

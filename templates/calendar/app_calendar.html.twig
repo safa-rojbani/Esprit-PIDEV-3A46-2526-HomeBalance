@@ -3,35 +3,44 @@
 {% block title %}Calendrier{% endblock %}
 
 {% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 {% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="d-flex align-items-center gap-3 flex-wrap">
-    <h4 class="fw-semibold m-0">Calendrier</h4>
-    <form id="calendarFilters" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('app_calendar') }}">
-      <div>
-        <select class="form-select" name="type">
-          <option value="">Tous</option>
-          {% for t in types %}
-            <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
-              {{ t.nom }}
-            </option>
-          {% endfor %}
-        </select>
+<div class="evt-shell">
+  <div class="evt-pagehead d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="evt-title">Calendrier</h3>
+      <p class="evt-subtitle">Vue globale de vos evenements et actions rapides.</p>
+      <div class="evt-chipline mt-2">
+        <span class="evt-chip">{{ types|length }} types</span>
+        <span class="evt-chip">{{ selectedType ? ('Filtre: ' ~ selectedType.nom) : 'Tous les types' }}</span>
+        <span class="evt-chip">{{ search ? ('Recherche: ' ~ search) : 'Sans recherche' }}</span>
       </div>
-      <div>
-        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
-      </div>
+    </div>
+    <a href="{{ path('app_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter</a>
+  </div>
+
+  <div class="evt-toolbar">
+    <form id="calendarFilters" class="evt-filter-form" method="get" action="{{ path('app_calendar') }}">
+      <select class="form-select" name="type">
+        <option value="">Tous</option>
+        {% for t in types %}
+          <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
+            {{ t.nom }}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
     </form>
   </div>
-  <a href="{{ path('app_evenement_new') }}" class="btn btn-primary">+ Ajouter</a>
-</div>
 
-<div class="card">
-  <div class="card-body">
-    <div id="calendar"></div>
+  <div class="card evt-card">
+    <div class="card-body">
+      <div id="calendar"></div>
+    </div>
   </div>
 </div>
 
@@ -84,6 +93,13 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar');
+      if (!calendarEl) {
+        return;
+      }
+      if (!window.FullCalendar || !window.FullCalendar.Calendar) {
+        calendarEl.innerHTML = '<div class="alert alert-danger mb-0">Calendrier non chargÃ©. VÃ©rifie le chargement du CDN FullCalendar (connexion ou bloqueur).</div>';
+        return;
+      }
       const feedUrl = "{{ path('app_evenements_feed') }}";
       const params = new URLSearchParams(window.location.search);
       const eventsUrl = params.toString() ? `${feedUrl}?${params.toString()}` : feedUrl;
@@ -93,6 +109,7 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'fr',
         initialView: 'dayGridMonth',
+        height: 'auto',
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',

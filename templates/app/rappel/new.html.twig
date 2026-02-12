@@ -2,17 +2,25 @@
 
 {% block title %}Ajouter un rappel{% endblock %}
 
-{% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-semibold m-0">Ajouter un rappel</h4>
-  <a href="{{ path('app_evenement_rappels', { id: evenement.id }) }}" class="btn btn-outline-secondary">
-    Retour
-  </a>
-</div>
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
-<div class="card">
-  <div class="card-body">
-    {{ include('app/rappel/_form.html.twig', { button_label: 'Créer' }) }}
+{% block body %}
+<div class="evt-shell">
+  <div class="evt-pagehead d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="evt-title">Ajouter un rappel</h3>
+      <p class="evt-subtitle">Configurez une alerte avant le debut de votre evenement.</p>
+    </div>
+    <a href="{{ path('app_evenement_rappels', { id: evenement.id }) }}" class="btn evt-btn-ghost">Retour</a>
+  </div>
+
+  <div class="card evt-card">
+    <div class="card-body">
+      {{ include('app/rappel/_form.html.twig', { button_label: 'Creer' }) }}
+    </div>
   </div>
 </div>
 {% endblock %}

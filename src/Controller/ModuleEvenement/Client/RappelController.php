@@ -31,7 +31,7 @@ class RappelController extends AbstractController
         $rappels = $rappelRepository->createQueryBuilder('r')
             ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
-            ->andWhere('e.family = :family')
+            ->andWhere('(e.family = :family OR e.family IS NULL)')
             ->andWhere('e.dateFin >= :now')
             ->setParameter('user', $user)
             ->setParameter('family', $family)
@@ -68,7 +68,7 @@ class RappelController extends AbstractController
     public function index(Evenement $evenement, RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
     {
         $family = $this->resolveFamily($familyResolver);
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertCanViewEvent($family, $evenement);
 
         $user = $this->getUser();
         $rappels = $rappelRepository->findBy(
@@ -96,7 +96,7 @@ class RappelController extends AbstractController
         if (!$evenement) {
             throw $this->createAccessDeniedException();
         }
-        $this->assertSameFamily($family, $evenement->getFamily());
+        $this->assertCanViewEvent($family, $evenement);
         if ($this->getUser() === null) {
             throw $this->createAccessDeniedException();
         }
@@ -207,17 +207,6 @@ class RappelController extends AbstractController
         return $this->redirectToRoute('app_rappel_history');
     }
 
-    private function canViewEvent(Evenement $evenement): bool
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            return false;
-        }
-
-        return $user->getFamily() !== null
-            && $evenement->getFamily() === $user->getFamily();
-    }
-
     private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
     {
         $user = $this->getUser();
@@ -236,6 +225,18 @@ class RappelController extends AbstractController
     private function assertSameFamily(Family $family, ?Family $targetFamily): void
     {
         if ($targetFamily === null || $targetFamily->getId() !== $family->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+    }
+
+    private function assertCanViewEvent(Family $family, Evenement $evenement): void
+    {
+        $eventFamily = $evenement->getFamily();
+        if ($eventFamily === null) {
+            return;
+        }
+
+        if ($eventFamily->getId() !== $family->getId()) {
             throw $this->createAccessDeniedException();
         }
     }

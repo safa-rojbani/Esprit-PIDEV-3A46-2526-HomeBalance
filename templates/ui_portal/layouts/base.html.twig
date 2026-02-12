@@ -37,8 +37,92 @@
 
   <body>
     <div class="layout-wrapper layout-content-navbar">
+<<<<<<< HEAD
       <div class="layout-container">
+        {% set route = app.request.attributes.get('_route') %}
+        {% set active_menu = active_menu|default(
+          (route starts with 'admin_evenement'
+            or route starts with 'admin_rappel'
+            or route starts with 'admin_type_evenement'
+            or route starts with 'admin_calendar') ? 'module-events'
+          : (route starts with 'app_evenement'
+            or route starts with 'app_rappel'
+            or route starts with 'app_type_evenement'
+            or route starts with 'app_calendar'
+            or route starts with 'app_notifications') ? 'module-events'
+          : (route starts with 'app_gallery'
+            or route starts with 'app_document'
+            or route starts with 'app_default_gallery') ? 'module-documents'
+          : (route starts with 'app_achat'
+            or route starts with 'app_revenu'
+            or route starts with 'app_historique_achat'
+            or route starts with 'app_categorie_achat') ? 'module-charge'
+          : (route starts with 'parent_task'
+            or route starts with 'child_task'
+            or route starts with 'family_task'
+            or route starts with 'parent_validation'
+            or route starts with 'admin_task') ? 'module-tasks'
+          : active_menu|default('account')
+        ) %}
+        {% set module_charge_items = is_granted('ROLE_ADMIN')
+          ? [
+            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'}
+          ]
+          : [
+            {'label': 'Achats', 'route': 'app_achat_index'},
+            {'label': 'Historique', 'route': 'app_historique_achat_index'},
+            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'},
+            {'label': 'Revenus', 'route': 'app_revenu_index'},
+            {'label': 'Budget', 'route': 'app_revenu_budget'}
+          ]
+        %}
+        {% set module_submenus = module_submenus|default({
+          'module-charge': module_charge_items,
+          'module-documents': [
+            {'label': 'Galeries', 'route': 'app_gallery_index'},
+            {'label': 'Documents', 'route': 'app_document_index'},
+            {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+            {'label': 'Corbeille', 'route': 'app_document_trash'}
+          ],
+          'module-tasks': [
+            {'label': 'Tâches parent', 'route': 'parent_task_index'},
+            {'label': 'Tâches enfant', 'route': 'child_task_index'},
+            {'label': 'Tâches famille', 'route': 'family_task_list'},
+            {'label': 'Validations', 'route': 'parent_validation_index'}
+          ],
+          'module-events': [
+            {'label': 'Événements', 'route': 'admin_evenement_index'},
+            {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
+            {'label': 'Rappels', 'route': 'admin_rappel_index'},
+            {'label': 'Calendrier', 'route': 'admin_calendar'}
+          ]
+        }) %}
+        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
+=======
+      <div class="layout-container">
+<<<<<<< HEAD
+        {% set default_module_submenus = is_granted('ROLE_ADMIN') ? {
+          'module-events': [
+            {'label': 'Événements', 'route': 'admin_evenement_index'},
+            {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
+            {'label': 'Calendrier', 'route': 'admin_calendar'}
+          ]
+        } : {
+          'module-events': [
+            {'label': 'Événements', 'route': 'app_evenement_index'},
+            {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
+            {'label': 'Rappels', 'route': 'app_rappel_history'},
+            {'label': 'Calendrier', 'route': 'app_calendar'}
+          ]
+        } %}
+        {% include 'ui_portal/partials/sidebar.html.twig' with {
+          active_menu: active_menu|default('account'),
+          module_submenus: module_submenus|default(default_module_submenus)
+        } %}
+=======
         {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu|default('account') } %}
+>>>>>>> origin/main
+>>>>>>> origin/main
         <div class="layout-page">
           {% include 'ui_portal/partials/navbar.html.twig' %}
 
@@ -95,3 +179,5 @@
 
   </body>
 </html>
+
+

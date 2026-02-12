@@ -1,4 +1,7 @@
-{{ form_start(form) }}
+{{ form_start(form, { attr: { novalidate: 'novalidate', class: 'evt-form' } }) }}
+  {% if form.vars.errors|length > 0 %}
+    <div class="evt-form-errors">{{ form_errors(form) }}</div>
+  {% endif %}
   <div class="row g-3">
     <div class="col-md-6">
       {{ form_row(form.titre) }}
@@ -23,6 +26,6 @@
     </div>
   </div>
   <div class="mt-3">
-    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+    <button class="btn evt-btn-primary">{{ button_label|default('Enregistrer') }}</button>
   </div>
 {{ form_end(form) }}

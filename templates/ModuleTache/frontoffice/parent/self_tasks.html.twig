@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes taches parent{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+{% endblock %}
+
+{% block body %}
+<div class="task-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">Mes taches</h1>
+            <p class="tm-subtitle">Suivez vos assignations et validez les taches familiales que vous prenez en charge.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-5">
+            <div class="card tm-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Taches qui me sont assignees</h5>
+                </div>
+                <div class="card-body">
+                    {% if assignedTasks is empty %}
+                        <div class="tm-empty">Aucune tache assignee.</div>
+                    {% else %}
+                        <ul class="list-group tm-task-list">
+                            {% for a in assignedTasks %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <div class="tm-task-name">{{ a.task.title }}</div>
+                                        <div class="tm-meta">Statut: {{ a.status.value }}</div>
+                                    </div>
+                                    {% if a.status.value == 'assigned' %}
+                                        <div class="tm-actions">
+                                            <a href="{{ path('parent_self_task_accept', {id: a.id, filter: currentFilter, sort: currentSort}) }}" class="btn btn-sm btn-outline-success">Accepter</a>
+                                            <a href="{{ path('parent_self_task_refuse', {id: a.id, filter: currentFilter, sort: currentSort}) }}" class="btn btn-sm btn-outline-danger">Refuser</a>
+                                        </div>
+                                    {% else %}
+                                        <span class="tm-badge info">{{ a.status.value }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-7">
+            <div class="card tm-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Taches familiales</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-6">
+                            <label for="parent-self-filter" class="form-label mb-1">Filtrer</label>
+                            <select id="parent-self-filter" name="filter" class="form-select form-select-sm">
+                                <option value="all" {{ currentFilter == 'all' ? 'selected' : '' }}>Toutes ({{ stateCounts.all|default(0) }})</option>
+                                <option value="available" {{ currentFilter == 'available' ? 'selected' : '' }}>Disponibles ({{ stateCounts.available|default(0) }})</option>
+                                <option value="assigned_to_me" {{ currentFilter == 'assigned_to_me' ? 'selected' : '' }}>Assignees a moi ({{ stateCounts.assigned_to_me|default(0) }})</option>
+                                <option value="pending_validation" {{ currentFilter == 'pending_validation' ? 'selected' : '' }}>En attente ({{ stateCounts.pending_validation|default(0) }})</option>
+                                <option value="validated" {{ currentFilter == 'validated' ? 'selected' : '' }}>Validees ({{ stateCounts.validated|default(0) }})</option>
+                                <option value="refused" {{ currentFilter == 'refused' ? 'selected' : '' }}>Refusees ({{ stateCounts.refused|default(0) }})</option>
+                                <option value="reserved" {{ currentFilter == 'reserved' ? 'selected' : '' }}>Reservees a un autre membre ({{ stateCounts.reserved|default(0) }})</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label for="parent-self-sort" class="form-label mb-1">Trier</label>
+                            <select id="parent-self-sort" name="sort" class="form-select form-select-sm">
+                                <option value="newest" {{ currentSort == 'newest' ? 'selected' : '' }}>Plus recentes</option>
+                                <option value="oldest" {{ currentSort == 'oldest' ? 'selected' : '' }}>Plus anciennes</option>
+                                <option value="title_az" {{ currentSort == 'title_az' ? 'selected' : '' }}>Titre A-Z</option>
+                                <option value="title_za" {{ currentSort == 'title_za' ? 'selected' : '' }}>Titre Z-A</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2 d-grid gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary">Appliquer</button>
+                            <a href="{{ path('parent_self_task_index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if freeTasks is empty %}
+                        <div class="tm-empty">Aucune tache familiale pour ce filtre.</div>
+                    {% else %}
+                        <ul class="list-group tm-task-list">
+                            {% for task in freeTasks %}
+                                {% set completion = task.taskCompletions|first %}
+                                {% set reservedFor = acceptedByOther[task.id]|default(null) %}
+                                {% set taskState = taskStates[task.id]|default('available') %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <div class="tm-task-name">{{ task.title }}</div>
+                                        {% if completion %}
+                                            {% if completion.isValidated is same as(true) %}
+                                                <div class="tm-meta"><span class="tm-badge success">Validee par le parent</span></div>
+                                            {% elseif completion.isValidated is same as(false) %}
+                                                <div class="tm-meta">
+                                                    <span class="tm-badge danger">Refusee par le parent</span>
+                                                    {% if completion.parentComment %}
+                                                        <div class="mt-1">{{ completion.parentComment }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <div class="tm-meta"><span class="tm-badge warning">En attente de validation parent</span></div>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if taskState == 'assigned_to_me' %}
+                                                <div class="tm-meta"><span class="tm-badge info">Assignee a vous</span></div>
+                                            {% elseif taskState == 'available' %}
+                                                <div class="tm-meta"><span class="tm-badge info">Disponible</span></div>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if reservedFor %}
+                                            <div class="tm-meta mt-1">Reservee pour {{ reservedFor }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="tm-actions">
+                                        {% if taskState == 'validated' %}
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Valider</button>
+                                        {% elseif taskState == 'pending_validation' %}
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Valider</button>
+                                        {% elseif taskState == 'reserved' %}
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Valider</button>
+                                        {% else %}
+                                            <form method="post"
+                                                  action="{{ path('parent_self_task_complete', {id: task.id, filter: currentFilter, sort: currentSort}) }}"
+                                                  class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('parent_self_complete_' ~ task.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

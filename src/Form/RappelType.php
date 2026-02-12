@@ -17,7 +17,10 @@ class RappelType extends AbstractType
     {
         $builder
             ->add('offsetMinutes', IntegerType::class, [
-                'constraints' => [new Assert\NotBlank(), new Assert\Positive()],
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Le delai est obligatoire.'),
+                    new Assert\Positive(message: 'Le delai doit etre un nombre positif.'),
+                ],
                 'label' => 'Minutes avant l\'événement',
                 'attr' => ['placeholder' => 'Ex: 60'],
             ])
@@ -27,7 +30,7 @@ class RappelType extends AbstractType
                     'Email' => 'email',
                     'SMS' => 'sms',
                 ],
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(message: 'Le canal est obligatoire.')],
                 'label' => 'Canal',
             ])
             ->add('actif', CheckboxType::class, [

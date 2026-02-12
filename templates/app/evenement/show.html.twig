@@ -1,38 +1,77 @@
 {% extends 'base_front.html.twig' %}
 
-{% block title %}Événement{% endblock %}
+{% block title %}Details evenement{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="fw-semibold m-0">Détails de l'événement</h4>
-  <div>
-    <a href="{{ path('app_evenement_index') }}" class="btn btn-outline-secondary me-2">
-      Retour
-    </a>
-    <a href="{{ path('app_evenement_rappels', { id: evenement.id }) }}" class="btn btn-outline-secondary">
-      Rappels
-    </a>
+<div class="evt-shell">
+  <div class="evt-pagehead d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="evt-title">{{ evenement.titre }}</h3>
+      <p class="evt-subtitle">Fiche complete de l'evenement.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ path('app_evenement_index') }}" class="btn evt-btn-ghost">Retour</a>
+      <a href="{{ path('app_evenement_rappels', { id: evenement.id }) }}" class="btn btn-outline-secondary">Rappels</a>
+    </div>
   </div>
-</div>
 
-<div class="card">
-  <div class="card-body">
-    <dl class="row mb-0">
-      <dt class="col-sm-3">Titre</dt>
-      <dd class="col-sm-9">{{ evenement.titre }}</dd>
-      <dt class="col-sm-3">Description</dt>
-      <dd class="col-sm-9">{{ evenement.description }}</dd>
-      <dt class="col-sm-3">Début</dt>
-      <dd class="col-sm-9">{{ evenement.dateDebut ? evenement.dateDebut|date('Y-m-d H:i') : '' }}</dd>
-      <dt class="col-sm-3">Fin</dt>
-      <dd class="col-sm-9">{{ evenement.dateFin ? evenement.dateFin|date('Y-m-d H:i') : '' }}</dd>
-      <dt class="col-sm-3">Lieu</dt>
-      <dd class="col-sm-9">{{ evenement.lieu }}</dd>
-      <dt class="col-sm-3">Type</dt>
-      <dd class="col-sm-9">{{ evenement.typeEvenement }}</dd>
-      <dt class="col-sm-3">Partagé</dt>
-      <dd class="col-sm-9">{{ evenement.shareWithFamily ? 'Oui' : 'Non' }}</dd>
-    </dl>
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Debut</span>
+      <span class="value">{{ evenement.dateDebut ? evenement.dateDebut|date('H:i') : '-' }}</span>
+      <span class="meta">{{ evenement.dateDebut ? evenement.dateDebut|date('Y-m-d') : '' }}</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Fin</span>
+      <span class="value">{{ evenement.dateFin ? evenement.dateFin|date('H:i') : '-' }}</span>
+      <span class="meta">{{ evenement.dateFin ? evenement.dateFin|date('Y-m-d') : '' }}</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Lieu</span>
+      <span class="value">{{ evenement.lieu ?: '-' }}</span>
+      <span class="meta">emplacement</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Partage</span>
+      <span class="value">{{ evenement.shareWithFamily ? 'Oui' : 'Non' }}</span>
+      <span class="meta">avec la famille</span>
+    </div>
+  </div>
+
+  <div class="card evt-card">
+    <div class="card-body">
+      <dl class="evt-meta">
+        <dt>Titre</dt>
+        <dd>{{ evenement.titre }}</dd>
+
+        <dt>Description</dt>
+        <dd>{{ evenement.description ?: '-' }}</dd>
+
+        <dt>Date debut</dt>
+        <dd>{{ evenement.dateDebut ? evenement.dateDebut|date('Y-m-d H:i') : '-' }}</dd>
+
+        <dt>Date fin</dt>
+        <dd>{{ evenement.dateFin ? evenement.dateFin|date('Y-m-d H:i') : '-' }}</dd>
+
+        <dt>Lieu</dt>
+        <dd>{{ evenement.lieu ?: '-' }}</dd>
+
+        <dt>Type</dt>
+        <dd>{{ evenement.typeEvenement ?: '-' }}</dd>
+
+        <dt>Partage famille</dt>
+        <dd>
+          <span class="evt-pill {{ evenement.shareWithFamily ? 'is-yes' : 'is-no' }}">
+            {{ evenement.shareWithFamily ? 'Oui' : 'Non' }}
+          </span>
+        </dd>
+      </dl>
+    </div>
   </div>
 </div>
 {% endblock %}
