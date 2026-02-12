@@ -1,11 +1,11 @@
 {% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}Account Settings · Personal Info{% endblock %}
+{% block title %}Paramètres du compte · Informations personnelles{% endblock %}
 
 {% block content %}
   {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'account' } %}
 
-  <p class="text-muted mb-4">Keep these details up to date so HomeBalance can tailor reminders, finances, and gentle nudges for your household.</p>
+  <p class="text-muted mb-4">Gardez ces informations à jour pour que HomeBalance adapte rappels, budget et attention au rythme de votre foyer.</p>
 
   {% if accountErrors %}
     <div class="alert alert-danger" role="alert">
@@ -24,13 +24,13 @@
       <div class="card-body">
       <div class="d-flex align-items-start align-items-sm-center gap-6 pb-4 border-bottom">
         <img
-          src="{{ accountForm.avatarPath ? asset(accountForm.avatarPath) : asset('img/avatars/1.png') }}"
-          alt="User avatar"
+          src="{{ accountForm.avatarPath ? asset(accountForm.avatarPath) : asset('materio/img/avatars/1.png') }}"
+          alt="Avatar utilisateur"
           class="d-block w-px-100 h-px-100 rounded"
           id="uploadedAvatar" />
         <div class="button-wrapper">
           <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
-            <span class="d-none d-sm-block">Update photo</span>
+            <span class="d-none d-sm-block">Mettre à jour la photo</span>
             <i class="icon-base bx bx-upload d-block d-sm-none"></i>
             <input
               type="file"
@@ -43,29 +43,29 @@
           </label>
           <button type="submit" class="btn btn-outline-secondary account-image-reset mb-4" name="avatar_remove" value="1">
             <i class="icon-base bx bx-reset d-block d-sm-none"></i>
-            <span class="d-none d-sm-block">Reset</span>
+            <span class="d-none d-sm-block">Réinitialiser</span>
           </button>
-          <div>Use JPG, PNG, GIF, or WebP up to 2 MB. Family photos welcome.</div>
+          <div>JPG, PNG, GIF ou WebP, 2 Mo max. Les photos de famille sont les bienvenues.</div>
         </div>
       </div>
       </div>
       <div class="card-body pt-4">
         <div class="row g-6">
           <div class="col-md-6">
-            <label for="firstName" class="form-label">First Name</label>
+            <label for="firstName" class="form-label">Prénom</label>
             <input class="form-control" type="text" id="firstName" name="firstName" value="{{ accountForm.firstName }}" autofocus />
           </div>
           <div class="col-md-6">
-            <label for="lastName" class="form-label">Last Name</label>
+            <label for="lastName" class="form-label">Nom</label>
             <input class="form-control" type="text" name="lastName" id="lastName" value="{{ accountForm.lastName }}" />
           </div>
           <div class="col-md-6">
             <div class="d-flex justify-content-between align-items-center">
               <label for="email" class="form-label mb-0">E-mail</label>
               {% if app.user and app.user.emailVerifiedAt %}
-                <span class="badge bg-label-success">Verified</span>
+                <span class="badge bg-label-success">Vérifié</span>
               {% else %}
-                <a href="{{ path('portal_auth_resend_verification') }}" class="small">Verify now</a>
+                <a href="{{ path('portal_auth_resend_verification') }}" class="small">Vérifier maintenant</a>
               {% endif %}
             </div>
             <input
@@ -74,48 +74,48 @@
               id="email"
               name="email"
               value="{{ accountForm.email }}"
-              placeholder="you@example.com" />
+              placeholder="vous@exemple.com" />
           </div>
           <div class="col-md-6">
-            <label for="organization" class="form-label">Household or organization</label>
+            <label for="organization" class="form-label">Foyer ou organisation</label>
             <input type="text" class="form-control" id="organization" name="organization" value="{{ accountForm.organization }}" />
           </div>
           <div class="col-md-6">
-            <label class="form-label" for="phoneNumber">Phone Number</label>
+            <label class="form-label" for="phoneNumber">Téléphone</label>
             <div class="input-group input-group-merge">
-              <span class="input-group-text">US (+1)</span>
+              <span class="input-group-text">+33</span>
               <input
                 type="text"
                 id="phoneNumber"
                 name="phoneNumber"
                 class="form-control"
-                placeholder="202 555 0111"
+                placeholder="06 12 34 56 78"
                 value="{{ accountForm.phoneNumber }}" />
             </div>
           </div>
           <div class="col-md-6">
-            <label for="address" class="form-label">Address</label>
-            <input type="text" class="form-control" id="address" name="address" placeholder="Address" value="{{ accountForm.address }}" />
+            <label for="address" class="form-label">Adresse</label>
+            <input type="text" class="form-control" id="address" name="address" placeholder="Adresse" value="{{ accountForm.address }}" />
           </div>
           <div class="col-md-6">
-            <label for="state" class="form-label">State</label>
-            <input class="form-control" type="text" id="state" name="state" placeholder="California" value="{{ accountForm.state }}" />
+            <label for="state" class="form-label">Région</label>
+            <input class="form-control" type="text" id="state" name="state" placeholder="Île-de-France" value="{{ accountForm.state }}" />
           </div>
           <div class="col-md-6">
-            <label for="zipCode" class="form-label">Zip Code</label>
+            <label for="zipCode" class="form-label">Code postal</label>
             <input
               type="text"
               class="form-control"
               id="zipCode"
               name="zipCode"
-              placeholder="231465"
-              maxlength="6"
+              placeholder="75001"
+              maxlength="10"
               value="{{ accountForm.zipCode }}" />
           </div>
           <div class="col-md-6">
-            <label class="form-label" for="country">Country</label>
+            <label class="form-label" for="country">Pays</label>
             <select id="country" class="select2 form-select" name="country">
-              <option value="">Select</option>
+              <option value="">Sélectionner</option>
               <option value="Australia" {{ accountForm.country == 'Australia' ? 'selected' }}>Australia</option>
               <option value="Bangladesh">Bangladesh</option>
               <option value="Belarus">Belarus</option>
@@ -143,19 +143,19 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label for="language" class="form-label">Language</label>
+            <label for="language" class="form-label">Langue</label>
             <select id="language" class="select2 form-select" name="language">
-              <option value="">Select Language</option>
-              <option value="en" {{ accountForm.language == 'en' ? 'selected' }}>English</option>
-              <option value="fr" {{ accountForm.language == 'fr' ? 'selected' }}>French</option>
-              <option value="de" {{ accountForm.language == 'de' ? 'selected' }}>German</option>
-              <option value="pt" {{ accountForm.language == 'pt' ? 'selected' }}>Portuguese</option>
+              <option value="">Choisir une langue</option>
+              <option value="fr" {{ accountForm.language == 'fr' ? 'selected' }}>Français</option>
+              <option value="en" {{ accountForm.language == 'en' ? 'selected' }}>Anglais</option>
+              <option value="de" {{ accountForm.language == 'de' ? 'selected' }}>Allemand</option>
+              <option value="pt" {{ accountForm.language == 'pt' ? 'selected' }}>Portugais</option>
             </select>
           </div>
           <div class="col-md-6">
-            <label for="timeZones" class="form-label">Timezone</label>
+            <label for="timeZones" class="form-label">Fuseau horaire</label>
             <select id="timeZones" class="select2 form-select" name="timeZones">
-              <option value="">Select Timezone</option>
+              <option value="">Sélectionner</option>
               <option value="-12" {{ accountForm.timeZones == '-12' ? 'selected' }}>(GMT-12:00) International Date Line West</option>
               <option value="-11" {{ accountForm.timeZones == '-11' ? 'selected' }}>(GMT-11:00) Midway Island, Samoa</option>
               <option value="-10" {{ accountForm.timeZones == '-10' ? 'selected' }}>(GMT-10:00) Hawaii</option>
@@ -177,19 +177,19 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label for="currency" class="form-label">Currency</label>
+            <label for="currency" class="form-label">Devise</label>
             <select id="currency" class="select2 form-select" name="currency">
-              <option value="">Select Currency</option>
-              <option value="usd" {{ accountForm.currency == 'usd' ? 'selected' }}>USD</option>
+              <option value="">Sélectionner</option>
               <option value="euro" {{ accountForm.currency == 'euro' ? 'selected' }}>Euro</option>
-              <option value="pound" {{ accountForm.currency == 'pound' ? 'selected' }}>Pound</option>
+              <option value="usd" {{ accountForm.currency == 'usd' ? 'selected' }}>Dollar US</option>
+              <option value="pound" {{ accountForm.currency == 'pound' ? 'selected' }}>Livre sterling</option>
               <option value="bitcoin" {{ accountForm.currency == 'bitcoin' ? 'selected' }}>Bitcoin</option>
             </select>
           </div>
         </div>
         <div class="mt-6">
-          <button type="submit" class="btn btn-primary me-3">Save my details</button>
-          <button type="reset" class="btn btn-outline-secondary">Reset</button>
+          <button type="submit" class="btn btn-primary me-3">Enregistrer</button>
+          <button type="reset" class="btn btn-outline-secondary">Réinitialiser</button>
         </div>
       </div>
     </form>
@@ -197,49 +197,49 @@
 
   <div class="card mb-6">
     <div class="card-header">
-      <h5 class="mb-0">Password &amp; security</h5>
-      <small class="text-muted">Change your password whenever something feels off.</small>
+      <h5 class="mb-0">Mot de passe et sécurité</h5>
+      <small class="text-muted">Changez-le dès qu’un doute apparaît.</small>
     </div>
     <div class="card-body">
       <form method="post" action="{{ path('portal_account') }}" class="row g-6" novalidate>
         <input type="hidden" name="_token" value="{{ csrf_token('account_password') }}" />
         <input type="hidden" name="section" value="password" />
         <div class="col-md-4">
-          <label for="currentPassword" class="form-label">Current password</label>
+          <label for="currentPassword" class="form-label">Mot de passe actuel</label>
           <input type="password" class="form-control" id="currentPassword" name="currentPassword" autocomplete="current-password" />
         </div>
         <div class="col-md-4">
-          <label for="newPassword" class="form-label">New password</label>
+          <label for="newPassword" class="form-label">Nouveau mot de passe</label>
           <input type="password" class="form-control" id="newPassword" name="newPassword" autocomplete="new-password" />
         </div>
         <div class="col-md-4">
-          <label for="confirmPassword" class="form-label">Confirm password</label>
+          <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
           <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" autocomplete="new-password" />
         </div>
         <div class="col-12 d-flex align-items-center">
-          <button type="submit" class="btn btn-primary me-3">Update password</button>
-          <small class="text-muted">At least 8 characters, ideally with a symbol or number.</small>
+          <button type="submit" class="btn btn-primary me-3">Mettre à jour</button>
+          <small class="text-muted">8 caractères minimum, idéalement avec un symbole ou un chiffre.</small>
         </div>
       </form>
     </div>
   </div>
 
   <div class="card">
-    <h5 class="card-header">Need a break?</h5>
+    <h5 class="card-header">Besoin d’une pause ?</h5>
     <div class="card-body">
       <div class="mb-6 col-12 mb-0">
         <div class="alert alert-warning">
-          <h5 class="alert-heading mb-1">Deleting your account removes your household history.</h5>
-          <p class="mb-0">Take a moment to be sure — once removed, we can&apos;t restore your past contributions.</p>
+          <h5 class="alert-heading mb-1">Supprimer votre compte efface l’historique du foyer.</h5>
+          <p class="mb-0">Prenez un instant : une fois supprimé, l’historique ne pourra pas être restauré.</p>
         </div>
       </div>
       <form id="formAccountDeactivation" method="post" action="{{ path('portal_account_delete') }}" novalidate>
         <input type="hidden" name="_token" value="{{ csrf_token('account_delete') }}" />
         <div class="form-check my-8 ms-2">
           <input class="form-check-input" type="checkbox" name="accountActivation" id="accountActivation" />
-          <label class="form-check-label" for="accountActivation">I understand my account will be removed</label>
+          <label class="form-check-label" for="accountActivation">Je comprends que mon compte sera supprimé</label>
         </div>
-        <button type="submit" class="btn btn-danger deactivate-account">Delete my account</button>
+        <button type="submit" class="btn btn-danger deactivate-account">Supprimer mon compte</button>
       </form>
     </div>
   </div>
@@ -247,40 +247,40 @@
   <div class="card mt-6">
     <div class="card-header d-flex justify-content-between align-items-center">
       <div>
-        <h5 class="mb-0">Badges &amp; recognitions</h5>
-        <small class="text-muted">A quick look at personal and family achievements.</small>
+        <h5 class="mb-0">Badges et reconnaissances</h5>
+        <small class="text-muted">Un aperçu des réussites personnelles et familiales.</small>
       </div>
     </div>
     <div class="card-body">
       <div class="row g-4">
         <div class="col-lg-6">
-          <h6 class="fw-semibold mb-2">Your badges</h6>
+          <h6 class="fw-semibold mb-2">Vos badges</h6>
           {% if metrics.badges is empty %}
-            <p class="text-muted">No badges yet. Stay consistent with your routines to unlock them.</p>
+            <p class="text-muted">Pas encore de badge. Gardez le rythme pour les débloquer.</p>
           {% else %}
             <ul class="list-unstyled mb-0">
               {% for badge in metrics.badges %}
                 <li class="mb-3">
                   <div class="fw-semibold">{{ badge.name }}</div>
-                  <small class="text-muted">{{ badge.description ?? 'Earned through steady progress.' }}</small>
+                  <small class="text-muted">{{ badge.description ?? 'Obtenu grâce à une progression régulière.' }}</small>
                 </li>
               {% endfor %}
             </ul>
           {% endif %}
         </div>
         <div class="col-lg-6">
-          <h6 class="fw-semibold mb-2">Family badges</h6>
+          <h6 class="fw-semibold mb-2">Badges de la famille</h6>
           {% if metrics.familyBadges is empty %}
-            <p class="text-muted">Invite someone to your household to start unlocking team badges.</p>
+            <p class="text-muted">Invitez un proche pour débloquer les badges d’équipe.</p>
           {% else %}
             <ul class="list-unstyled mb-0">
               {% for badge in metrics.familyBadges %}
                 <li class="mb-3">
                   <div class="fw-semibold">{{ badge.name }}</div>
                   <small class="text-muted">
-                    {{ badge.description ?? 'Shared recognition for everyone' }}
+                    {{ badge.description ?? 'Reconnaissance partagée par tous' }}
                     {% if badge.awardedAt %}
-                      · awarded {{ badge.awardedAt|date('M d') }}
+                      · attribué le {{ badge.awardedAt|date('d M') }}
                     {% endif %}
                   </small>
                 </li>

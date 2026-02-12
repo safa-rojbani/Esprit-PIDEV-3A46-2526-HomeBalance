@@ -57,6 +57,10 @@ final class FamilyGuardSubscriber implements EventSubscriberInterface
             return;
         }
 
+        if ($user->getSystemRole()?->value === 'ADMIN' || $this->security->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+
         if ($this->familyResolver->hasActiveFamily($user)) {
             return;
         }

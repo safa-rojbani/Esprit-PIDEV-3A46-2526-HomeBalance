@@ -1,12 +1,12 @@
 {% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}Account Settings · Signal Preferences{% endblock %}
+{% block title %}Paramètres du compte · Préférences de signal{% endblock %}
 
 {% block content %}
   {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'preferences' } %}
 
   {% set pref = preferences.data %}
-  {% set lastTuned = pref.updatedAt is defined and pref.updatedAt ? pref.updatedAt|date('M j, H:i') : 'not set yet' %}
+  {% set lastTuned = pref.updatedAt is defined and pref.updatedAt ? pref.updatedAt|date('d M, H:i') : 'pas encore défini' %}
 
   <div class="row g-6 align-items-start">
     <div class="col-lg-7">
@@ -17,11 +17,11 @@
         <div class="card-body">
           <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
             <div>
-              <h5 class="mb-1">Signal priorities</h5>
-              <p class="mb-0 text-muted">Tell HomeBalance what deserves a nudge and when you would rather stay heads-down.</p>
+              <h5 class="mb-1">Priorités de signal</h5>
+              <p class="mb-0 text-muted">Dites à HomeBalance ce qui mérite un rappel et quand rester concentré.</p>
             </div>
             <div class="text-lg-end">
-              <small class="text-muted d-block">Last tuned · {{ lastTuned }}</small>
+              <small class="text-muted d-block">Dernier réglage · {{ lastTuned }}</small>
             </div>
           </div>
 
@@ -37,8 +37,8 @@
         </div>
 
         <div class="card-body border-top">
-          <h6 class="mb-2">Topics you actually care about</h6>
-          <p class="text-muted">Pick the conversations worth interrupting you for.</p>
+          <h6 class="mb-2">Sujets qui comptent</h6>
+          <p class="text-muted">Choisissez ce qui mérite de vous interrompre.</p>
           <div class="row g-4">
             {% for key, topic in preferences.topics %}
               {% set inputId = 'topic-' ~ key %}
@@ -59,8 +59,8 @@
         </div>
 
         <div class="card-body border-top">
-          <h6 class="mb-2">Where pings should land</h6>
-          <p class="text-muted">Layer channels so important chores are impossible to miss.</p>
+          <h6 class="mb-2">Canaux de notification</h6>
+          <p class="text-muted">Combinez les canaux pour ne rien manquer d’important.</p>
           <div class="row g-4">
             {% for key, channel in preferences.channels %}
               {% set inputId = 'channel-' ~ key %}
@@ -82,63 +82,63 @@
         </div>
 
         <div class="card-body border-top">
-          <h6 class="mb-2">Quiet hours &amp; digest rhythm</h6>
-          <p class="text-muted">Protect focus time, then let us wrap things up in a weekly summary.</p>
+          <h6 class="mb-2">Heures calmes et synthèse</h6>
+          <p class="text-muted">Protégez votre attention puis recevez un récapitulatif hebdomadaire.</p>
           <div class="row g-4">
             <div class="col-sm-6">
-              <label for="quietStart" class="form-label">Quiet hours start</label>
+              <label for="quietStart" class="form-label">Début des heures calmes</label>
               <input type="time" class="form-control" id="quietStart" name="preferences[quietStart]" value="{{ pref.quietStart ?? '' }}" />
             </div>
             <div class="col-sm-6">
-              <label for="quietEnd" class="form-label">Quiet hours end</label>
+              <label for="quietEnd" class="form-label">Fin des heures calmes</label>
               <input type="time" class="form-control" id="quietEnd" name="preferences[quietEnd]" value="{{ pref.quietEnd ?? '' }}" />
             </div>
             <div class="col-12">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="weeklySummary" name="preferences[weeklySummary]" value="1" {{ pref.weeklySummary ? 'checked' }} />
-                <label class="form-check-label" for="weeklySummary">Send me a weekly digest that blends finances, chores, and mood check-ins.</label>
+                <label class="form-check-label" for="weeklySummary">Recevoir une synthèse hebdomadaire (budget, tâches, climat familial).</label>
               </div>
             </div>
           </div>
         </div>
 
         <div class="card-body border-top d-flex flex-column flex-md-row align-items-md-center gap-3">
-          <button type="submit" class="btn btn-primary">Save preferences</button>
-          <button type="reset" class="btn btn-outline-secondary">Reset form</button>
-          <small class="text-muted">These settings apply across HomeBalance web and mobile.</small>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+          <button type="reset" class="btn btn-outline-secondary">Réinitialiser</button>
+          <small class="text-muted">Ces réglages s’appliquent sur le web et le mobile.</small>
         </div>
       </form>
     </div>
     <div class="col-lg-5">
       <div class="card border-0 shadow-sm bg-body-tertiary h-100">
         <div class="card-body">
-          <h6 class="text-uppercase text-muted fw-semibold mb-3">How HomeBalance uses this</h6>
+          <h6 class="text-uppercase text-muted fw-semibold mb-3">Comment HomeBalance s’en sert</h6>
           <ul class="list-unstyled mb-4">
             <li class="d-flex mb-3">
               <i class="icon-base bx bx-target-lock text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Focus on signal over noise</div>
-                <small class="text-muted">Topics drive which automations run and what appears on your dashboard hero moments.</small>
+                <div class="fw-semibold">Prioriser l’essentiel</div>
+                <small class="text-muted">Les sujets pilotent les automatisations et ce qui apparaît sur votre tableau de bord.</small>
               </div>
             </li>
             <li class="d-flex mb-3">
               <i class="icon-base bx bx-navigation text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Respect your availability</div>
-                <small class="text-muted">Quiet hours mute proactive nudges but keep critical alerts accessible from the log.</small>
+                <div class="fw-semibold">Respecter votre disponibilité</div>
+                <small class="text-muted">Les heures calmes réduisent les alertes, sans perdre les informations clés.</small>
               </div>
             </li>
             <li class="d-flex">
               <i class="icon-base bx bx-line-chart text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Tell richer stories</div>
-                <small class="text-muted">Weekly digests stitch together savings, tasks, and wellbeing cues for your family check-ins.</small>
+                <div class="fw-semibold">Mieux raconter le quotidien</div>
+                <small class="text-muted">La synthèse réunit budget, tâches et bien-être pour vos points famille.</small>
               </div>
             </li>
           </ul>
           <div class="bg-label-primary rounded p-4">
-            <p class="mb-2 fw-semibold">Pro tip</p>
-            <p class="mb-0 text-muted">Pair email + push for essential categories, then enable SMS when traveling or during intense seasons.</p>
+            <p class="mb-2 fw-semibold">Astuce</p>
+            <p class="mb-0 text-muted">Combinez e-mail et notifications push, puis activez les SMS lors des périodes chargées.</p>
           </div>
         </div>
       </div>

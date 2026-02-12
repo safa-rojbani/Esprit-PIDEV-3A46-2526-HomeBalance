@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\RappelRepository;
 use Doctrine\ORM\Mapping as ORM;
-use App\Enum\RappelEvenement;
 
 #[ORM\Entity(repositoryClass: RappelRepository::class)]
 class Rappel
@@ -25,6 +24,12 @@ class Rappel
 
     #[ORM\Column]
     private ?bool $estLu = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $scheduledAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $readAt = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -53,14 +58,14 @@ class Rappel
         return $this;
     }
 
-    public function getCanal(): ?RappelEvenement
+    public function getCanal(): ?string
     {
-        return $this->canal ? RappelEvenement::from($this->canal) : null;
+        return $this->canal;
     }
 
-    public function setCanal(RappelEvenement $canal): static
+    public function setCanal(string $canal): static
     {
-        $this->canal = $canal->value;
+        $this->canal = $canal;
 
         return $this;
     }
@@ -85,6 +90,30 @@ class Rappel
     public function setEstLu(bool $estLu): static
     {
         $this->estLu = $estLu;
+
+        return $this;
+    }
+
+    public function getScheduledAt(): ?\DateTimeImmutable
+    {
+        return $this->scheduledAt;
+    }
+
+    public function setScheduledAt(\DateTimeImmutable $scheduledAt): static
+    {
+        $this->scheduledAt = $scheduledAt;
+
+        return $this;
+    }
+
+    public function getReadAt(): ?\DateTimeImmutable
+    {
+        return $this->readAt;
+    }
+
+    public function setReadAt(?\DateTimeImmutable $readAt): static
+    {
+        $this->readAt = $readAt;
 
         return $this;
     }

@@ -1,0 +1,62 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Types d'événements{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Types d'événements</h4>
+  <a href="{{ path('admin_type_evenement_new') }}" class="btn btn-primary">
+    + Ajouter un type
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom</th>
+          <th>Couleur</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% for t in type_evenements %}
+        <tr>
+          <td>{{ t.id }}</td>
+          <td class="fw-semibold">{{ t.nom }}</td>
+          <td>{{ t.couleur }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-info"
+               href="{{ path('admin_type_evenement_show', { id: t.id }) }}">
+              Voir
+            </a>
+            <a class="btn btn-sm btn-outline-warning"
+               href="{{ path('admin_type_evenement_edit', { id: t.id }) }}">
+              Modifier
+            </a>
+            <form method="post"
+                  action="{{ path('admin_type_evenement_delete', { id: t.id }) }}"
+                  style="display:inline-block"
+                  onsubmit="return confirm('Supprimer ce type ?');">
+              <input type="hidden" name="_token"
+                     value="{{ csrf_token('delete' ~ t.id) }}">
+              <button class="btn btn-sm btn-outline-danger">
+                Supprimer
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">
+            Aucun type trouvé
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

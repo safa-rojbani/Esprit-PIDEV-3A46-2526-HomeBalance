@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+  <title>{% block title %}HomeBalance{% endblock %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ asset('materio/img/favicon/favicon.ico') }}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/fonts/iconify-icons.css') }}" />
+
+  <link rel="stylesheet" href="{{ asset('materio/vendor/css/core.css') }}" />
+  <link rel="stylesheet" href="{{ asset('materio/css/demo.css') }}" />
+
+  <script src="{{ asset('materio/vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('materio/js/config.js') }}"></script>
+
+  <style>
+    .layout-menu {
+      background-color: #f3e8ff;
+    }
+    .notif-bell {
+      color: #ffffff;
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .notif-bell-wrap {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1f1f1f;
+      border-radius: 50%;
+    }
+    .toast-container {
+      right: 1.25rem;
+      bottom: 1.25rem;
+      top: auto;
+    }
+    .toast-notif {
+      background: #ffffff;
+      border-left: 4px solid #6366f1;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.16);
+      min-width: 280px;
+    }
+    .toast-notif .toast-body {
+      color: #1f2937;
+      font-weight: 600;
+    }
+    .toast-notif .btn-close {
+      opacity: 0.6;
+    }
+  </style>
+
+  {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+
+    {% set route = app.request.attributes.get('_route') %}
+    {% set active_menu = active_menu|default(
+      (route starts with 'app_evenement'
+        or route starts with 'app_rappel'
+        or route starts with 'app_type_evenement'
+        or route starts with 'app_calendar'
+        or route starts with 'app_notifications') ? 'module-events'
+      : (route starts with 'app_gallery'
+        or route starts with 'app_document'
+        or route starts with 'app_default_gallery') ? 'module-documents'
+      : (route starts with 'app_achat'
+        or route starts with 'app_revenu'
+        or route starts with 'app_historique_achat'
+        or route starts with 'app_categorie_achat') ? 'module-charge'
+      : (route starts with 'parent_task'
+        or route starts with 'child_task'
+        or route starts with 'family_task'
+        or route starts with 'parent_validation'
+        or route starts with 'admin_task') ? 'module-tasks'
+      : 'dashboard'
+    ) %}
+    {% set module_submenus = module_submenus|default({
+      'module-charge': [
+        {'label': 'Achats', 'route': 'app_achat_index'},
+        {'label': 'Historique', 'route': 'app_historique_achat_index'},
+        {'label': 'Revenus', 'route': 'app_revenu_index'},
+        {'label': 'Budget', 'route': 'app_revenu_budget'}
+      ],
+      'module-documents': [
+        {'label': 'Galeries', 'route': 'app_gallery_index'},
+        {'label': 'Documents', 'route': 'app_document_index'},
+        {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+        {'label': 'Corbeille', 'route': 'app_document_trash'}
+      ],
+      'module-tasks': [
+        {'label': 'Tâches parent', 'route': 'parent_task_index'},
+        {'label': 'Assignations parent', 'route': 'parent_task_assign'},
+        {'label': 'Tâches enfant', 'route': 'child_task_index'},
+        {'label': 'Tâches famille', 'route': 'family_task_list'},
+        {'label': 'Validations', 'route': 'parent_validation_index'}
+      ],
+      'module-events': [
+        {'label': 'Événements', 'route': 'app_evenement_index'},
+        {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
+        {'label': 'Rappels', 'route': 'app_rappel_history'},
+        {'label': 'Calendrier', 'route': 'app_calendar'}
+      ]
+    }) %}
+
+    {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
+
+    <div class="layout-page">
+      <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+           id="layout-navbar">
+        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+          <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+            <i class="iconify mdi-24px" data-icon="mdi:menu"></i>
+          </a>
+        </div>
+
+        <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+          <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+              <i class="iconify mdi-24px lh-0" data-icon="mdi:magnify"></i>
+              <input type="text" class="form-control border-0 shadow-none bg-body" placeholder="Rechercher..." />
+            </div>
+          </div>
+
+          <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item me-3">
+              <a class="nav-link position-relative" href="{{ path('app_notifications') }}" aria-label="Notifications">
+                <span class="notif-bell-wrap">
+                  <svg class="notif-bell" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m6-6V11a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1z"/>
+                  </svg>
+                </span>
+                <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle bg-danger text-white"
+                      style="display:none; width:18px; height:18px; line-height:18px; font-size:11px; border-radius:50%; text-align:center;">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <span class="fw-semibold">HomeBalance</span>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+          {% for label, messages in app.flashes %}
+            {% for message in messages %}
+              <div class="alert alert-{{ label }} mb-3">{{ message }}</div>
+            {% endfor %}
+          {% endfor %}
+
+          {% block body %}{% endblock %}
+        </div>
+
+        <footer class="content-footer footer bg-footer-theme">
+          <div class="container-xxl">
+            <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+              <div class="text-body">© {{ "now"|date("Y") }} HomeBalance</div>
+            </div>
+          </div>
+        </footer>
+
+        <div class="content-backdrop fade"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="layout-overlay layout-menu-toggle"></div>
+</div>
+
+<script src="{{ asset('materio/vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('materio/vendor/js/menu.js') }}"></script>
+<script src="{{ asset('materio/js/main.js') }}"></script>
+
+<!-- Notification Toast Container -->
+  <div class="toast-container position-fixed p-3" style="z-index: 1080;">
+    <div id="notifToast" class="toast toast-notif align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="notifToastText"></div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    const shown = new Set(JSON.parse(sessionStorage.getItem('shown_notifications') || '[]'));
+
+    const showToast = (text) => {
+      const textEl = document.getElementById('notifToastText');
+      const toastEl = document.getElementById('notifToast');
+      if (!textEl || !toastEl || !window.bootstrap) return;
+      textEl.textContent = text;
+      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 5000 });
+      toast.show();
+    };
+
+    const updateBadge = (count) => {
+      const badge = document.getElementById('notifBadge');
+      if (!badge) return;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    };
+
+    const fetchNotifications = () => {
+      fetch('{{ path('app_notifications_pending') }}')
+        .then((res) => res.json())
+        .then((items) => {
+          updateBadge(items.length);
+          items.forEach((item) => {
+            if (shown.has(item.id)) return;
+            showToast(item.message);
+            shown.add(item.id);
+            sessionStorage.setItem('shown_notifications', JSON.stringify(Array.from(shown)));
+            fetch('{{ path('app_notification_read', { id: 0 }) }}'.replace('/0/', '/' + item.id + '/'), {
+              method: 'POST',
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+          });
+        })
+        .catch(() => {});
+    };
+
+    fetchNotifications();
+    setInterval(fetchNotifications, 30000);
+  })();
+</script>
+
+{% block javascripts %}{% endblock %}
+</body>
+</html>

@@ -1,12 +1,43 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}{{ title|default('Tache parent') }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+{% endblock %}
+
 {% block body %}
-<h1>{{ title }}</h1>
+<div class="task-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">{{ title|default('Tache parent') }}</h1>
+            <p class="tm-subtitle">Completez les informations de la tache familiale.</p>
+        </div>
+        <a href="{{ path('parent_task_index') }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back"></i>
+            Retour
+        </a>
+    </div>
 
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button type="submit">💾 Enregistrer</button>
-{{ form_end(form) }}
-
-<a href="{{ path('parent_task_index') }}">⬅ Retour</a>
+    <div class="card tm-card tm-form-wrap">
+        <div class="card-body">
+            {{ form_start(form) }}
+                <div class="row g-3">
+                    <div class="col-12">{{ form_row(form.title) }}</div>
+                    <div class="col-12">{{ form_row(form.description) }}</div>
+                    <div class="col-md-6">{{ form_row(form.difficulty) }}</div>
+                    <div class="col-md-6">{{ form_row(form.recurrence) }}</div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-save"></i>
+                        Enregistrer
+                    </button>
+                    <a href="{{ path('parent_task_index') }}" class="btn btn-label-secondary">Annuler</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
 {% endblock %}

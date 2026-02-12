@@ -4,23 +4,116 @@
     <meta charset="UTF-8">
     <title>{% block title %}HomeBalance{% endblock %}</title>
 
-  <!-- Sneat CSS -->
-  <link rel="stylesheet" href="{{ asset('css/core.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/demo.css') }}">
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/fonts/boxicons.css') }}">
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}">
+  <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/theme-default.css') }}">
 
-    {% block stylesheets %}{% endblock %}
+  <style>
+    body { background: #f5f5f9; }
+  </style>
 
-    <!-- Sneat helpers -->
-    <script src="{{ asset('assets/js/helpers.js') }}"></script>
+  {% block stylesheets %}{% endblock %}
+
+  <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
+  <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
+
+  {% block javascripts %}{% endblock %}
 </head>
 
-   <body>
-  {% block body %}{% endblock %}
+<body>
 
-  <!-- Sneat JS -->
-  <script src="{{ asset('js/helpers.js') }}"></script>
-  <script src="{{ asset('js/config.js') }}"></script>
-  <script src="{{ asset('js/main.js') }}"></script>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+
+    {% set route = app.request.attributes.get('_route') %}
+    {% set active_menu = active_menu|default(
+      (route starts with 'app_evenement'
+        or route starts with 'app_rappel'
+        or route starts with 'app_type_evenement'
+        or route starts with 'app_calendar'
+        or route starts with 'app_notifications') ? 'module-events'
+      : (route starts with 'app_gallery'
+        or route starts with 'app_document'
+        or route starts with 'app_default_gallery') ? 'module-documents'
+      : (route starts with 'app_achat'
+        or route starts with 'app_revenu'
+        or route starts with 'app_historique_achat'
+        or route starts with 'app_categorie_achat') ? 'module-charge'
+      : (route starts with 'parent_task'
+        or route starts with 'child_task'
+        or route starts with 'family_task'
+        or route starts with 'parent_validation'
+        or route starts with 'admin_task') ? 'module-tasks'
+      : 'dashboard'
+    ) %}
+    {% set module_submenus = module_submenus|default({
+      'module-charge': [
+        {'label': 'Achats', 'route': 'app_achat_index'},
+        {'label': 'Historique', 'route': 'app_historique_achat_index'},
+        {'label': 'Revenus', 'route': 'app_revenu_index'},
+        {'label': 'Budget', 'route': 'app_revenu_budget'}
+      ],
+      'module-documents': [
+        {'label': 'Galeries', 'route': 'app_gallery_index'},
+        {'label': 'Documents', 'route': 'app_document_index'},
+        {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+        {'label': 'Corbeille', 'route': 'app_document_trash'}
+      ],
+      'module-tasks': [
+        {'label': 'Tâches parent', 'route': 'parent_task_index'},
+        {'label': 'Assignations parent', 'route': 'parent_task_assign'},
+        {'label': 'Tâches enfant', 'route': 'child_task_index'},
+        {'label': 'Tâches famille', 'route': 'family_task_list'},
+        {'label': 'Validations', 'route': 'parent_validation_index'}
+      ],
+      'module-events': [
+        {'label': 'Événements', 'route': 'app_evenement_index'},
+        {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
+        {'label': 'Rappels', 'route': 'app_rappel_history'},
+        {'label': 'Calendrier', 'route': 'app_calendar'}
+      ]
+    }) %}
+
+    {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
+
+    <div class="layout-page">
+      <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme">
+        <div class="navbar-nav-right d-flex align-items-center w-100">
+          <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+              <i class="bx bx-search fs-4 lh-0 me-2"></i>
+              <input class="form-control border-0 shadow-none" placeholder="Search (placeholder)" />
+            </div>
+          </div>
+
+          <div class="navbar-nav flex-row align-items-center ms-auto">
+            <span class="text-muted small">HomeBalance</span>
+          </div>
+        </div>
+      </nav>
+
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+
+          {% block body %}
+            {% block content %}{% endblock %}
+          {% endblock %}
+
+        </div>
+        <div class="content-backdrop fade"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="layout-overlay layout-menu-toggle"></div>
+
+<script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('sneat/assets/vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('sneat/assets/vendor/js/menu.js') }}"></script>
+<script src="{{ asset('sneat/assets/js/main.js') }}"></script>
+
 </body>
 </html>

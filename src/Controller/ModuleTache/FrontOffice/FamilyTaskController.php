@@ -3,42 +3,66 @@
 namespace App\Controller\ModuleTache\FrontOffice;
 
 use App\Entity\User;
+use App\Entity\Family;
+use App\Enum\FamilyRole;
 use App\Repository\TaskRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/parent/family')]
+#[Route('/portal/tasks/family')]
 class FamilyTaskController extends AbstractController
 {
-    private function getParent(EntityManagerInterface $em): User
-    {
-        $parent = $em->getRepository(User::class)->findOneBy([
-            'email' => 'parent@test.com'
-        ]);
-
-        if (!$parent) {
-            throw new \Exception('Parent introuvable');
-        }
-
-        return $parent;
-    }
-
     #[Route('/tasks', name: 'family_task_list')]
     public function list(
+        Request $request,
         TaskRepository $taskRepository,
-        EntityManagerInterface $em
+        ActiveFamilyResolver $familyResolver
     ): Response {
-        $parent = $this->getParent($em);
-        $family = $parent->getFamily();
+        [$user, $family] = $this->resolveUserAndFamily($familyResolver);
+        $this->ensureParentOrChild($user);
 
-        $tasks = $taskRepository->findBy([
-            'family' => $family
-        ]);
+        $search = trim((string) $request->query->get('q', ''));
+        $sort = (string) $request->query->get('sort', 'newest');
+        $allowedSorts = ['newest', 'oldest', 'title_az', 'title_za'];
+        if (!\in_array($sort, $allowedSorts, true)) {
+            $sort = 'newest';
+        }
+
+        $tasks = $taskRepository->findActiveFamilyTasksFiltered($family, $search, $sort);
 
         return $this->render('ModuleTache/frontoffice/family/tasks.html.twig', [
             'tasks' => $tasks,
+            'currentSearch' => $search,
+            'currentSort' => $sort,
         ]);
+    }
+
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
+    }
+
+    private function ensureParentOrChild(User $user): void
+    {
+        $role = $user->getFamilyRole();
+        if ($role !== FamilyRole::PARENT && $role !== FamilyRole::CHILD) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

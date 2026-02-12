@@ -1,0 +1,625 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Détails Achat{% endblock %}
+{% block page_title %}Détails de l'achat{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+
+      {# Breadcrumb moderne #}
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb-modern">
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_achat_index') }}">
+              <i class="bi bi-cart"></i>
+              Mes achats
+            </a>
+          </li>
+          <li class="breadcrumb-item-active">
+            {{ achat.nomArticle }}
+          </li>
+        </ol>
+      </nav>
+
+      {# Card principale moderne #}
+      <div class="card-modern shadow-lg">
+        
+        {# Header avec statut #}
+        <div class="card-modern-header {% if achat.estAchete %}header-success{% else %}header-pending{% endif %}">
+          <div class="d-flex align-items-center gap-3">
+            {# Grand icône selon le statut #}
+            <div class="avatar-modern-large {% if achat.estAchete %}avatar-success{% else %}avatar-pending{% endif %}">
+              <i class="bi {% if achat.estAchete %}bi-check-circle{% else %}bi-cart{% endif %}"></i>
+            </div>
+            
+            <div class="flex-grow-1">
+              <h3 class="mb-2 fw-bold">{{ achat.nomArticle }}</h3>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                {% if achat.estAchete %}
+                  <span class="status-badge-large status-badge-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Acheté
+                  </span>
+                {% else %}
+                  <span class="status-badge-large status-badge-pending">
+                    <i class="bi bi-clock-fill"></i>
+                    À acheter
+                  </span>
+                {% endif %}
+                
+                <span class="text-muted" style="font-size:.9rem;">
+                  <i class="bi bi-calendar3"></i>
+                  Créé le {{ achat.createdAt ? achat.createdAt|date('d/m/Y à H:i') : '—' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ path('app_achat_index') }}" class="btn-modern btn-modern-secondary">
+              <i class="bi bi-arrow-left"></i>
+              <span>Retour</span>
+            </a>
+            <a href="{{ path('app_achat_edit', {'id': achat.id}) }}" class="btn-modern btn-modern-warning">
+              <i class="bi bi-pencil-square"></i>
+              <span>Modifier</span>
+            </a>
+          </div>
+        </div>
+
+        {# Séparateur #}
+        <div class="divider-modern"></div>
+
+        {# Informations détaillées #}
+        <div class="card-modern-body">
+          <h5 class="section-title">
+            <i class="bi bi-info-circle me-2"></i>
+            Informations
+          </h5>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon info-card-icon-primary">
+                  <i class="bi bi-hash"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Identifiant</div>
+                  <div class="info-card-value">#{{ achat.id }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon {% if achat.estAchete %}info-card-icon-success{% else %}info-card-icon-warning{% endif %}">
+                  <i class="bi {% if achat.estAchete %}bi-check-circle{% else %}bi-clock{% endif %}"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Statut</div>
+                  <div class="info-card-value">
+                    {% if achat.estAchete %}Acheté{% else %}Non acheté{% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon info-card-icon-info">
+                  <i class="bi bi-tag"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Catégorie</div>
+                  <div class="info-card-value">
+                    {{ achat.categorie ? achat.categorie.nomCategorie : 'Non catégorisé' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-card">
+                <div class="info-card-icon info-card-icon-secondary">
+                  <i class="bi bi-calendar3"></i>
+                </div>
+                <div class="info-card-content">
+                  <div class="info-card-label">Date de création</div>
+                  <div class="info-card-value">
+                    {{ achat.createdAt ? achat.createdAt|date('d/m/Y H:i') : '—' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Séparateur #}
+        <div class="divider-modern"></div>
+
+        {# Actions #}
+        <div class="card-modern-footer">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              {% if not achat.estAchete %}
+                <a href="{{ path('app_achat_confirmer', {'id': achat.id}) }}" 
+                   class="btn-modern btn-modern-success">
+                  <i class="bi bi-check-circle"></i>
+                  <span>Marquer comme acheté</span>
+                </a>
+              {% else %}
+                <form method="post"
+                      action="{{ path('app_achat_annuler', {'id': achat.id}) }}"
+                      style="display:inline-block;"
+                      class="form-annuler">
+                  <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ achat.id) }}">
+                  <button class="btn-modern btn-modern-secondary">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span>Annuler l'achat</span>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+
+            <div>
+              <button type="button" class="btn-modern btn-modern-danger" id="deleteBtn">
+                <i class="bi bi-trash"></i>
+                <span>Supprimer</span>
+              </button>
+            </div>
+
+            {# Formulaire de suppression caché #}
+            <div style="display:none;">
+              {{ include('module_charge/User/achat/_delete_form.html.twig') }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {# Info supplémentaire si non acheté #}
+      {% if not achat.estAchete %}
+        <div class="help-card mt-4">
+          <div class="help-card-icon">
+            <i class="bi bi-lightbulb"></i>
+          </div>
+          <div class="help-card-content">
+            <h6 class="mb-1 fw-semibold">💡 Astuce</h6>
+            <p class="mb-0 text-muted" style="font-size:.9rem;">
+              Marque cet article comme acheté pour suivre ton historique d'achats et mieux gérer ton budget.
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{# Scripts #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Confirmation annulation
+  const formAnnuler = document.querySelector('.form-annuler');
+  if (formAnnuler) {
+    formAnnuler.addEventListener('submit', function(e) {
+      if (!confirm('Annuler cet achat ?\n\nCela supprimera l\'historique associé.')) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // Confirmation suppression
+  const deleteBtn = document.getElementById('deleteBtn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', function() {
+      if (confirm('Supprimer définitivement cet achat ?\n\nCette action est irréversible.')) {
+        const form = document.querySelector('form[name="delete"]') || document.querySelector('form[method="post"]');
+        if (form) {
+          form.submit();
+        }
+      }
+    });
+  }
+});
+</script>
+
+{# Styles modernes #}
+<style>
+  /* === BREADCRUMB MODERNE === */
+  .breadcrumb-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    list-style: none;
+  }
+
+  .breadcrumb-modern .breadcrumb-item a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .breadcrumb-modern .breadcrumb-item a:hover {
+    color: #667eea;
+  }
+
+  .breadcrumb-modern .breadcrumb-item-active {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .breadcrumb-modern .breadcrumb-item::after {
+    content: '›';
+    color: #d1d5db;
+    margin-left: 8px;
+    font-size: 16px;
+  }
+
+  .breadcrumb-modern .breadcrumb-item:last-child::after {
+    display: none;
+  }
+
+  /* === CARD MODERNE === */
+  .card-modern {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+  }
+
+  .card-modern-header {
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+  }
+
+  .header-pending {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+  }
+
+  .card-modern-body {
+    padding: 32px;
+  }
+
+  .card-modern-footer {
+    padding: 24px 32px;
+    background: #f9fafb;
+    border-top: 2px solid #f3f4f6;
+  }
+
+  /* === AVATAR GRANDE TAILLE === */
+  .avatar-modern-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    color: white;
+    font-weight: 700;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .avatar-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+
+  .avatar-pending {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  }
+
+  .avatar-modern-large:hover {
+    transform: rotate(-5deg) scale(1.05);
+  }
+
+  /* === STATUS BADGE LARGE === */
+  .status-badge-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+  }
+
+  .status-badge-success {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  /* === DIVIDER === */
+  .divider-modern {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+    margin: 0;
+  }
+
+  /* === SECTION TITLE === */
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 20px;
+  }
+
+  .section-title i {
+    color: #667eea;
+  }
+
+  /* === INFO CARD === */
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: white;
+    border: 2px solid #f3f4f6;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .info-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .info-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .info-card-icon-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .info-card-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .info-card-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: white;
+  }
+
+  .info-card-icon-info {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    color: white;
+  }
+
+  .info-card-icon-secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+  }
+
+  .info-card-content {
+    flex: 1;
+  }
+
+  .info-card-label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-card-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  /* === BOUTONS MODERNES === */
+  .btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-modern i {
+    font-size: 16px;
+  }
+
+  .btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .btn-modern:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-modern:active {
+    transform: scale(0.95);
+  }
+
+  .btn-modern-secondary {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .btn-modern-secondary:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-modern-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-modern-warning:hover {
+    box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  .btn-modern-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-modern-success:hover {
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  .btn-modern-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-modern-danger:hover {
+    box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  /* === HELP CARD === */
+  .help-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-radius: 16px;
+    border: 2px solid #60a5fa;
+  }
+
+  .help-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: white;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .help-card-content h6 {
+    color: #1e3a8a;
+  }
+
+  .help-card-content p {
+    color: #1e40af;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 768px) {
+    .card-modern-header,
+    .card-modern-body,
+    .card-modern-footer {
+      padding: 20px;
+    }
+
+    .avatar-modern-large {
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+    }
+
+    .btn-modern span {
+      display: none;
+    }
+    
+    .btn-modern {
+      padding: 10px 14px;
+    }
+
+    .info-card {
+      padding: 16px;
+    }
+
+    .help-card {
+      padding: 16px;
+    }
+  }
+
+  /* Animation d'entrée */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card-modern,
+  .help-card {
+    animation: slideInUp 0.4s ease-out;
+  }
+</style>
+{% endblock %}

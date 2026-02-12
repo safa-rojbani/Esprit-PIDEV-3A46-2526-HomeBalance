@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\HistoriqueAchat;
+use App\Entity\Family;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,22 @@ class HistoriqueAchatRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+public function sumAll(): string
+{
+    return (string) $this->createQueryBuilder('h')
+        ->select('COALESCE(SUM(h.montantAchete), 0)')
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+public function sumByFamily(Family $family): string
+{
+    return (string) $this->createQueryBuilder('h')
+        ->select('COALESCE(SUM(h.montantAchete), 0)')
+        ->andWhere('h.family = :family')
+        ->setParameter('family', $family)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
 }

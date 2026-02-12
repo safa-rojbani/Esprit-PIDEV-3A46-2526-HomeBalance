@@ -1,6 +1,6 @@
 <!doctype html>
 <html
-  lang="en"
+  lang="fr"
   class="auth-html"
   data-assets-path="{{ asset('') }}"
   data-template="vertical-menu-template-free">
@@ -8,9 +8,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 
-    <title>{% block title %}Sign in · HomeBalance{% endblock %}</title>
+    <title>{% block title %}Connexion · HomeBalance{% endblock %}</title>
 
-    <meta name="description" content="Secure access to the HomeBalance family portal" />
+    <meta name="description" content="Accès sécurisé au portail familial HomeBalance" />
     <meta name="robots" content="index, follow" />
     {% if app.request is defined and app.request is not null %}
       <link rel="canonical" href="{{ app.request.uri }}" />
@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=Newsreader:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
       rel="stylesheet" />
 
     <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
@@ -32,6 +32,7 @@
       onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" /></noscript>
     <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/hb-theme.css') }}" />
 
     {% block extra_stylesheets %}{% endblock %}
 
@@ -54,15 +55,15 @@
       <div class="container-xxl auth-grid">
         <section class="auth-hero">
           {% block hero %}
-            <p class="eyebrow">HomeBalance Portal</p>
-            <h1>Bring calm to household coordination.</h1>
+            <p class="eyebrow">Portail HomeBalance</p>
+            <h1>Ramenez de la sérénité dans l’organisation familiale.</h1>
             <p class="lead">
-              Track tasks, share documents, and keep everyone synced from one secure hub.
+              Suivez les tâches, partagez les documents et restez tous alignés depuis un même espace sécurisé.
             </p>
             <ul class="hero-points">
-              <li>Personalized insights refreshed daily</li>
-              <li>Advanced notification routing with smart fallbacks</li>
-              <li>Audit-ready trail for every account update</li>
+              <li>Des repères personnalisés mis à jour chaque jour</li>
+              <li>Des notifications intelligentes et fiables</li>
+              <li>Un suivi clair de chaque action importante</li>
             </ul>
           {% endblock %}
         </section>
@@ -77,7 +78,7 @@
               </span>
               <span class="app-brand-text demo text-heading fw-bold">HomeBalance</span>
             </a>
-            <p class="brand-mark__subtitle">{% block panel_subtitle %}Secure portal access{% endblock %}</p>
+            <p class="brand-mark__subtitle">{% block panel_subtitle %}Accès sécurisé au portail{% endblock %}</p>
           </div>
 
           {% for label, messages in app.flashes %}

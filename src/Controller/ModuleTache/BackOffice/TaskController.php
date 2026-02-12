@@ -4,9 +4,6 @@ namespace App\Controller\ModuleTache\BackOffice;
 
 use App\Entity\Task;
 use App\Entity\User;
-use App\Repository\UserRepository;
-use App\Enum\TaskDifficulty;
-use App\Enum\TaskRecurrence;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,101 +12,102 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\TaskType;
 
-#[Route('/admin/tasks')]
+#[Route('/portal/admin/tasks')]
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'admin_task_index')]
-public function index(
-    TaskRepository $taskRepository,
-    EntityManagerInterface $em
-): Response {
-    $admin = $em->getRepository(User::class)->findOneBy([
-        'email' => 'admin@test.com'
-    ]);
+    public function index(TaskRepository $taskRepository): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-    if (!$admin) {
-        throw new \Exception('Admin introuvable');
+        $tasks = $taskRepository->findGlobalAdminTasks();
+
+        return $this->render('ModuleTache/backoffice/index.html.twig', [
+            'tasks' => $tasks,
+        ]);
     }
-
-    $tasks = $taskRepository->findAdminTasks($admin);
-
-    return $this->render('ModuleTache/backoffice/index.html.twig', [
-        'tasks' => $tasks,
-    ]);
-}
 
 
    
 
 #[Route('/create', name: 'admin_task_create')]
-public function create(Request $request, EntityManagerInterface $em): Response
-{
-    $task = new Task();
+    public function create(Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-    $form = $this->createForm(TaskType::class, $task);
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
-
-        $admin = $em->getRepository(User::class)->findOneBy([
-            'email' => 'admin@test.com'
-        ]);
-
-        if (!$admin) {
-            throw new \Exception('Admin introuvable');
+        $admin = $this->getUser();
+        if (!$admin instanceof User) {
+            throw $this->createAccessDeniedException();
         }
 
-        $task->setCreatedAt(new \DateTimeImmutable());
-        $task->setIsActive(true);
-        $task->setCreatedBy($admin);
-        $task->setFamily(null);
+        $task = new Task();
 
-        $em->persist($task);
-        $em->flush();
+        $form = $this->createForm(TaskType::class, $task);
+        $form->handleRequest($request);
 
-        return $this->redirectToRoute('admin_task_index');
+        if ($form->isSubmitted() && $form->isValid()) {
+            $task->setCreatedAt(new \DateTimeImmutable());
+            $task->setIsActive(true);
+            $task->setCreatedBy($admin);
+            $task->setFamily(null);
+
+            $em->persist($task);
+            $em->flush();
+
+            return $this->redirectToRoute('admin_task_index');
+        }
+
+        return $this->render('ModuleTache/backoffice/create.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
-
-    return $this->render('ModuleTache/backoffice/create.html.twig', [
-        'form' => $form->createView(),
-    ]);
-}
 
 
 #[Route('/{id}/edit', name: 'admin_task_edit')]
-public function edit(
-    Task $task,
-    Request $request,
-    EntityManagerInterface $em
-): Response {
-    $form = $this->createForm(TaskType::class, $task);
-    $form->handleRequest($request);
+    public function edit(
+        Task $task,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        $em->flush();
-        return $this->redirectToRoute('admin_task_index');
+        if ($task->getFamily() !== null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(TaskType::class, $task);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            return $this->redirectToRoute('admin_task_index');
+        }
+
+        return $this->render('ModuleTache/backoffice/edit.html.twig', [
+            'form' => $form->createView(),
+            'task' => $task,
+        ]);
     }
-
-    return $this->render('ModuleTache/backoffice/edit.html.twig', [
-        'form' => $form->createView(),
-        'task' => $task,
-    ]);
-}
 
 
 #[Route('/{id}/delete', name: 'admin_task_delete', methods: ['POST'])]
-public function delete(
-    Request $request,
-    Task $task,
-    EntityManagerInterface $em
-): Response {
-    if ($this->isCsrfTokenValid('delete_task_'.$task->getId(), $request->request->get('_token'))) {
-        $em->remove($task);
-        $em->flush();
+    public function delete(
+        Request $request,
+        Task $task,
+        EntityManagerInterface $em
+    ): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if ($task->getFamily() !== null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('delete_task_'.$task->getId(), (string) $request->request->get('_token'))) {
+            $em->remove($task);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('admin_task_index');
     }
-
-    return $this->redirectToRoute('admin_task_index');
-}
-
-
 }

@@ -1,0 +1,221 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hidden{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== Hidden (Galleries + Documents) — cleaned ===== */
+
+  .hb-headline{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
+  .hb-title h4{margin:0;font-weight:900}
+  .hb-title p{margin:0;color:#7a8699}
+  .hb-chip{display:inline-flex;align-items:center;gap:8px;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(67,89,113,.12);color:#566a7f;backdrop-filter:blur(10px);font-weight:800}
+
+  /* ===== Galleries ===== */
+  .hb-grid{margin-top:8px}
+  .hb-album{border-radius:18px;overflow:hidden;border:1px solid rgba(67,89,113,.12);background:#fff;position:relative;transition:.18s ease}
+  .hb-album:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(67,89,113,.18);border-color:rgba(105,108,255,.18)}
+  .hb-cover{aspect-ratio:4/3;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(67,89,113,.14),rgba(67,89,113,.06))}
+  .hb-cover::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 220px at 20% 10%,rgba(255,255,255,.60),transparent 60%);pointer-events:none}
+  .hb-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;opacity:.9;color:#566a7f}
+  .hb-hidden-badge{position:absolute;top:12px;left:12px;z-index:4;display:inline-flex;align-items:center;gap:8px;padding:.35rem .6rem;border-radius:999px;background:rgba(255,255,255,.90);border:1px solid rgba(67,89,113,.14);color:#8a6d00;font-weight:900;backdrop-filter:blur(10px)}
+  .hb-body{padding:14px 14px 12px;position:relative;z-index:2}
+  .hb-name{font-weight:900;color:#2b2f36;line-height:1.2;word-break:break-word}
+  .hb-desc{margin-top:8px;color:#7a8699;font-size:.85rem;min-height:36px;word-break:break-word}
+  .hb-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#8592a3;font-size:.82rem;margin-top:8px}
+  .hb-stretched{position:absolute;inset:0;z-index:1;border-radius:18px}
+
+  /* Gallery menu */
+  .hb-album-actions{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .hb-menu-btn{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);box-shadow:0 10px 22px rgba(0,0,0,.20);pointer-events:auto;cursor:pointer;opacity:0;transform:translateY(-4px);transition:.18s ease}
+  .hb-menu-btn::before{content:"⋮";color:rgba(255,255,255,.95);font-size:20px;line-height:1;transform:translateY(-1px)}
+  .hb-album:hover .hb-menu-btn{opacity:1;transform:translateY(0)}
+  @media(max-width:768px){.hb-menu-btn{opacity:1;transform:translateY(0)}}
+  .hb-menu{position:absolute;top:54px;right:10px;min-width:190px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.94);border:1px solid rgba(67,89,113,.14);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(67,89,113,.22);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s ease}
+  .hb-menu.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .hb-menu a{width:100%;display:flex;gap:10px;align-items:center;padding:10px 12px;background:transparent;border:0;text-align:left;font-weight:850;color:#566a7f;text-decoration:none}
+  .hb-menu a:hover{background:rgba(67,89,113,.06)}
+  .hb-menu .success{color:#1a7f37}
+
+  /* ===== Hidden Documents ===== */
+  .hb-sep{margin:22px 0 14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .hb-sep h5{margin:0;font-weight:900;color:#2b2f36}
+  .hb-sep p{margin:0;color:#7a8699;font-size:.86rem}
+
+  .hb-doc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:10px}
+  @media(max-width:1200px){.hb-doc-grid{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:768px){.hb-doc-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:420px){.hb-doc-grid{grid-template-columns:repeat(2,1fr)}}
+
+  .hb-doc{position:relative;overflow:visible}
+  .hb-doc-card{border-radius:14px;overflow:hidden;border:1px solid rgba(67,89,113,.12);background:#fff;box-shadow:0 10px 22px rgba(67,89,113,.10);transition:.16s ease}
+  .hb-doc:hover .hb-doc-card{transform:translateY(-2px);box-shadow:0 16px 30px rgba(67,89,113,.16)}
+  .hb-thumb{aspect-ratio:1/1;background:#f2f3f6;display:flex;align-items:center;justify-content:center;position:relative}
+  .hb-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .hb-hidden-badge-doc{position:absolute;top:10px;left:10px;padding:.25rem .55rem;border-radius:999px;font-size:.72rem;font-weight:900;background:rgba(255,255,255,.90);border:1px solid rgba(67,89,113,.12);color:#8a6d00;backdrop-filter:blur(10px)}
+  .hb-doc-footer{padding:10px 10px 12px}
+  .hb-doc-name{margin:0;font-weight:900;color:#2b2f36;font-size:.9rem;word-break:break-word}
+  .hb-doc-sub{margin:4px 0 0;font-size:.78rem;color:#7a8699;word-break:break-word}
+  .hb-doc-meta{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  /* Doc menu */
+  .hb-doc-actions{position:absolute;top:10px;right:10px;z-index:50;pointer-events:none}
+  .hb-doc-menu-btn{pointer-events:auto;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);box-shadow:0 10px 22px rgba(0,0,0,.20);cursor:pointer}
+  .hb-doc-menu-btn::before{content:"⋮";color:rgba(255,255,255,.95);font-size:20px;line-height:1;transform:translateY(-1px)}
+  .hb-doc-menu{position:absolute;top:44px;right:0;min-width:190px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.94);border:1px solid rgba(67,89,113,.14);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(67,89,113,.22);opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s ease}
+  .hb-doc-menu.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .hb-doc-menu a,.hb-doc-menu button{width:100%;display:flex;gap:10px;align-items:center;padding:10px 12px;background:transparent;border:0;text-align:left;font-weight:850;color:#566a7f;text-decoration:none}
+  .hb-doc-menu a:hover,.hb-doc-menu button:hover{background:rgba(67,89,113,.06)}
+  .hb-doc-menu .success{color:#1a7f37}
+</style>
+
+<div class="hb-headline">
+  <div class="hb-title">
+    <h4 class="fw-bold mb-1">Hidden</h4>
+    <p class="mb-0">Hidden galleries + hidden documents</p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <span class="hb-chip"><i class="bx bx-hide"></i>{{ galleries|length }} galleries</span>
+    <span class="hb-chip"><i class="bx bx-hide"></i>{{ documents|length }} docs</span>
+    <a href="{{ path('app_gallery_index') }}" class="btn btn-outline-secondary">
+      <i class="bx bx-collection me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+{# ===================== Hidden Galleries ===================== #}
+<div class="row g-4 hb-grid">
+  {% if galleries is empty %}
+    <div class="col-12"><div class="alert alert-info mb-0">No hidden galleries found.</div></div>
+  {% endif %}
+
+  {% for gallery in galleries %}
+    {% set activeDocs = gallery.documents|filter(d => d.etat and d.etat.value == 'actif') %}
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <div class="hb-album h-100">
+        <div class="hb-cover">
+          <span class="hb-hidden-badge"><i class="bx bx-hide"></i>Hidden</span>
+          <div class="hb-icon"><i class="bx bx-photo-album"></i></div>
+
+          <div class="hb-album-actions">
+            <button type="button" class="hb-menu-btn"
+                    onclick="event.stopPropagation(); hbToggleMenu(this);"
+                    aria-label="Menu"></button>
+
+            <div class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+              <a href="{{ path('app_gallery_activate', {'id': gallery.id}) }}" class="success">
+                <i class="bx bx-refresh"></i> Restore
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="hb-body">
+          <div class="hb-name">{{ gallery.name }}</div>
+          <div class="hb-desc">{{ gallery.description ?: 'No description' }}</div>
+
+          <div class="hb-meta">
+            <span><i class="bx bx-file me-1"></i>{{ activeDocs|length }} doc{{ activeDocs|length > 1 ? 's' : '' }}</span>
+            <span><i class="bx bx-time-five me-1"></i>{{ gallery.updatedAt ? gallery.updatedAt|date('d/m/Y') : (gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '') }}</span>
+          </div>
+
+          <a class="hb-stretched" href="{{ path('app_gallery_show', {'id': gallery.id, 'from': 'hidden'}) }}" aria-label="Open gallery"></a>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{# ===================== Hidden Documents ===================== #}
+<div class="hb-sep">
+  <div>
+    <h5>Hidden Documents</h5>
+    <p>Restore them anytime</p>
+  </div>
+</div>
+
+{% if documents is empty %}
+  <div class="alert alert-info mb-0">No hidden documents found.</div>
+{% else %}
+  <div class="hb-doc-grid">
+    {% for document in documents %}
+      <div class="hb-doc">
+
+        <div class="hb-doc-actions" onclick="event.stopPropagation();">
+          <button type="button" class="hb-doc-menu-btn"
+                  onclick="event.stopPropagation(); hbToggleDocMenu(this);"
+                  aria-label="Menu"></button>
+
+          <div class="hb-doc-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+            <a href="{{ path('app_document_show', {'id': document.id, 'galleryId': document.gallery ? document.gallery.id : 0}) }}">
+              <i class="bx bx-show"></i> Open
+            </a>
+
+            <a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': document.gallery ? document.gallery.id : 0}) }}">
+              <i class="bx bx-edit-alt"></i> Edit
+            </a>
+
+            <form method="post" action="{{ path('app_document_restore', {'id': document.id}) }}" class="m-0">
+              <input type="hidden" name="_token" value="{{ csrf_token('restore' ~ document.id) }}">
+              <button type="submit" class="success">
+                <i class="bx bx-refresh"></i> Restore
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="hb-doc-card">
+          <div class="hb-thumb">
+            <span class="hb-hidden-badge-doc"><i class="bx bx-hide me-1"></i>Hidden</span>
+
+            {% if document.fileType starts with 'image/' %}
+              <img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+            {% elseif document.fileType == 'application/pdf' %}
+              <i class="bx bxs-file-pdf" style="font-size:44px; opacity:.55;"></i>
+            {% elseif document.fileType starts with 'video/' %}
+              <i class="bx bxs-video" style="font-size:44px; opacity:.55;"></i>
+            {% else %}
+              <i class="bx bx-file" style="font-size:44px; opacity:.55;"></i>
+            {% endif %}
+          </div>
+
+          <div class="hb-doc-footer">
+            <p class="hb-doc-name">{{ document.fileName }}</p>
+            <p class="hb-doc-sub">{{ document.fileType }}</p>
+
+            {% if document.gallery %}
+              <div class="hb-doc-meta">
+                <span class="hb-chip"><i class="bx bx-photo-album"></i>{{ document.gallery.name }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<script>
+  function hbToggleMenu(btn){
+    const card = btn.closest('.hb-album');
+    const menu = card.querySelector('.hb-menu');
+    document.querySelectorAll('.hb-menu.show').forEach(m => { if(m !== menu) m.classList.remove('show'); });
+    menu.classList.toggle('show');
+  }
+
+  function hbToggleDocMenu(btn){
+    const doc = btn.closest('.hb-doc');
+    const menu = doc.querySelector('.hb-doc-menu');
+    document.querySelectorAll('.hb-doc-menu.show').forEach(m => { if(m !== menu) m.classList.remove('show'); });
+    menu.classList.toggle('show');
+  }
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
+    document.querySelectorAll('.hb-doc-menu.show').forEach(m => m.classList.remove('show'));
+  });
+</script>
+{% endblock %}
