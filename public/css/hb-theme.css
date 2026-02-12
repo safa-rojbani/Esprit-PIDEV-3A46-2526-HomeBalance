@@ -1,0 +1,99 @@
+/* HomeBalance pastel theme tokens + overrides */
+:root {
+  --hb-font-sans: "Manrope", "Segoe UI", sans-serif;
+  --hb-font-serif: "Fraunces", "Times New Roman", serif;
+  --hb-bg: #f7f8fb;
+  --hb-surface: #ffffff;
+  --hb-surface-alt: #f2f6f5;
+  --hb-border: rgba(72, 86, 95, 0.12);
+  --hb-text: #2b343b;
+  --hb-text-muted: #6b7c87;
+  --hb-primary: #78c6b0;
+  --hb-primary-strong: #5db5a1;
+  --hb-secondary: #f4c6b8;
+  --hb-accent: #9cc7ef;
+  --hb-warning: #f3c766;
+  --hb-danger: #e7828e;
+  --hb-shadow: 0 18px 45px rgba(40, 55, 63, 0.08);
+}
+
+html,
+body {
+  font-family: var(--hb-font-sans);
+  color: var(--hb-text);
+  background: linear-gradient(180deg, #f7f8fb 0%, #f1f7f5 100%);
+}
+
+h1,
+h2,
+h3,
+h4,
+.app-brand-text,
+.menu-header-text {
+  font-family: var(--hb-font-serif);
+  letter-spacing: 0.2px;
+}
+
+.layout-menu,
+.navbar,
+.card,
+.auth-panel {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-border);
+  box-shadow: var(--hb-shadow);
+}
+
+.menu-link,
+.menu-link div {
+  color: var(--hb-text);
+}
+
+.menu-item.active > .menu-link,
+.menu-item.active > .menu-link div,
+.menu-item.open > .menu-link,
+.menu-item.open > .menu-link div {
+  color: var(--hb-primary-strong);
+}
+
+.btn-primary,
+.bg-primary {
+  background-color: var(--hb-primary) !important;
+  border-color: var(--hb-primary) !important;
+}
+
+.btn-outline-primary {
+  color: var(--hb-primary-strong);
+  border-color: var(--hb-primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--hb-primary);
+  color: #fff;
+}
+
+.text-primary {
+  color: var(--hb-primary-strong) !important;
+}
+
+.alert-danger {
+  background: #ffe9ec;
+  color: #8b2e3a;
+  border-color: rgba(231, 130, 142, 0.45);
+}
+
+.alert-success {
+  background: #e8fbf4;
+  color: #1f6b56;
+  border-color: rgba(120, 198, 176, 0.45);
+}
+
+.auth-shell__gradient {
+  background: radial-gradient(circle at 15% 20%, #d9f2ea 0%, transparent 55%),
+    radial-gradient(circle at 85% 10%, #fce8e2 0%, transparent 55%),
+    radial-gradient(circle at 75% 80%, #e2effb 0%, transparent 60%);
+}
+
+.auth-shell__orbs .orb {
+  background: linear-gradient(135deg, #f6d7cf 0%, #d8f0e7 100%);
+  opacity: 0.35;
+}

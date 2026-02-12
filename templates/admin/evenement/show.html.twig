@@ -1,0 +1,35 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Événement{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Détails de l'événement</h4>
+  <a href="{{ path('admin_evenement_index') }}" class="btn btn-outline-secondary">
+    Retour
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Titre</dt>
+      <dd class="col-sm-9">{{ evenement.titre }}</dd>
+      <dt class="col-sm-3">Description</dt>
+      <dd class="col-sm-9">{{ evenement.description }}</dd>
+      <dt class="col-sm-3">Début</dt>
+      <dd class="col-sm-9">{{ evenement.dateDebut ? evenement.dateDebut|date('Y-m-d H:i') : '' }}</dd>
+      <dt class="col-sm-3">Fin</dt>
+      <dd class="col-sm-9">{{ evenement.dateFin ? evenement.dateFin|date('Y-m-d H:i') : '' }}</dd>
+      <dt class="col-sm-3">Lieu</dt>
+      <dd class="col-sm-9">{{ evenement.lieu }}</dd>
+      <dt class="col-sm-3">Type</dt>
+      <dd class="col-sm-9">{{ evenement.typeEvenement }}</dd>
+      <dt class="col-sm-3">Partagé</dt>
+      <dd class="col-sm-9">{{ evenement.shareWithFamily ? 'Oui' : 'Non' }}</dd>
+      <dt class="col-sm-3">Créé par</dt>
+      <dd class="col-sm-9">{{ evenement.createdBy ? evenement.createdBy.email : '' }}</dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

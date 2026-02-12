@@ -4,28 +4,22 @@ namespace App\Controller\ModuleTache\FrontOffice;
 
 use App\Entity\TaskCompletion;
 use App\Entity\User;
+use App\Entity\Family;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParentRefusalType;
+use App\Service\ActiveFamilyResolver;
 
-#[Route('/parent/validations')]
+#[Route('/portal/tasks/parent/validations')]
 class ParentValidationController extends AbstractController
 {
-    private function getParent(EntityManagerInterface $em): User
-    {
-        return $em->getRepository(User::class)->findOneBy([
-            'email' => 'parent@test.com'
-        ]);
-    }
-
     #[Route('/', name: 'parent_validation_index')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
     {
-        $parent = $this->getParent($em);
-        $family = $parent->getFamily();
+        [, $family] = $this->resolveUserAndFamily($familyResolver);
 
         // 🔍 toutes les validations en attente pour la famille
         $pendingCompletions = $em->createQueryBuilder()
@@ -46,9 +40,13 @@ class ParentValidationController extends AbstractController
     #[Route('/{id}/accept', name: 'parent_validation_accept')]
 public function accept(
     TaskCompletion $completion,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
-    $parent = $this->getParent($em);
+    [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
+    if ($completion->getTask()?->getFamily()?->getId() !== $family->getId()) {
+        throw $this->createAccessDeniedException();
+    }
 
     if ($completion->isValidated() !== null) {
         throw new \Exception('Déjà traité');
@@ -66,9 +64,13 @@ public function accept(
 public function refuse(
     TaskCompletion $completion,
     Request $request,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    ActiveFamilyResolver $familyResolver
 ): Response {
-    $parent = $this->getParent($em);
+    [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
+    if ($completion->getTask()?->getFamily()?->getId() !== $family->getId()) {
+        throw $this->createAccessDeniedException();
+    }
 
     if ($completion->isValidated() !== null) {
         throw new \Exception('Déjà traité');
@@ -98,4 +100,21 @@ public function refuse(
 }
 
 
+    /**
+     * @return array{0: User, 1: Family}
+     */
+    private function resolveUserAndFamily(ActiveFamilyResolver $familyResolver): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $family = $familyResolver->resolveForUser($user);
+        if ($family === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return [$user, $family];
+    }
 }

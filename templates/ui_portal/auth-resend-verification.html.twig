@@ -1,28 +1,28 @@
 {% extends 'ui_portal/layouts/auth.html.twig' %}
 
-{% block title %}Resend Verification · HomeBalance{% endblock %}
+{% block title %}Renvoyer la vérification · HomeBalance{% endblock %}
 
 {% block hero %}
-  <p class="eyebrow">Secure household access</p>
-  <h1>Verify your email to unlock HomeBalance.</h1>
+  <p class="eyebrow">Accès sécurisé au foyer</p>
+  <h1>Vérifiez votre e-mail pour accéder à HomeBalance.</h1>
   <p class="lead">
-    We need to make sure invitations and notifications land in the right inbox. Tell us where to send the
-    verification link and we will refresh it immediately.
+    Nous voulons que les invitations et notifications arrivent au bon endroit. Indiquez l’e-mail à vérifier
+    et nous renverrons le lien immédiatement.
   </p>
   <ul class="hero-points">
-    <li>Protects your household data</li>
-    <li>Ensures invites reach the right people</li>
-    <li>Required before joining or creating a family</li>
+    <li>Protège les données du foyer</li>
+    <li>Garantit que les invitations arrivent aux bonnes personnes</li>
+    <li>Nécessaire avant de rejoindre ou créer une famille</li>
   </ul>
 {% endblock %}
 
-{% block panel_subtitle %}Request a fresh verification link{% endblock %}
+{% block panel_subtitle %}Demander un nouveau lien{% endblock %}
 
 {% block panel %}
   <div class="panel-head">
-    <h2>Send the verification email again</h2>
+    <h2>Renvoyer l’e-mail de vérification</h2>
     <p class="text-muted">
-      Enter the email or username on the account. We will only send the link if the account still needs verification.
+      Saisissez l’e-mail ou l’identifiant du compte. Nous n’enverrons le lien que si la vérification est encore nécessaire.
     </p>
   </div>
 
@@ -35,17 +35,17 @@
         class="form-control"
         id="identifier"
         name="identifier"
-        placeholder="Email or username"
+        placeholder="E-mail ou identifiant"
         value="{{ state.identifier }}"
         autocomplete="username" />
-      <span>Email or username</span>
+      <span>E-mail ou identifiant</span>
     </label>
-    <small class="text-muted">If the account is already verified, we will keep it quiet for security.</small>
+    <small class="text-muted">Si le compte est déjà vérifié, nous resterons discrets pour votre sécurité.</small>
 
-    <button class="btn btn-primary w-100">Send verification link</button>
+    <button class="btn btn-primary w-100">Envoyer le lien</button>
   </form>
 
   <p class="text-center mb-0 mt-4">
-    <a href="{{ path('portal_auth_login') }}" class="link-underline">Back to sign in</a>
+    <a href="{{ path('portal_auth_login') }}" class="link-underline">Retour à la connexion</a>
   </p>
 {% endblock %}

@@ -1,0 +1,386 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Trash
+{% endblock %}
+
+{% block content %}
+	<style>
+		/* ===== HomeBalance • Trash (same look as your example cards) ===== */
+
+		.hb-headline {
+			display: flex;
+			gap: 16px;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 18px;
+		}
+		.hb-title h4 {
+			margin: 0;
+			font-weight: 1000;
+			color: #2b2f36;
+		}
+		.hb-title p {
+			margin: 4px 0 0;
+			color: #7a8699;
+		}
+
+		.hb-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0.42rem 0.7rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .70);
+			border: 1px solid rgba(67, 89, 113, .12);
+			color: #566a7f;
+			backdrop-filter: blur(10px);
+			font-weight: 850;
+		}
+
+		/* ===== GRID: like your screenshot ===== */
+		.hb-grid {
+			margin-top: 10px;
+		}
+		.hb-col {
+			max-width: 280px; /* garde la taille */
+			margin-inline: 0; /* ✅ enlève le centre qui crée des trous */
+		}
+
+
+		.hb-doc {
+			border-radius: 18px;
+			overflow: hidden;
+			border: 1px solid rgba(67, 89, 113, .12);
+			background: #fff;
+			position: relative;
+			transition: 0.18s ease;
+			box-shadow: 0 18px 45px rgba(67, 89, 113, .12);
+		}
+		.hb-doc:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 22px 55px rgba(67, 89, 113, .16);
+		}
+
+		/* ===== COVER: exactly like example ===== */
+		.hb-cover {
+			height: 170px; /* ✅ compact cover */
+			position: relative;
+			overflow: hidden;
+			background: #f2f3f5; /* ✅ clean PDF bg */
+		}
+
+		/* Image preview */
+		.hb-preview-media {
+			position: absolute;
+			inset: 0;
+		}
+		.hb-preview-media img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+
+		/* PDF / other file clean cover */
+		.hb-file-clean {
+			position: absolute;
+			inset: 0;
+			background: #f2f3f5;
+		}
+
+		/* top-left badge (Image/PDF/File) */
+		.hb-type-badge {
+			position: absolute;
+			top: 12px;
+			left: 12px;
+			z-index: 4;
+			padding: 0.28rem 0.7rem;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .92);
+			border: 1px solid rgba(67, 89, 113, .14);
+			color: #566a7f;
+			font-weight: 900;
+			font-size: 0.78rem;
+			backdrop-filter: blur(10px);
+		}
+
+		/* ===== BODY: like screenshot ===== */
+		.hb-bottom {
+			padding: 12px 12px 14px;
+		}
+		.hb-file-title {
+			font-weight: 950;
+			color: #2b2f36;
+			margin: 0;
+			line-height: 1.15;
+			font-size: 0.98rem;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+		.hb-file-type {
+			margin-top: 6px;
+			font-size: 0.86rem;
+			color: #8592a3;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		/* ===== MENU: same behavior as galleries (hover show) ===== */
+		.hb-actions {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+			z-index: 10;
+		}
+
+		.hb-menu-btn {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			width: 38px;
+			height: 38px;
+			border-radius: 12px;
+
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			background: rgba(0, 0, 0, .42);
+			border: 1px solid rgba(255, 255, 255, .12);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 10px 22px rgba(0, 0, 0, .20);
+
+			opacity: 0;
+			transform: translateY(-4px);
+			transition: 0.18s ease;
+
+			pointer-events: auto;
+			cursor: pointer;
+			outline: none;
+		}
+
+		.hb-menu-btn::before {
+			content: "⋮";
+			color: rgba(255, 255, 255, .95);
+			font-size: 20px;
+			line-height: 1;
+			transform: translateY(-1px);
+			display: block;
+		}
+
+		/* ✅ show dots only on hover like galleries */
+		.hb-doc:hover .hb-menu-btn {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		@media(max-width: 768px) {
+			.hb-menu-btn {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.hb-menu {
+			position: absolute;
+			top: 54px;
+			right: 10px;
+			min-width: 180px;
+			border-radius: 14px;
+			overflow: hidden;
+
+			background: rgba(255, 255, 255, .94);
+			border: 1px solid rgba(67, 89, 113, .14);
+			backdrop-filter: blur(14px);
+			box-shadow: 0 18px 40px rgba(67, 89, 113, .22);
+
+			opacity: 0;
+			transform: translateY(-6px);
+			pointer-events: none;
+			transition: 0.18s ease;
+		}
+
+		.hb-menu.show {
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.hb-menu a {
+			width: 100%;
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			padding: 10px 12px;
+
+			background: transparent;
+			border: 0;
+			text-align: left;
+
+			font-weight: 800;
+			color: #566a7f;
+			text-decoration: none;
+		}
+		.hb-menu a:hover {
+			background: rgba(67, 89, 113, .06);
+		}
+		.hb-menu .danger {
+			color: #d32f2f;
+		}
+		.hb-menu form {
+			margin: 0;
+		}
+
+		.hb-menu .hb-menu-link {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			padding: 9px 10px;
+			background: transparent;
+			border: 0;
+			text-align: left;
+			font-weight: 800;
+			font-size: 0.86rem;
+			color: #566a7f;
+			cursor: pointer;
+		}
+
+		.hb-menu .hb-menu-link:hover {
+			background: rgba(67, 89, 113, .06);
+		}
+
+		.hb-menu .hb-menu-link.danger {
+			color: #d32f2f;
+		}
+
+
+		.hb-in {
+			animation: hbIn 0.22s ease both;
+		}
+		@keyframes hbIn {
+			from {
+				opacity: 0;
+				transform: translateY(8px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+    .hb-headline form{ display:inline-block; }
+
+
+	</style>
+
+	<div class="hb-headline flex-wrap hb-in">
+		<div class="hb-title">
+			<h4 class="fw-bold mb-1">Trash</h4>
+			<p class="mb-0">Documents in recycle bin 🗑️</p>
+		</div>
+
+		<div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
+  <span class="hb-chip">🗑️ {{ documents|length }} item{{ documents|length > 1 ? 's' : '' }}</span>
+
+  {% if documents is not empty %}
+    <form method="post" action="{{ path('app_document_restore_all') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('restore_all') }}">
+      <button type="submit" class="btn btn-outline-primary">
+        Restore all
+      </button>
+    </form>
+
+    <form method="post"
+          action="{{ path('app_document_delete_all_permanently') }}"
+          onsubmit="return confirm('Delete ALL permanently?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete_all_permanently') }}">
+      <button type="submit" class="btn btn-outline-danger">
+        Delete all permanently
+      </button>
+    </form>
+  {% endif %}
+
+  <a href="{{ path('app_gallery_index') }}" class="btn btn-outline-secondary">
+    Back to galleries
+  </a>
+</div>
+
+	</div>
+
+	<div class="row g-2 g-md-2 hb-grid hb-in">
+		{% if documents is empty %}
+			<div class="col-12">
+				<div class="alert alert-info mb-0">Trash is empty 🗑️</div>
+			</div>
+		{% endif %}
+
+		{% for document in documents %}
+			<div class="col-6 col-md-4 col-lg-3 hb-col">
+				<div class="hb-doc h-100">
+
+					<div class="hb-cover">
+						{% if document.fileType starts with 'image/' %}
+							<span class="hb-type-badge">Image</span>
+							<div class="hb-preview-media">
+								<img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+							</div>
+						{% elseif document.fileType == 'application/pdf' %}
+							<span class="hb-type-badge">PDF</span>
+							<div class="hb-file-clean"></div>
+						{% else %}
+							<span class="hb-type-badge">File</span>
+							<div class="hb-file-clean"></div>
+						{% endif %}
+
+						<div class="hb-actions">
+							<button type="button" class="hb-menu-btn" onclick="event.stopPropagation(); hbToggleTrashMenu(this);" aria-label="Menu"></button>
+
+							<div
+								class="hb-menu" onclick="event.stopPropagation();" onmouseleave="this.classList.remove('show');">
+
+								{# ✅ Restore #}
+								<form method="post" action="{{ path('app_document_restore', {id: document.id}) }}">
+									<input type="hidden" name="_token" value="{{ csrf_token('restore' ~ document.id) }}">
+									<button type="submit" class="hb-menu-link">Restore</button>
+								</form>
+
+								{# ✅ Delete permanently #}
+								<form method="post" action="{{ path('app_document_delete_permanently', {id: document.id}) }}" onsubmit="return confirm('Delete permanently?');">
+									<input type="hidden" name="_token" value="{{ csrf_token('delete_permanently' ~ document.id) }}">
+									<button type="submit" class="hb-menu-link danger">Delete permanently</button>
+								</form>
+							</div>
+
+						</div>
+					</div>
+
+					<div class="hb-bottom">
+						<p class="hb-file-title">{{ document.fileName }}</p>
+						<div class="hb-file-type">{{ document.fileType }}</div>
+					</div>
+
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+
+	<script>
+		function hbToggleTrashMenu(btn) {
+const card = btn.closest('.hb-doc');
+const menu = card.querySelector('.hb-menu');
+
+document.querySelectorAll('.hb-menu.show').forEach(m => {
+if (m !== menu) 
+m.classList.remove('show');
+
+});
+
+menu.classList.toggle('show');
+}
+
+document.addEventListener('click', function () {
+document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
+});
+	</script>
+{% endblock %}

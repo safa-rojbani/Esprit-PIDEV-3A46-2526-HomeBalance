@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Revenu;
+use App\Entity\Family;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,10 +41,20 @@ class RevenuRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-    public function sumAll(): string
+public function sumAll(): string
 {
     return (string) $this->createQueryBuilder('r')
         ->select('COALESCE(SUM(r.montant), 0)')
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+public function sumByFamily(Family $family): string
+{
+    return (string) $this->createQueryBuilder('r')
+        ->select('COALESCE(SUM(r.montant), 0)')
+        ->andWhere('r.family = :family')
+        ->setParameter('family', $family)
         ->getQuery()
         ->getSingleScalarResult();
 }
@@ -58,6 +69,20 @@ public function findDistinctTypesAll(): array
         ->getArrayResult();
 
     return array_values(array_filter(array_map(fn($x) => $x['type'] ?? null, $rows)));
+}
+
+public function findDistinctTypesByFamily(Family $family): array
+{
+    $rows = $this->createQueryBuilder('r')
+        ->select('DISTINCT r.typeRevenu AS type')
+        ->andWhere('r.typeRevenu IS NOT NULL')
+        ->andWhere('r.family = :family')
+        ->setParameter('family', $family)
+        ->orderBy('r.typeRevenu', 'ASC')
+        ->getQuery()
+        ->getArrayResult();
+
+    return array_values(array_filter(array_map(static fn(array $row) => $row['type'] ?? null, $rows)));
 }
 
 }

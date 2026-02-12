@@ -1,0 +1,265 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Document{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== HomeBalance • Edit Document (Clean + Phone vibe) ===== */
+
+  .hb-page{ max-width: 1040px; margin: 0 auto; }
+
+  .hb-top{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:16px; margin-bottom:14px;
+  }
+  .hb-top h3{
+    margin:0;
+    font-weight:1000;
+    letter-spacing:.2px;
+    color:#2b2f36;
+  }
+  .hb-top p{ margin:6px 0 0; color:#7a8699; }
+
+  .hb-actions{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+  }
+
+  .hb-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:.44rem .8rem;
+    border-radius:999px;
+    border:1px solid rgba(67,89,113,.12);
+    background: rgba(255,255,255,.92);
+    color:#566a7f;
+    font-weight:850;
+    backdrop-filter: blur(10px);
+  }
+  .hb-chip i{ color:#696cff; }
+
+  .hb-hero{
+    background: rgba(255,255,255,.92);
+    border:1px solid rgba(67,89,113,.12);
+    border-radius:20px;
+    padding:16px 18px;
+    box-shadow: 0 14px 40px rgba(67,89,113,.10);
+    margin-bottom:16px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    backdrop-filter: blur(10px);
+  }
+  .hb-hero .title{
+    margin:0;
+    display:flex; align-items:center; gap:10px;
+    font-weight:950;
+    color:#2b2f36;
+    font-size:1.06rem;
+  }
+  .hb-hero .title i{ color:#696cff; font-size:18px; }
+  .hb-hero .sub{ margin:6px 0 0; color:#7a8699; line-height:1.35; }
+
+  .hb-card{
+    background:#fff;
+    border:1px solid rgba(67,89,113,.12);
+    border-radius:20px;
+    box-shadow: 0 18px 55px rgba(67,89,113,.10);
+    overflow:hidden;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .hb-card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 26px 70px rgba(67,89,113,.14);
+    border-color: rgba(105,108,255,.22);
+  }
+
+  .hb-card-header{
+    padding:14px 16px;
+    border-bottom:1px solid rgba(67,89,113,.10);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .hb-card-header .left{
+    font-weight:950;
+    color:#2b2f36;
+    display:flex; align-items:center; gap:10px;
+    min-width:0;
+  }
+  .hb-dot{
+    width:10px; height:10px;
+    border-radius:999px;
+    background: rgba(105,108,255,.85);
+    box-shadow: 0 10px 22px rgba(105,108,255,.20);
+    display:inline-block;
+    flex:0 0 auto;
+  }
+  .hb-title-ell{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .hb-card-body{ padding:18px; }
+
+  /* Form styling */
+  .hb-card-body form{ margin:0; }
+  .hb-card-body label{
+    display:block !important;
+    font-weight:850;
+    color:#566a7f;
+    margin-bottom:6px;
+  }
+  .hb-card-body input,
+  .hb-card-body textarea,
+  .hb-card-body select{
+    width:100% !important;
+    display:block !important;
+    border-radius:14px !important;
+    background:#fff !important;
+  }
+  .hb-card-body input:focus,
+  .hb-card-body textarea:focus,
+  .hb-card-body select:focus{
+    box-shadow: 0 0 0 .2rem rgba(105,108,255,.16) !important;
+    border-color: rgba(105,108,255,.55) !important;
+  }
+  .hb-card-body > form > div{ margin-bottom:14px; }
+
+  .hb-submit{
+    margin-top:6px;
+    border-radius:14px !important;
+    padding:.82rem 1.1rem !important;
+    font-weight:1000 !important;
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    box-shadow: 0 16px 40px rgba(105,108,255,.18);
+  }
+
+  /* Danger zone */
+  .hb-danger{
+    border:1px solid rgba(220,53,69,.22);
+    background: rgba(220,53,69,.03);
+    border-radius:18px;
+    padding:14px;
+  }
+  .hb-danger .t{
+    font-weight:1000;
+    color:#b02a37;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:6px;
+  }
+  .hb-danger .d{
+    color:#7a8699;
+    margin:0 0 10px;
+  }
+
+  .hb-in{ animation: hbIn .25s ease both; }
+  @keyframes hbIn{ from{opacity:0; transform: translateY(8px);} to{opacity:1; transform: translateY(0);} }
+</style>
+
+<div class="hb-page">
+
+  <div class="hb-top flex-wrap hb-in">
+    <div>
+      <h3>Edit Document</h3>
+      <p class="mb-0">Update details — keep your gallery tidy ✨</p>
+    </div>
+
+    <div class="hb-actions">
+      <span class="hb-chip"><i class="bx bx-edit"></i> Update mode</span>
+
+      <a href="{{ path('app_gallery_show', {'id': galleryId}) }}" class="btn btn-outline-secondary">
+        <i class="bx bx-left-arrow-alt me-1"></i> Back to gallery
+      </a>
+    </div>
+  </div>
+
+  <div class="hb-hero hb-in">
+    <div>
+      <p class="title">
+        <i class="bx bx-file"></i>
+        Editing: <span class="fw-bold">{{ document.fileName }}</span>
+      </p>
+      <p class="sub">
+        You can update the file info. Use delete only if you really want to remove it.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
+      <div class="hb-card hb-in">
+        <div class="hb-card-header">
+          <div class="left">
+            <span class="hb-dot"></span>
+            <span class="hb-title-ell">Document details</span>
+          </div>
+        </div>
+
+        <div class="hb-card-body">
+          {{ include('ModuleDocuments/FrontOffice/document/_form.html.twig', {'button_label': 'Update'}) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="hb-card hb-in">
+        <div class="hb-card-header">
+          <div class="left">
+            <span class="hb-dot" style="background: rgba(220,53,69,.85); box-shadow: 0 10px 22px rgba(220,53,69,.18);"></span>
+            Danger zone
+          </div>
+        </div>
+
+        <div class="hb-card-body">
+          <div class="hb-danger">
+            <div class="t"><i class="bx bx-trash"></i> Delete document</div>
+            <p class="d">This action removes the document. If you have a trash feature, it can be restored from there.</p>
+
+            {{ include('ModuleDocuments/FrontOffice/document/_delete_form.html.twig', {
+              document: document,
+              galleryId: galleryId
+            }) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Style form controls + submit button, even if _form is basic
+  document.addEventListener('DOMContentLoaded', () => {
+    const wrap = document.querySelector('.hb-card-body');
+    if(!wrap) return;
+
+    const form = wrap.querySelector('form');
+    if(!form) return;
+
+    form.querySelectorAll('input, textarea, select').forEach(el => {
+      if(el.tagName.toLowerCase() === 'select') el.classList.add('form-select');
+      else el.classList.add('form-control');
+    });
+
+    const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+    if(btn){
+      btn.classList.add('btn','btn-primary','hb-submit');
+      if(btn.tagName.toLowerCase() === 'button'){
+        const text = btn.textContent.trim().toLowerCase();
+        if(text === 'update' || text === 'save' || text === 'submit'){
+          btn.innerHTML = '<i class="bx bx-save"></i> Update document';
+        } else if(!btn.querySelector('i')){
+          btn.insertAdjacentHTML('afterbegin','<i class="bx bx-save"></i> ');
+        }
+      }
+    }
+
+    // Make delete button look nice
+    document.querySelectorAll('form button, form input[type="submit"]').forEach(b=>{
+      const t = (b.textContent || '').toLowerCase();
+      if(t.includes('delete') || t.includes('supprimer')){
+        b.classList.add('btn','btn-danger','w-100');
+        if(b.tagName.toLowerCase() === 'button' && !b.querySelector('i')){
+          b.insertAdjacentHTML('afterbegin','<i class="bx bx-trash me-1"></i>');
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

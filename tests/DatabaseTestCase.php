@@ -4,6 +4,10 @@ namespace App\Tests;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
@@ -27,7 +31,7 @@ abstract class DatabaseTestCase extends WebTestCase
         $schemaTool = new SchemaTool($entityManager);
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
 
-        $schemaTool->dropDatabase();
+        $this->resetDatabase($entityManager);
         if ($metadata !== []) {
             $schemaTool->createSchema($metadata);
         }
@@ -65,5 +69,36 @@ abstract class DatabaseTestCase extends WebTestCase
         $request->setSession($session);
         $requestStack->push($request);
         $this->primedRequestStack = true;
+    }
+
+    private function resetDatabase(EntityManagerInterface $entityManager): void
+    {
+        $connection = $entityManager->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        $isMySql = $platform instanceof MySQLPlatform || $platform instanceof MariaDBPlatform;
+        $isSqlite = $platform instanceof SQLitePlatform;
+        $isPostgres = $platform instanceof PostgreSQLPlatform;
+
+        if ($isMySql) {
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0');
+        } elseif ($isSqlite) {
+            $connection->executeStatement('PRAGMA foreign_keys=OFF');
+        }
+
+        $schemaManager = $connection->createSchemaManager();
+        foreach ($schemaManager->listTableNames() as $tableName) {
+            $quotedTable = $platform->quoteIdentifier($tableName);
+            $dropSql = 'DROP TABLE IF EXISTS '.$quotedTable;
+            if ($isPostgres) {
+                $dropSql .= ' CASCADE';
+            }
+            $connection->executeStatement($dropSql);
+        }
+
+        if ($isMySql) {
+            $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1');
+        } elseif ($isSqlite) {
+            $connection->executeStatement('PRAGMA foreign_keys=ON');
+        }
     }
 }

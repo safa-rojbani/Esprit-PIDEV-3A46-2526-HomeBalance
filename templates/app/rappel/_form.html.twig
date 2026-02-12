@@ -1,0 +1,19 @@
+{{ form_start(form) }}
+  <div class="row g-3">
+    <div class="col-md-6">
+      {{ form_row(form.offsetMinutes) }}
+    </div>
+    <div class="col-md-6">
+      {{ form_row(form.canal) }}
+    </div>
+    <div class="col-md-6">
+      {{ form_row(form.actif) }}
+    </div>
+    <div class="col-md-6">
+      {{ form_row(form.estLu) }}
+    </div>
+  </div>
+  <div class="mt-3">
+    <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+  </div>
+{{ form_end(form) }}

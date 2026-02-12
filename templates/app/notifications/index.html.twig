@@ -1,0 +1,45 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-semibold m-0">Notifications</h4>
+  <div>
+    <a href="{{ path('app_notifications', { filter: 'all' }) }}" class="btn btn-outline-secondary {% if filter == 'all' %}active{% endif %}">Toutes</a>
+    <a href="{{ path('app_notifications', { filter: 'unread' }) }}" class="btn btn-outline-secondary {% if filter == 'unread' %}active{% endif %}">Non lues</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Événement</th>
+          <th>Déclenchement</th>
+          <th>Canal</th>
+          <th>Lu</th>
+          <th>Reçue</th>
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+      {% for row in rows %}
+        {% set r = row.rappel %}
+        <tr>
+          <td>{{ row.eventTitle ?? 'Événement supprimé' }}</td>
+          <td>{{ r.scheduledAt ? r.scheduledAt|date('Y-m-d H:i') : '' }}</td>
+          <td>{{ r.canal ?? '' }}</td>
+          <td>{{ r.estLu ? 'Oui' : 'Non' }}</td>
+          <td>{{ r.readAt ? r.readAt|date('Y-m-d H:i') : '' }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Aucune notification</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

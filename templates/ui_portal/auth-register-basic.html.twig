@@ -1,32 +1,32 @@
 {% extends 'ui_portal/layouts/auth.html.twig' %}
 
-{% block title %}Create Account · HomeBalance{% endblock %}
+{% block title %}Créer un compte · HomeBalance{% endblock %}
 
 {% block hero %}
-  <p class="eyebrow">Family-first setup</p>
-  <h1>Start organizing your home, your way.</h1>
+  <p class="eyebrow">Démarrage centré sur la famille</p>
+  <h1>Organisez votre foyer à votre façon.</h1>
   <p class="lead">
-    HomeBalance helps you share responsibilities, manage household finances, and keep everything organized — whether you live alone or with others.
-    You can join an existing household with a code, or start on your own.
+    HomeBalance vous aide à partager les responsabilités, gérer le budget et garder un foyer clair — seul ou à plusieurs.
+    Vous pouvez rejoindre un foyer existant avec un code, ou démarrer de votre côté.
   </p>
   <div class="hero-metrics">
     <div>
-      <span class="metric">Account first</span>
-      <small>This account belongs to you. Decide later if you join a household.</small>
+      <span class="metric">Compte d’abord</span>
+      <small>Ce compte vous appartient. Vous choisirez plus tard si vous rejoignez un foyer.</small>
     </div>
     <div>
       <span class="metric">Flexible</span>
-      <small>No pressure. You can change your setup anytime.</small>
+      <small>Sans pression. Vous pouvez ajuster votre organisation à tout moment.</small>
     </div>
   </div>
 {% endblock %}
 
-{% block panel_subtitle %}Create your HomeBalance account{% endblock %}
+{% block panel_subtitle %}Créez votre compte HomeBalance{% endblock %}
 
 {% block panel %}
   <div class="panel-head">
-    <h2>Tell us a bit about you</h2>
-    <p class="text-muted">This helps HomeBalance adapt tasks, reminders, and suggestions to you. You can always change this later.</p>
+    <h2>Parlez-nous un peu de vous</h2>
+    <p class="text-muted">Cela aide HomeBalance à adapter tâches, rappels et suggestions. Vous pourrez modifier plus tard.</p>
   </div>
 
   {% if registrationErrors %}
@@ -55,11 +55,11 @@
         class="form-control"
         id="username"
         name="username"
-        placeholder="Username"
+        placeholder="Identifiant"
         value="{{ registration.username }}"
         autocomplete="username"
         data-registration-form-target="username" />
-      <span>Username</span>
+      <span>Identifiant</span>
     </label>
 
     <div class="row g-3">
@@ -70,11 +70,11 @@
             class="form-control"
             id="first_name"
             name="first_name"
-            placeholder="First name"
+            placeholder="Prénom"
             value="{{ registration.first_name }}"
             autocomplete="given-name"
             data-registration-form-target="firstName" />
-          <span>First name</span>
+          <span>Prénom</span>
         </label>
       </div>
       <div class="col-sm-6">
@@ -84,11 +84,11 @@
             class="form-control"
             id="last_name"
             name="last_name"
-            placeholder="Last name"
+            placeholder="Nom"
             value="{{ registration.last_name }}"
             autocomplete="family-name"
             data-registration-form-target="lastName" />
-          <span>Last name</span>
+          <span>Nom</span>
         </label>
       </div>
     </div>
@@ -99,12 +99,12 @@
         class="form-control"
         id="email"
         name="email"
-        placeholder="Email"
+        placeholder="E-mail"
         value="{{ registration.email }}"
         autocomplete="email" />
-      <span>Email</span>
+      <span>E-mail</span>
     </label>
-    <small class="field-hint text-muted mb-3 d-block">Use the email where you want HomeBalance updates.</small>
+    <small class="field-hint text-muted mb-3 d-block">Utilisez l’e-mail où vous souhaitez recevoir les infos HomeBalance.</small>
 
     <div class="form-password-toggle" data-controller="password-visibility">
       <label class="form-floating">
@@ -113,37 +113,37 @@
           id="password"
           class="form-control"
           name="password"
-          placeholder="Password"
+          placeholder="Mot de passe"
           autocomplete="new-password"
           data-password-visibility-target="input" />
-        <span>Password</span>
+        <span>Mot de passe</span>
         <button
           class="password-toggle"
           type="button"
-          aria-label="Toggle password visibility"
+          aria-label="Afficher ou masquer le mot de passe"
           data-action="password-visibility#toggle"
           data-password-visibility-target="toggle">
           <i class="icon-base bx bx-hide"></i>
         </button>
       </label>
-      <small class="field-hint text-muted">Choose a password you&apos;ll remember — your household depends on you ;)</small>
+      <small class="field-hint text-muted">Choisissez un mot de passe simple à retenir — votre foyer compte sur vous.</small>
     </div>
 
     <label class="form-check align-items-start">
       <input class="form-check-input" type="checkbox" id="terms" name="terms" {{ registration.terms ? 'checked' }} />
       <span class="form-check-label">
-        I agree to the
-        <a class="link-underline" href="https://homebalance.app/legal" target="_blank" rel="noreferrer">privacy policy & terms</a>.
+        J’accepte la
+        <a class="link-underline" href="https://homebalance.app/legal" target="_blank" rel="noreferrer">politique de confidentialité et les conditions</a>.
       </span>
     </label>
-    <small class="text-muted d-block mb-3">We'll email you a verification link right after this step.</small>
+    <small class="text-muted d-block mb-3">Vous recevrez un lien de vérification par e-mail juste après.</small>
 
-    <button class="btn btn-primary w-100">Create my account</button>
-    <small class="d-block text-center text-muted mt-3">No pressure — you can revisit any step later.</small>
+    <button class="btn btn-primary w-100">Créer mon compte</button>
+    <small class="d-block text-center text-muted mt-3">Sans pression — vous pourrez revenir dessus plus tard.</small>
   </form>
 
   <p class="text-center mb-0">
-    <span class="text-muted">Already part of HomeBalance?</span>
-    <a href="{{ path('portal_auth_login') }}" class="link-underline">Sign in instead</a>
+    <span class="text-muted">Déjà membre de HomeBalance ?</span>
+    <a href="{{ path('portal_auth_login') }}" class="link-underline">Se connecter</a>
   </p>
 {% endblock %}

@@ -3,6 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Evenement;
+use App\Entity\Family;
+use App\Entity\TypeEvenement;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +17,76 @@ class EvenementRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Evenement::class);
+    }
+
+    /**
+     * @return Evenement[]
+     */
+    public function findVisibleForUser(?User $user): array
+    {
+        if ($user === null) {
+            return [];
+        }
+
+        $family = $user->getFamily();
+        if ($family === null) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('e.dateDebut', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Evenement[]
+     */
+    public function findForFamilyWithFilters(Family $family, ?TypeEvenement $type, ?string $search): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->orderBy('e.dateDebut', 'ASC');
+
+        $qb->andWhere('e.family = :family')
+            ->setParameter('family', $family);
+
+        if ($type !== null) {
+            $qb->andWhere('e.TypeEvenement = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('e.titre LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return Evenement[]
+     */
+    public function findWithFilters(Family $family, ?TypeEvenement $type, ?string $search): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->orderBy('e.dateDebut', 'ASC');
+
+        $qb->andWhere('e.family = :family')
+            ->setParameter('family', $family);
+
+        if ($type !== null) {
+            $qb->andWhere('e.TypeEvenement = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('e.titre LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     //    /**

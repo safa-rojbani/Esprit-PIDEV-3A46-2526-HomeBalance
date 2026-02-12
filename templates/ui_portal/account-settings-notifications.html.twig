@@ -1,6 +1,6 @@
 {% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}Account Settings · Notifications{% endblock %}
+{% block title %}Paramètres du compte · Notifications{% endblock %}
 
 {% block content %}
   {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'notifications' } %}
@@ -8,9 +8,9 @@
   <form class="card" method="post" action="{{ path('portal_account_notifications') }}" novalidate>
     <input type="hidden" name="_token" value="{{ csrf_token('notifications_update') }}" />
     <div class="card-body">
-      <h5 class="mb-1">Household notifications</h5>
+      <h5 class="mb-1">Notifications du foyer</h5>
       <span class="card-subtitle">
-        Choose how each kind of update reaches you. Balance isn&apos;t about doing everything — it&apos;s about knowing what needs care.
+        Choisissez comment chaque mise à jour vous parvient. L’équilibre, c’est savoir ce qui mérite attention.
       </span>
       <div class="error"></div>
     </div>
@@ -19,9 +19,9 @@
         <thead>
           <tr>
             <th class="text-nowrap">Type</th>
-            <th class="text-nowrap text-center">Email</th>
-            <th class="text-nowrap text-center">Browser</th>
-            <th class="text-nowrap text-center">App</th>
+            <th class="text-nowrap text-center">E-mail</th>
+            <th class="text-nowrap text-center">Navigateur</th>
+            <th class="text-nowrap text-center">Application</th>
           </tr>
         </thead>
         <tbody>
@@ -48,18 +48,18 @@
       </table>
     </div>
     <div class="card-body">
-      <h6 class="text-body mb-6">When should we nudge you?</h6>
+      <h6 class="text-body mb-6">Quand souhaitez-vous être notifié ?</h6>
       <div class="row">
         <div class="col-sm-6">
           <select id="sendNotification" class="form-select" name="sendNotification">
-            <option value="online" {{ notificationDelivery == 'online' ? 'selected' }}>Only when I'm online</option>
-            <option value="anytime" {{ notificationDelivery == 'anytime' ? 'selected' }}>Anytime</option>
+            <option value="online" {{ notificationDelivery == 'online' ? 'selected' }}>Seulement lorsque je suis en ligne</option>
+            <option value="anytime" {{ notificationDelivery == 'anytime' ? 'selected' }}>À tout moment</option>
           </select>
-          <small class="text-muted d-block mt-2">Change this whenever your family&apos;s rhythm shifts.</small>
+          <small class="text-muted d-block mt-2">Modifiez ce réglage quand le rythme du foyer change.</small>
         </div>
         <div class="mt-6">
-          <button type="submit" class="btn btn-primary me-3">Save my preferences</button>
-          <button type="reset" class="btn btn-outline-secondary">Reset</button>
+          <button type="submit" class="btn btn-primary me-3">Enregistrer</button>
+          <button type="reset" class="btn btn-outline-secondary">Réinitialiser</button>
         </div>
       </div>
     </div>

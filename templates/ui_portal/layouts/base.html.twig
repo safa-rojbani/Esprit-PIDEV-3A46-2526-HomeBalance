@@ -1,6 +1,6 @@
 <!doctype html>
 <html
-  lang="en"
+  lang="fr"
   class="{{ html_classes|default('layout-menu-fixed layout-compact') }}"
   data-assets-path="{{ asset('') }}"
   data-template="vertical-menu-template-free">
@@ -10,7 +10,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>{% block title %}HomeBalance Portal{% endblock %}</title>
+    <title>{% block title %}Portail HomeBalance{% endblock %}</title>
 
     <meta name="description" content="" />
 
@@ -19,12 +19,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
       rel="stylesheet" />
 
     <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
     <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/hb-theme.css') }}" />
     <link rel="stylesheet" href="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
     <link rel="stylesheet" href="{{ asset('vendor/css/pages/page-account-settings.css') }}" />
 
@@ -37,7 +38,65 @@
   <body>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
-        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu|default('account') } %}
+        {% set route = app.request.attributes.get('_route') %}
+        {% set active_menu = active_menu|default(
+          (route starts with 'admin_evenement'
+            or route starts with 'admin_rappel'
+            or route starts with 'admin_type_evenement'
+            or route starts with 'admin_calendar') ? 'module-events'
+          : (route starts with 'app_evenement'
+            or route starts with 'app_rappel'
+            or route starts with 'app_type_evenement'
+            or route starts with 'app_calendar'
+            or route starts with 'app_notifications') ? 'module-events'
+          : (route starts with 'app_gallery'
+            or route starts with 'app_document'
+            or route starts with 'app_default_gallery') ? 'module-documents'
+          : (route starts with 'app_achat'
+            or route starts with 'app_revenu'
+            or route starts with 'app_historique_achat'
+            or route starts with 'app_categorie_achat') ? 'module-charge'
+          : (route starts with 'parent_task'
+            or route starts with 'child_task'
+            or route starts with 'family_task'
+            or route starts with 'parent_validation'
+            or route starts with 'admin_task') ? 'module-tasks'
+          : active_menu|default('account')
+        ) %}
+        {% set module_charge_items = is_granted('ROLE_ADMIN')
+          ? [
+            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'}
+          ]
+          : [
+            {'label': 'Achats', 'route': 'app_achat_index'},
+            {'label': 'Historique', 'route': 'app_historique_achat_index'},
+            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'},
+            {'label': 'Revenus', 'route': 'app_revenu_index'},
+            {'label': 'Budget', 'route': 'app_revenu_budget'}
+          ]
+        %}
+        {% set module_submenus = module_submenus|default({
+          'module-charge': module_charge_items,
+          'module-documents': [
+            {'label': 'Galeries', 'route': 'app_gallery_index'},
+            {'label': 'Documents', 'route': 'app_document_index'},
+            {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+            {'label': 'Corbeille', 'route': 'app_document_trash'}
+          ],
+          'module-tasks': [
+            {'label': 'Tâches parent', 'route': 'parent_task_index'},
+            {'label': 'Tâches enfant', 'route': 'child_task_index'},
+            {'label': 'Tâches famille', 'route': 'family_task_list'},
+            {'label': 'Validations', 'route': 'parent_validation_index'}
+          ],
+          'module-events': [
+            {'label': 'Événements', 'route': 'admin_evenement_index'},
+            {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
+            {'label': 'Rappels', 'route': 'admin_rappel_index'},
+            {'label': 'Calendrier', 'route': 'admin_calendar'}
+          ]
+        }) %}
+        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
         <div class="layout-page">
           {% include 'ui_portal/partials/navbar.html.twig' %}
 
@@ -63,15 +122,6 @@
       </div>
 
       <div class="layout-overlay layout-menu-toggle"></div>
-    </div>
-
-    <div class="buy-now">
-      <a
-        href="https://themeselection.com/item/sneat-dashboard-pro-bootstrap/"
-        target="_blank"
-        class="btn btn-danger btn-buy-now"
-        >Upgrade to Pro</a
-      >
     </div>
 
     <script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
@@ -101,6 +151,5 @@
 
     {{ importmap('app') }}
 
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
   </body>
 </html>
