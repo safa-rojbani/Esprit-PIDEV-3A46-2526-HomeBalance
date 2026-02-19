@@ -1,16 +1,37 @@
-{{ form_start(form) }}
+{{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+  {% if form.vars.errors|length > 0 %}
+    <div class="alert alert-danger py-2 mb-3">
+      {{ form_errors(form) }}
+    </div>
+  {% endif %}
   <div class="row g-3">
     <div class="col-md-6">
-      {{ form_row(form.nom) }}
+      {{ form_label(form.nom) }}
+      {% if form.nom.vars.errors|length > 0 %}
+        <div class="text-danger small mb-1">{{ form_errors(form.nom) }}</div>
+      {% endif %}
+      {{ form_widget(form.nom) }}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.couleur) }}
+      {{ form_label(form.couleur) }}
+      {% if form.couleur.vars.errors|length > 0 %}
+        <div class="text-danger small mb-1">{{ form_errors(form.couleur) }}</div>
+      {% endif %}
+      {{ form_widget(form.couleur) }}
     </div>
     <div class="col-12">
-      {{ form_row(form.description) }}
+      {{ form_label(form.description) }}
+      {% if form.description.vars.errors|length > 0 %}
+        <div class="text-danger small mb-1">{{ form_errors(form.description) }}</div>
+      {% endif %}
+      {{ form_widget(form.description) }}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.family) }}
+      {{ form_label(form.family) }}
+      {% if form.family.vars.errors|length > 0 %}
+        <div class="text-danger small mb-1">{{ form_errors(form.family) }}</div>
+      {% endif %}
+      {{ form_widget(form.family) }}
     </div>
   </div>
   <div class="mt-3">

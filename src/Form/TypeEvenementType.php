@@ -9,7 +9,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints as Assert;
 
 class TypeEvenementType extends AbstractType
 {
@@ -18,7 +17,6 @@ class TypeEvenementType extends AbstractType
         $builder
             ->add('nom', null, [
                 'label' => 'Nom',
-                'constraints' => [new Assert\NotBlank()],
                 'attr' => ['placeholder' => 'Ex: Anniversaire'],
             ])
             ->add('couleur', ColorType::class, [

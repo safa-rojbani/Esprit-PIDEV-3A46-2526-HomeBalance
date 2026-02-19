@@ -11,11 +11,9 @@
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
     <title>{% block title %}Portail HomeBalance{% endblock %}</title>
-
     <meta name="description" content="" />
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -37,9 +35,9 @@
 
   <body>
     <div class="layout-wrapper layout-content-navbar">
-<<<<<<< HEAD
       <div class="layout-container">
         {% set route = app.request.attributes.get('_route') %}
+        {% set family_role_value = (app.user and app.user.familyRole) ? app.user.familyRole.value : null %}
         {% set active_menu = active_menu|default(
           (route starts with 'admin_evenement'
             or route starts with 'admin_rappel'
@@ -62,67 +60,78 @@
             or route starts with 'family_task'
             or route starts with 'parent_validation'
             or route starts with 'admin_task') ? 'module-tasks'
-          : active_menu|default('account')
+          : 'dashboard'
         ) %}
-        {% set module_charge_items = is_granted('ROLE_ADMIN')
+
+        {% set default_charge_submenus = is_granted('ROLE_ADMIN')
           ? [
-            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'}
+            {'label': 'Categories achat', 'route': 'app_categorie_achat_index'}
           ]
           : [
             {'label': 'Achats', 'route': 'app_achat_index'},
             {'label': 'Historique', 'route': 'app_historique_achat_index'},
-            {'label': 'Catégories achat', 'route': 'app_categorie_achat_index'},
+            {'label': 'Categories achat', 'route': 'app_categorie_achat_index'},
             {'label': 'Revenus', 'route': 'app_revenu_index'},
             {'label': 'Budget', 'route': 'app_revenu_budget'}
           ]
         %}
-        {% set module_submenus = module_submenus|default({
-          'module-charge': module_charge_items,
-          'module-documents': [
+        {% set default_documents_submenus = is_granted('ROLE_ADMIN')
+          ? [
+            {'label': 'Default galleries', 'route': 'app_default_gallery_index'}
+          ]
+          : [
             {'label': 'Galeries', 'route': 'app_gallery_index'},
             {'label': 'Documents', 'route': 'app_document_index'},
-            {'label': 'Galeries masquées', 'route': 'app_gallery_hidden'},
+            {'label': 'Galeries masquees', 'route': 'app_gallery_hidden'},
             {'label': 'Corbeille', 'route': 'app_document_trash'}
-          ],
-          'module-tasks': [
-            {'label': 'Tâches parent', 'route': 'parent_task_index'},
-            {'label': 'Tâches enfant', 'route': 'child_task_index'},
-            {'label': 'Tâches famille', 'route': 'family_task_list'},
-            {'label': 'Validations', 'route': 'parent_validation_index'}
-          ],
-          'module-events': [
-            {'label': 'Événements', 'route': 'admin_evenement_index'},
-            {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
-            {'label': 'Rappels', 'route': 'admin_rappel_index'},
+          ]
+        %}
+        {% set default_tasks_submenus = is_granted('ROLE_ADMIN')
+          ? [
+            {'label': 'Taches globales', 'route': 'admin_task_index'}
+          ]
+          : (
+            family_role_value == 'PARENT'
+              ? [
+                {'label': 'Taches parent', 'route': 'parent_task_index'},
+                {'label': 'Assignations parent', 'route': 'parent_task_assign'},
+                {'label': 'Validations', 'route': 'parent_validation_index'},
+                {'label': 'Taches famille', 'route': 'family_task_list'}
+              ]
+              : (
+                family_role_value == 'CHILD'
+                  ? [
+                    {'label': 'Taches famille', 'route': 'family_task_list'},
+                    {'label': 'Taches enfant', 'route': 'child_task_index'}
+                  ]
+                  : [
+                    {'label': 'Taches famille', 'route': 'family_task_list'}
+                  ]
+              )
+          )
+        %}
+        {% set default_events_submenus = is_granted('ROLE_ADMIN')
+          ? [
+            {'label': 'Evenements', 'route': 'admin_evenement_index'},
+            {'label': 'Types evenements', 'route': 'admin_type_evenement_index'},
             {'label': 'Calendrier', 'route': 'admin_calendar'}
           ]
-        }) %}
-        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
-=======
-      <div class="layout-container">
-<<<<<<< HEAD
-        {% set default_module_submenus = is_granted('ROLE_ADMIN') ? {
-          'module-events': [
-            {'label': 'Événements', 'route': 'admin_evenement_index'},
-            {'label': 'Types d\'événements', 'route': 'admin_type_evenement_index'},
-            {'label': 'Calendrier', 'route': 'admin_calendar'}
-          ]
-        } : {
-          'module-events': [
-            {'label': 'Événements', 'route': 'app_evenement_index'},
-            {'label': 'Types d\'événements', 'route': 'app_type_evenement_index'},
+          : [
+            {'label': 'Evenements', 'route': 'app_evenement_index'},
+            {'label': 'Types evenements', 'route': 'app_type_evenement_index'},
             {'label': 'Rappels', 'route': 'app_rappel_history'},
             {'label': 'Calendrier', 'route': 'app_calendar'}
           ]
-        } %}
-        {% include 'ui_portal/partials/sidebar.html.twig' with {
-          active_menu: active_menu|default('account'),
-          module_submenus: module_submenus|default(default_module_submenus)
-        } %}
-=======
-        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu|default('account') } %}
->>>>>>> origin/main
->>>>>>> origin/main
+        %}
+        {% set module_submenus = module_submenus|default({
+          'module-charge': default_charge_submenus,
+          'module-documents': default_documents_submenus,
+          'module-tasks': default_tasks_submenus,
+          'module-events': default_events_submenus
+        }) %}
+
+        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu, module_submenus: module_submenus } %}
+
         <div class="layout-page">
           {% include 'ui_portal/partials/navbar.html.twig' %}
 
@@ -137,11 +146,12 @@
                 {% endfor %}
               {% endfor %}
 
-              {% block content %}{% endblock %}
+              {% block content %}
+                {% block body %}{% endblock %}
+              {% endblock %}
             </div>
 
             {% include 'ui_portal/partials/footer.html.twig' %}
-
             <div class="content-backdrop fade"></div>
           </div>
         </div>
@@ -174,10 +184,6 @@
     </script>
 
     {% block extra_javascripts %}{% endblock %}
-
     {{ importmap('app') }}
-
   </body>
 </html>
-
-

@@ -11,9 +11,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class EvenementType extends AbstractType
 {
@@ -25,7 +22,6 @@ class EvenementType extends AbstractType
         $builder
             ->add('titre', null, [
                 'label' => 'Titre',
-                'constraints' => [new Assert\NotBlank(message: 'Le titre est obligatoire.')],
                 'attr' => ['placeholder' => 'Ex: Reunion familiale'],
             ])
             ->add('description', null, [
@@ -36,16 +32,13 @@ class EvenementType extends AbstractType
             ->add('dateDebut', null, [
                 'label' => 'Date de debut',
                 'widget' => 'single_text',
-                'constraints' => [new Assert\NotBlank(message: 'La date de debut est obligatoire.')],
             ])
             ->add('dateFin', null, [
                 'label' => 'Date de fin',
                 'widget' => 'single_text',
-                'constraints' => [new Assert\NotBlank(message: 'La date de fin est obligatoire.')],
             ])
             ->add('lieu', null, [
                 'label' => 'Lieu',
-                'constraints' => [new Assert\NotBlank(message: 'Le lieu est obligatoire.')],
                 'attr' => ['placeholder' => 'Ex: Maison'],
             ])
             ->add('typeEvenement', EntityType::class, [
@@ -64,7 +57,6 @@ class EvenementType extends AbstractType
                         ->andWhere('(t.family = :family OR t.family IS NULL)')
                         ->setParameter('family', $family);
                 },
-                'constraints' => [new Assert\NotNull(message: "Le type d'evenement est obligatoire.")],
                 'placeholder' => 'Choisir un type',
             ])
             ->add('shareWithFamily', CheckboxType::class, [
@@ -78,23 +70,8 @@ class EvenementType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Evenement::class,
             'family' => null,
-            'constraints' => [
-                new Callback([$this, 'validateDates']),
-            ],
         ]);
         $resolver->setAllowedTypes('family', ['null', Family::class]);
-    }
-
-    public function validateDates(Evenement $evenement, ExecutionContextInterface $context): void
-    {
-        $start = $evenement->getDateDebut();
-        $end = $evenement->getDateFin();
-
-        if ($start !== null && $end !== null && $end <= $start) {
-            $context->buildViolation('La date de fin doit etre apres la date de debut.')
-                ->atPath('dateFin')
-                ->addViolation();
-        }
     }
 }
 

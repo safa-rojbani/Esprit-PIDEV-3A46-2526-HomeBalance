@@ -16,6 +16,29 @@ class DefaultGalleryRepository extends ServiceEntityRepository
         parent::__construct($registry, DefaultGallery::class);
     }
 
+    /**
+     * @return DefaultGallery[]
+     */
+    public function findForAdminList(string $search, string $sort, string $dir): array
+    {
+        $sortField = $sort === 'description' ? 'd.description' : 'd.name';
+        $direction = strtolower($dir) === 'desc' ? 'DESC' : 'ASC';
+
+        $qb = $this->createQueryBuilder('d');
+
+        if ($search !== '') {
+            $qb
+                ->andWhere('LOWER(d.name) LIKE :search OR LOWER(COALESCE(d.description, \'\')) LIKE :search')
+                ->setParameter('search', '%'.mb_strtolower($search).'%');
+        }
+
+        return $qb
+            ->orderBy($sortField, $direction)
+            ->addOrderBy('d.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return DefaultGallery[] Returns an array of DefaultGallery objects
 //     */

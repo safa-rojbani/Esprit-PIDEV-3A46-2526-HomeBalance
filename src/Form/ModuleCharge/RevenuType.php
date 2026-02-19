@@ -10,9 +10,6 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 class RevenuType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -23,7 +20,7 @@ class RevenuType extends AbstractType
             ->add('typeRevenu', ChoiceType::class, [
                 'choices' => array_combine($types, $types),
                 'placeholder' => 'Choisir un type (ou écrire un nouveau)',
-                'required' => True,
+                'required' => false,
             ])
             ->add('typeRevenuLibre', TextType::class, [
                 'mapped' => false,

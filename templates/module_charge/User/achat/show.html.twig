@@ -82,18 +82,6 @@
           <div class="row g-3">
             <div class="col-12 col-md-6">
               <div class="info-card">
-                <div class="info-card-icon info-card-icon-primary">
-                  <i class="bi bi-hash"></i>
-                </div>
-                <div class="info-card-content">
-                  <div class="info-card-label">Identifiant</div>
-                  <div class="info-card-value">#{{ achat.id }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-6">
-              <div class="info-card">
                 <div class="info-card-icon {% if achat.estAchete %}info-card-icon-success{% else %}info-card-icon-warning{% endif %}">
                   <i class="bi {% if achat.estAchete %}bi-check-circle{% else %}bi-clock{% endif %}"></i>
                 </div>

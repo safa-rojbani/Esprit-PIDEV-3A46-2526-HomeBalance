@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\TypeEvenementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TypeEvenementRepository::class)]
 class TypeEvenement
@@ -14,12 +15,28 @@ class TypeEvenement
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le nom doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le nom ne doit pas depasser {{ limit }} caracteres.'
+    )]
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
+    #[Assert\Regex(
+        pattern: '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+        message: 'La couleur doit etre au format HEX, par exemple #6C63FF.'
+    )]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $couleur = null;
 
+    #[Assert\NotBlank(message: 'La description est obligatoire.')]
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: 'La description ne doit pas depasser {{ limit }} caracteres.'
+    )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 

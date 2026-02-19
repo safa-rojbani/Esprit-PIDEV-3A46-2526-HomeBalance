@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\EvenementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: EvenementRepository::class)]
 class Evenement
@@ -14,18 +16,39 @@ class Evenement
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Le titre doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le titre ne doit pas depasser {{ limit }} caracteres.'
+    )]
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
+    #[Assert\NotBlank(message: 'La description est obligatoire.')]
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: 'La description ne doit pas depasser {{ limit }} caracteres.'
+    )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[Assert\NotNull(message: 'La date de debut est obligatoire.')]
     #[ORM\Column]
     private ?\DateTimeImmutable $dateDebut = null;
 
+    #[Assert\NotNull(message: 'La date de fin est obligatoire.')]
     #[ORM\Column]
     private ?\DateTimeImmutable $dateFin = null;
 
+    #[Assert\NotBlank(message: 'Le lieu est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le lieu doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le lieu ne doit pas depasser {{ limit }} caracteres.'
+    )]
     #[ORM\Column(length: 255)]
     private ?string $lieu = null;
 
@@ -43,6 +66,7 @@ class Evenement
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Le type d'evenement est obligatoire.")]
     private ?TypeEvenement $TypeEvenement = null;
 
     #[ORM\Column(options: ['default' => false])]
@@ -183,5 +207,15 @@ class Evenement
         $this->shareWithFamily = $shareWithFamily;
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateDates(ExecutionContextInterface $context): void
+    {
+        if ($this->dateDebut !== null && $this->dateFin !== null && $this->dateFin <= $this->dateDebut) {
+            $context->buildViolation('La date de fin doit etre apres la date de debut.')
+                ->atPath('dateFin')
+                ->addViolation();
+        }
     }
 }

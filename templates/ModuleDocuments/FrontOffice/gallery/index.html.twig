@@ -184,60 +184,73 @@ document.addEventListener('click', function () {
   document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('hbSearchInput');
-  const sortSel = document.getElementById('hbSortSelect');
-  const dirBtn = document.getElementById('hbSortDirBtn');
-  const icon = document.getElementById('hbSortIcon');
-  const grid = document.querySelector('.hb-grid');
-  const items = Array.from(document.querySelectorAll('.hb-item'));
+(function () {
+  function initGalleryFilters() {
+    const input = document.getElementById('hbSearchInput');
+    const sortSel = document.getElementById('hbSortSelect');
+    const dirBtn = document.getElementById('hbSortDirBtn');
+    const icon = document.getElementById('hbSortIcon');
+    const grid = document.querySelector('.hb-grid');
+    const items = Array.from(document.querySelectorAll('.hb-item'));
 
-  let dir = 'desc';
+    if (!input || !sortSel || !dirBtn || !icon || !grid || input.dataset.hbBound === '1') {
+      return;
+    }
 
-  function matches(el, q){
-    if(!q) return true;
-    return (el.dataset.name || '').includes(q) || (el.dataset.description || '').includes(q);
-  }
+    input.dataset.hbBound = '1';
+    let dir = 'desc';
 
-  function value(el, field){
-    if(field === 'name') return el.dataset.name || '';
-    if(field === 'description') return el.dataset.description || '';
-    if(field === 'docs') return parseInt(el.dataset.docs || '0', 10);
-    return parseInt(el.dataset.date || '0', 10);
-  }
+    function matches(el, q){
+      if(!q) return true;
+      return (el.dataset.name || '').includes(q) || (el.dataset.description || '').includes(q);
+    }
 
-  function apply(){
-    const q = (input.value || '').toLowerCase().trim();
-    const field = sortSel.value;
+    function value(el, field){
+      if(field === 'name') return el.dataset.name || '';
+      if(field === 'description') return el.dataset.description || '';
+      if(field === 'docs') return parseInt(el.dataset.docs || '0', 10);
+      return parseInt(el.dataset.date || '0', 10);
+    }
 
-    const visible = items.filter(el => matches(el, q));
-    items.forEach(el => el.style.display = 'none');
+    function apply(){
+      const q = (input.value || '').toLowerCase().trim();
+      const field = sortSel.value;
 
-    visible.sort((a,b) => {
-      const va = value(a, field);
-      const vb = value(b, field);
-      let c = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
-      return dir === 'asc' ? c : -c;
+      const visible = items.filter(el => matches(el, q));
+      items.forEach(el => el.style.display = 'none');
+
+      visible.sort((a,b) => {
+        const va = value(a, field);
+        const vb = value(b, field);
+        let c = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
+        return dir === 'asc' ? c : -c;
+      });
+
+      visible.forEach(el => {
+        el.style.display = '';
+        grid.appendChild(el);
+      });
+    }
+
+    dirBtn.addEventListener('click', () => {
+      dir = (dir === 'asc') ? 'desc' : 'asc';
+      icon.className = (dir === 'asc') ? 'bx bx-sort-up' : 'bx bx-sort-down';
+      apply();
     });
 
-    visible.forEach(el => {
-      el.style.display = '';
-      grid.appendChild(el);
-    });
+    input.addEventListener('input', apply);
+    sortSel.addEventListener('change', apply);
+    apply();
   }
 
- dirBtn.addEventListener('click', () => {
-  dir = (dir === 'asc') ? 'desc' : 'asc';
-  icon.className = (dir === 'asc') ? 'bx bx-sort-up' : 'bx bx-sort-down';
-  apply();
-});
+  document.addEventListener('turbo:load', initGalleryFilters);
 
-
-  input.addEventListener('input', apply);
-  sortSel.addEventListener('change', apply);
-
-  apply();
-});
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGalleryFilters, { once: true });
+  } else {
+    initGalleryFilters();
+  }
+})();
 </script>
 {% endblock %}
 

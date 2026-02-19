@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-  /* ===== HomeBalance â€¢ New Document (Clean + Phone-like) ===== */
   .hb-page{max-width:1040px;margin:0 auto;}
   .hb-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;}
   .hb-top h3{margin:0;font-weight:1000;letter-spacing:.2px;color:#2b2f36;}
@@ -37,7 +36,6 @@
   @keyframes hbIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 
-  /* ===== HB Camera Overlay â€¢ Landscape â€¢ High-Contrast ===== */
   .hb-cam-overlay{position:fixed; inset:0; z-index:99999; display:none; background:rgba(10,16,28,.72); backdrop-filter:blur(10px); padding:18px;}
   .hb-cam-wrap{height:100%;display:flex;align-items:center;justify-content:center;}
   .hb-cam-modal{width:min(1120px,100%); aspect-ratio:16/9; border-radius:26px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,.14); box-shadow:0 55px 160px rgba(0,0,0,.55); position:relative;}
@@ -66,7 +64,6 @@
   .hb-shutter::after{content:""; width:62px;height:62px;border-radius:999px; background:#fff; box-shadow:inset 0 -12px 24px rgba(0,0,0,.16);}
   .hb-shutter:active{transform:scale(.96);}
 
-  /* REC button */
   .hb-rec{width:82px;height:82px;border-radius:999px; border:3px solid rgba(255,255,255,.85); background:rgba(255,255,255,.12); display:grid;place-items:center; box-shadow:0 24px 70px rgba(0,0,0,.45); cursor:pointer;}
   .hb-rec::after{content:""; width:28px;height:28px;border-radius:999px; background:#ff3b3b; box-shadow:0 10px 24px rgba(255,59,59,.35);}
   .hb-rec.recording::after{animation:hbPulse 1s infinite ease-in-out;}
@@ -83,7 +80,6 @@
   .hb-cam-x:hover{transform:scale(1.05);background:rgba(255,255,255,.10);border-color:rgba(105,108,255,.45);}
   .hb-cam-x:active{transform:scale(.96);}
 
-  /* mode pills */
   .hb-mode{display:inline-flex; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden;}
   .hb-mode button{border:none;background:transparent;color:#fff;padding:.45rem .8rem;font-weight:950;cursor:pointer;opacity:.8}
   .hb-mode button.active{opacity:1;background:rgba(105,108,255,.35)}

@@ -51,25 +51,29 @@
   #hbDefSortDirBtn{border:0;border-left:1px solid rgba(67,89,113,.12);min-width:52px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#566a7f;background:transparent}
 </style>
 
-<div class="hb-tools">
+<form class="hb-tools" method="get" action="{{ path('app_default_gallery_index') }}">
   <div class="hb-search">
     <i class="bx bx-search"></i>
-    <input id="hbDefSearchInput" type="text" class="form-control"
+    <input id="hbDefSearchInput" type="text" class="form-control" name="q"
+           value="{{ currentSearch|default('') }}"
            placeholder="Rechercher des galeries par defaut... (nom, description)" autocomplete="off">
   </div>
 
   <div class="hb-sort">
     <div class="input-group hb-sortgroup">
-      <select id="hbDefSortSelect" class="form-select">
-        <option value="name" selected>Nom</option>
-        <option value="description">Description</option>
+      <select id="hbDefSortSelect" class="form-select" name="sort">
+        <option value="name" {{ (currentSort|default('name')) == 'name' ? 'selected' : '' }}>Nom</option>
+        <option value="description" {{ (currentSort|default('name')) == 'description' ? 'selected' : '' }}>Description</option>
       </select>
-      <button id="hbDefSortDirBtn" class="btn" type="button" aria-label="Inverser le tri">
-        <i id="hbDefSortIcon" class="bx bx-sort-down"></i>
-      </button>
+      <select id="hbDefSortDirSelect" class="form-select" name="dir" style="max-width:120px;border-left:1px solid rgba(67,89,113,.12);">
+        <option value="asc" {{ (currentDir|default('asc')) == 'asc' ? 'selected' : '' }}>A-Z</option>
+        <option value="desc" {{ (currentDir|default('asc')) == 'desc' ? 'selected' : '' }}>Z-A</option>
+      </select>
+      <button class="btn btn-primary" type="submit">Appliquer</button>
+      <a href="{{ path('app_default_gallery_index') }}" class="btn btn-outline-secondary">Reset</a>
     </div>
   </div>
-</div>
+</form>
 
 <div class="hb-headline flex-wrap">
   <div class="hb-title">
@@ -142,53 +146,6 @@ function hbToggleMenu(btn){
   menu.classList.toggle('show');
 }
 document.addEventListener('click', () => document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show')));
-
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('hbDefSearchInput');
-  const sortSel = document.getElementById('hbDefSortSelect');
-  const dirBtn = document.getElementById('hbDefSortDirBtn');
-  const icon = document.getElementById('hbDefSortIcon');
-  const grid = document.querySelector('.hb-grid');
-  const items = Array.from(document.querySelectorAll('.hb-def-item'));
-  let dir = 'desc';
-
-  function matches(el, q){
-    if(!q) return true;
-    const name = el.dataset.name || '';
-    const desc = el.dataset.description || '';
-    return name.includes(q) || desc.includes(q);
-  }
-  function value(el, field){
-    if(field === 'description') return el.dataset.description || '';
-    return el.dataset.name || '';
-  }
-  function apply(){
-    const q = (input.value || '').toLowerCase().trim();
-    const field = sortSel.value;
-
-    const visible = items.filter(el => matches(el, q));
-    items.forEach(el => el.style.display = 'none');
-
-    visible.sort((a,b) => {
-      const va = value(a, field);
-      const vb = value(b, field);
-      const c = va.localeCompare(vb);
-      return dir === 'asc' ? c : -c;
-    });
-
-    visible.forEach(el => { el.style.display = ''; grid.appendChild(el); });
-  }
-
-  dirBtn.addEventListener('click', () => {
-    dir = (dir === 'asc') ? 'desc' : 'asc';
-    icon.className = (dir === 'asc') ? 'bx bx-sort-up' : 'bx bx-sort-down';
-    apply();
-  });
-
-  input.addEventListener('input', apply);
-  sortSel.addEventListener('change', apply);
-  apply();
-});
 </script>
 {% endblock %}
 
