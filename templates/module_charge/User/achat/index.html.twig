@@ -57,7 +57,6 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width:80px;">ID</th>
                         <th>Article</th>
                         <th style="width:120px;">Statut</th>
                         <th style="width:180px;">Date</th>
@@ -67,8 +66,6 @@
                 <tbody id="achatTable">
                 {% for achat in achats %}
                     <tr class="achat-row">
-                        <td class="text-muted ps-4">#{{ achat.id }}</td>
-                        
                         <td>
                             <div class="d-flex align-items-center gap-3">
                                 {# Icône de l'article #}
@@ -171,7 +168,7 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="4" class="text-center py-5">
                             <div class="d-flex flex-column align-items-center gap-3 py-4">
                                 <div class="empty-state-icon">
                                     <i class="bi bi-cart"></i>

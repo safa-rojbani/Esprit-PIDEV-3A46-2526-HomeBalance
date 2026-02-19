@@ -31,7 +31,6 @@ final class CameraUploadController extends AbstractController
                 return $this->json(['ok' => false, 'error' => 'No active family'], 403);
             }
 
-            // ✅ isolation Family
             if (
                 !$gallery->getFamily() ||
                 $gallery->getFamily()->getId() !== $family->getId()
@@ -53,7 +52,6 @@ final class CameraUploadController extends AbstractController
             $isImage = str_starts_with($mime, 'image/');
             $isVideo = str_starts_with($mime, 'video/');
 
-            // ✅ accept image OR video
             if (!$isImage && !$isVideo) {
                 return $this->json([
                     'ok' => false,
@@ -77,7 +75,7 @@ final class CameraUploadController extends AbstractController
             $prefix = $isImage ? 'camera_' : 'video_';
             $name = $prefix . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 
-            $size = $file->getSize(); // ✅ قبل move
+            $size = $file->getSize(); 
             $file->move($uploadDir, $name);
 
             $now = new \DateTimeImmutable();
@@ -121,7 +119,6 @@ final class CameraUploadController extends AbstractController
     private function guessExtensionFromMime(string $mime): ?string
     {
         $map = [
-            // images
             'image/jpeg' => 'jpg',
             'image/jpg'  => 'jpg',
             'image/png'  => 'png',
@@ -130,7 +127,7 @@ final class CameraUploadController extends AbstractController
             'image/heic' => 'heic',
             'image/heif' => 'heif',
 
-            // videos
+        
             'video/webm' => 'webm',
             'video/mp4'  => 'mp4',
             'video/quicktime' => 'mov',

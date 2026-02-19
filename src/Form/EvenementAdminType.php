@@ -10,9 +10,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class EvenementAdminType extends AbstractType
 {
@@ -21,7 +18,6 @@ class EvenementAdminType extends AbstractType
         $builder
             ->add('titre', null, [
                 'label' => 'Titre',
-                'constraints' => [new Assert\NotBlank()],
                 'attr' => ['placeholder' => 'Ex: Reunion familiale'],
             ])
             ->add('description', null, [
@@ -32,16 +28,13 @@ class EvenementAdminType extends AbstractType
             ->add('dateDebut', null, [
                 'label' => 'Date de debut',
                 'widget' => 'single_text',
-                'constraints' => [new Assert\NotBlank()],
             ])
             ->add('dateFin', null, [
                 'label' => 'Date de fin',
                 'widget' => 'single_text',
-                'constraints' => [new Assert\NotBlank()],
             ])
             ->add('lieu', null, [
                 'label' => 'Lieu',
-                'constraints' => [new Assert\NotBlank()],
                 'attr' => ['placeholder' => 'Ex: Maison'],
             ])
             ->add('typeEvenement', EntityType::class, [
@@ -52,7 +45,6 @@ class EvenementAdminType extends AbstractType
                     ->createQueryBuilder('t')
                     ->andWhere('t.family IS NULL')
                     ->orderBy('t.nom', 'ASC'),
-                'constraints' => [new Assert\NotNull()],
                 'placeholder' => 'Choisir un type',
             ])
             ->add('shareWithFamily', CheckboxType::class, [
@@ -65,21 +57,6 @@ class EvenementAdminType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Evenement::class,
-            'constraints' => [
-                new Callback([$this, 'validateDates']),
-            ],
         ]);
-    }
-
-    public function validateDates(Evenement $evenement, ExecutionContextInterface $context): void
-    {
-        $start = $evenement->getDateDebut();
-        $end = $evenement->getDateFin();
-
-        if ($start !== null && $end !== null && $end <= $start) {
-            $context->buildViolation('La date de fin doit etre apres la date de debut.')
-                ->atPath('dateFin')
-                ->addViolation();
-        }
     }
 }

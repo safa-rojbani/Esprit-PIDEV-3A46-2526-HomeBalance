@@ -46,7 +46,6 @@ final class GalleryController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            // Needed for UniqueEntity(fields={"family","name"}).
             $gallery->setFamily($family);
 
             $tpl = $gallery->getDefaultGallery();

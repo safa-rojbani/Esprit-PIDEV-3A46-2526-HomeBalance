@@ -1,25 +1,58 @@
-{{ form_start(form) }}
+{{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+  {% if form.vars.errors|length > 0 %}
+    <div class="alert alert-danger py-2 mb-3">
+      {{ form_errors(form) }}
+    </div>
+  {% endif %}
   <div class="row g-3">
     <div class="col-md-6">
-      {{ form_row(form.titre) }}
+      {{ form_label(form.titre) }}
+      {{ form_widget(form.titre) }}
+      {% if form.titre.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
+      {% endif %}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.lieu) }}
+      {{ form_label(form.lieu) }}
+      {{ form_widget(form.lieu) }}
+      {% if form.lieu.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.lieu) }}</div>
+      {% endif %}
     </div>
     <div class="col-12">
-      {{ form_row(form.description) }}
+      {{ form_label(form.description) }}
+      {{ form_widget(form.description) }}
+      {% if form.description.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
+      {% endif %}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.dateDebut) }}
+      {{ form_label(form.dateDebut) }}
+      {{ form_widget(form.dateDebut) }}
+      {% if form.dateDebut.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.dateDebut) }}</div>
+      {% endif %}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.dateFin) }}
+      {{ form_label(form.dateFin) }}
+      {{ form_widget(form.dateFin) }}
+      {% if form.dateFin.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.dateFin) }}</div>
+      {% endif %}
     </div>
     <div class="col-md-6">
-      {{ form_row(form.typeEvenement) }}
+      {{ form_label(form.typeEvenement) }}
+      {{ form_widget(form.typeEvenement) }}
+      {% if form.typeEvenement.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.typeEvenement) }}</div>
+      {% endif %}
     </div>
     <div class="col-12">
-      {{ form_row(form.shareWithFamily) }}
+      {{ form_widget(form.shareWithFamily) }}
+      {{ form_label(form.shareWithFamily) }}
+      {% if form.shareWithFamily.vars.errors|length > 0 %}
+        <div class="text-danger small mt-1">{{ form_errors(form.shareWithFamily) }}</div>
+      {% endif %}
     </div>
   </div>
   <div class="mt-3">

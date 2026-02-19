@@ -15,12 +15,26 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DefaultGalleryController extends AbstractController
 {
     #[Route(name: 'app_default_gallery_index', methods: ['GET'])]
-    public function index(DefaultGalleryRepository $defaultGalleryRepository): Response
+    public function index(Request $request, DefaultGalleryRepository $defaultGalleryRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        $search = trim((string) $request->query->get('q', ''));
+        $sort = (string) $request->query->get('sort', 'name');
+        $dir = strtolower((string) $request->query->get('dir', 'asc'));
+
+        if (!\in_array($sort, ['name', 'description'], true)) {
+            $sort = 'name';
+        }
+        if (!\in_array($dir, ['asc', 'desc'], true)) {
+            $dir = 'asc';
+        }
+
         return $this->render('ModuleDocuments/BackOffice/default_gallery/index.html.twig', [
-            'default_galleries' => $defaultGalleryRepository->findAll(),
+            'default_galleries' => $defaultGalleryRepository->findForAdminList($search, $sort, $dir),
+            'currentSearch' => $search,
+            'currentSort' => $sort,
+            'currentDir' => $dir,
         ]);
     }
 
