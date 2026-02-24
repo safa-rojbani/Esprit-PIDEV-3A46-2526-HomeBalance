@@ -3,12 +3,14 @@
 namespace App\EventSubscriber;
 
 use App\Entity\User;
+use App\Message\SMS\RecalculateActivityPatternMessage;
 use App\Service\AuditTrailService;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\SecurityEvents;
 
@@ -18,6 +20,7 @@ final class LoginActivitySubscriber implements EventSubscriberInterface
         private readonly EntityManagerInterface $entityManager,
         private readonly RequestStack $requestStack,
         private readonly AuditTrailService $auditTrailService,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -47,5 +50,9 @@ final class LoginActivitySubscriber implements EventSubscriberInterface
 
         $this->entityManager->flush();
         $this->auditTrailService->record($user, 'user.login', $payload, $user->getFamily());
+
+        // Dispatch activity pattern recalculation
+        $message = new RecalculateActivityPatternMessage($user->getId());
+        $this->messageBus->dispatch($message);
     }
 }

@@ -1,0 +1,6 @@
+<turbo-stream action="append" target="chat-messages-list">
+    <template>
+        {% include 'ui_portal/messaging/_message_item.html.twig' with {'message': message} %}
+    </template>
+</turbo-stream>
+<turbo-stream action="remove" target="empty-chat-placeholder"></turbo-stream>

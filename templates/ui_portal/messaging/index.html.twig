@@ -1,0 +1,52 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Messages · HomeBalance{% endblock %}
+
+{% block extra_stylesheets %}
+<link rel="stylesheet" href="{{ asset('css/messaging.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="messaging-card">
+
+    {# ── LEFT SIDEBAR ───────────────────────────────────────── #}
+    <div class="messaging-sidebar">
+        {% include 'ui_portal/messaging/_sidebar.html.twig' %}
+    </div>
+
+    {# ── MAIN AREA
+         .messaging-main is position:relative so #chat_view can be position:absolute inset:0
+         The turbo-frame is a flex-column; its 3 children (header/body/footer) are flex items.
+    ──────────────────────────────────────────────────────────── #}
+    <div class="messaging-main">
+
+        {#
+          Stimulus controller lives here so it survives frame navigations.
+          Mercure values are injected server-side so the JS controller can
+          open the SSE connection without an extra round-trip.
+        #}
+        <turbo-frame id="chat_view"
+                     data-controller="messaging"
+                     data-action="turbo:submit-end->messaging#clearInput"
+                     data-messaging-mercure-url-value="{{ mercure_public_url }}"
+                     data-messaging-mercure-token-value="{{ mercure_token }}"
+                     data-messaging-conversation-id-value="{{ current_conversation ? current_conversation.id : '' }}">
+
+            {% if current_conversation %}
+                {% include 'ui_portal/messaging/_chat.html.twig' %}
+            {% else %}
+                <div class="chat-placeholder text-muted text-center p-5">
+                    <i class="bx bx-message-square-detail mb-3 text-primary" style="font-size:4rem;opacity:.2;"></i>
+                    <h5 class="mb-1">No conversation selected</h5>
+                    <p class="small mb-3">Pick one from the list or start a new one.</p>
+                    <a href="{{ path('portal_messaging_create') }}" class="btn btn-primary btn-sm" data-turbo="false">
+                        <i class="bx bx-plus me-1"></i> New Conversation
+                    </a>
+                </div>
+            {% endif %}
+
+        </turbo-frame>
+    </div>
+
+</div>
+{% endblock %}

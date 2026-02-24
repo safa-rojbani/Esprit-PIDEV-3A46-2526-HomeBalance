@@ -1,11 +1,4 @@
-
 services:
-###> doctrine/doctrine-bundle ###
-  database:
-    ports:
-      - "5432"
-###< doctrine/doctrine-bundle ###
-
 ###> symfony/mailer ###
   mailer:
     image: axllent/mailpit
@@ -16,3 +9,29 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 ###< symfony/mailer ###
+
+###> symfony/mercure-bundle ###
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      # Disable HTTPS in dev (Caddy auto-TLS is off)
+      SERVER_NAME: ':3000'
+      MERCURE_PUBLISHER_JWT_KEY: '${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}'
+      MERCURE_SUBSCRIBER_JWT_KEY: '${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}'
+      # Allow all origins in dev
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins *
+        anonymous
+        subscriptions
+        demo
+    ports:
+      - "3000:3000"
+    volumes:
+      - mercure_data:/data
+      - mercure_config:/config
+###< symfony/mercure-bundle ###
+
+volumes:
+  mercure_data:
+  mercure_config:

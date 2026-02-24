@@ -1,6 +1,6 @@
 {% set account_menus = ['account', 'notifications', 'preferences'] %}
 {% set auth_menus = ['auth-login', 'auth-register', 'auth-forgot-password'] %}
-{% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
+{% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails', 'admin-support'] %}
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo">
@@ -55,6 +55,22 @@
         </li>
       </ul>
     </li>
+
+    <li class="menu-item {{ active_menu == 'support' ? 'active' }}">
+      <a href="{{ path('portal_support_index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-support"></i>
+        <div class="text-truncate">Support</div>
+      </a>
+    </li>
+
+    {% if not is_granted('ROLE_ADMIN') %}
+    <li class="menu-item {{ active_menu == 'messaging' ? 'active' }}">
+      <a href="{{ path('portal_messaging_index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-message-square-detail"></i>
+        <div class="text-truncate">Messages</div>
+      </a>
+    </li>
+    {% endif %}
 
     <li class="menu-header small text-uppercase"><span class="menu-header-text">Access pages</span></li>
     <li class="menu-item {{ active_menu in auth_menus ? 'active open' }}">
@@ -145,6 +161,12 @@
         <a href="{{ path('portal_admin_notifications_index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-bell"></i>
           <div class="text-truncate">Notifications</div>
+        </a>
+      </li>
+      <li class="menu-item {{ active_menu == 'admin-support' ? 'active' }}">
+        <a href="{{ path('portal_admin_support_index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-support"></i>
+          <div class="text-truncate">Support Tickets</div>
         </a>
       </li>
     {% endif %}

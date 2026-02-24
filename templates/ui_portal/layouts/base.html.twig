@@ -13,6 +13,9 @@
     <title>{% block title %}HomeBalance Portal{% endblock %}</title>
 
     <meta name="description" content="" />
+    {% if app.user %}
+    <meta name="user-id" content="{{ app.user.id }}">
+    {% endif %}
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
 
@@ -45,7 +48,7 @@
             <div class="container-xxl flex-grow-1 container-p-y">
               {% for label, messages in app.flashes %}
                 {% for message in messages %}
-                  <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : label) }} alert-dismissible" role="alert">
+                  <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : label) }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                   </div>
@@ -55,7 +58,6 @@
               {% block content %}{% endblock %}
             </div>
 
-            {% include 'ui_portal/partials/footer.html.twig' %}
 
             <div class="content-backdrop fade"></div>
           </div>
@@ -65,14 +67,7 @@
       <div class="layout-overlay layout-menu-toggle"></div>
     </div>
 
-    <div class="buy-now">
-      <a
-        href="https://themeselection.com/item/sneat-dashboard-pro-bootstrap/"
-        target="_blank"
-        class="btn btn-danger btn-buy-now"
-        >Upgrade to Pro</a
-      >
-    </div>
+    {# Removed 'Upgrade to Pro' placeholder #}
 
     <script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
@@ -95,6 +90,15 @@
         document.addEventListener('DOMContentLoaded', initDropdowns);
         document.addEventListener('turbo:load', initDropdowns);
       })();
+    </script>
+
+    <script>
+      setTimeout(function () {
+        document.querySelectorAll('.alert-dismissible').forEach(function (el) {
+          el.classList.remove('show');
+          setTimeout(function () { el.remove(); }, 150);
+        });
+      }, 5000);
     </script>
 
     {% block extra_javascripts %}{% endblock %}

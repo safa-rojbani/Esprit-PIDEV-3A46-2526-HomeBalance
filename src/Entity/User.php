@@ -62,6 +62,9 @@ private ?string $id = null;
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $timeZone = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phoneNumber = null;
+
     #[ORM\Column(nullable: true)]
     private ?array $preferences = null;
 
@@ -268,6 +271,18 @@ private ?string $status = null;
         return $this;
     }
 
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): static
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
     public function getPreferences(): ?array
     {
         return $this->preferences;
@@ -444,6 +459,21 @@ public function setStatus(UserStatus $status): static
     public function removeBadge(Badge $badge): static
     {
         $this->badges->removeElement($badge);
+
+        return $this;
+    }
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserPresence::class, cascade: ['persist', 'remove'])]
+    private ?UserPresence $presence = null;
+
+    public function getPresence(): ?UserPresence
+    {
+        return $this->presence;
+    }
+
+    public function setPresence(?UserPresence $presence): static
+    {
+        $this->presence = $presence;
 
         return $this;
     }

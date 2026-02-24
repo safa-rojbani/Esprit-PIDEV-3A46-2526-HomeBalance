@@ -595,3 +595,100 @@ body {
   border-bottom: none;
   padding-bottom: 0;
 }
+
+/* ── Dark mode overrides ── */
+[data-bs-theme="dark"] {
+  --hb-body-bg: #1a1d2e;
+  --hb-body-color: #cfd3e0;
+  --hb-card-bg: #232738;
+  --hb-border-color: #2e3348;
+  --hb-muted-color: #8b92ab;
+}
+
+[data-bs-theme="dark"] body {
+  background-color: var(--hb-body-bg);
+  color: var(--hb-body-color);
+}
+
+[data-bs-theme="dark"] .layout-page {
+  background-color: var(--hb-body-bg);
+}
+
+[data-bs-theme="dark"] .layout-navbar {
+  background-color: #232738;
+  box-shadow: 0 0.75rem 1.25rem rgba(0, 0, 0, 0.25);
+}
+
+[data-bs-theme="dark"] .layout-menu,
+[data-bs-theme="dark"] .bg-menu-theme {
+  background-color: #1e2132 !important;
+  border-right-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .menu-inner .menu-item .menu-link {
+  color: var(--hb-body-color);
+}
+
+[data-bs-theme="dark"] .menu-inner .menu-item.active > .menu-link {
+  color: var(--hb-primary);
+}
+
+[data-bs-theme="dark"] .card {
+  background-color: var(--hb-card-bg);
+  border-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light {
+  background-color: var(--hb-card-bg) !important;
+}
+
+[data-bs-theme="dark"] .text-muted {
+  color: var(--hb-muted-color) !important;
+}
+
+[data-bs-theme="dark"] .pulse-card {
+  background: var(--hb-card-bg);
+  border-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .heatmap-cell {
+  background: #2a2e42;
+  color: #a5adc4;
+  border-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .heatmap-cell.is-active {
+  background: rgba(var(--hb-primary-rgb), 0.3);
+  color: #d0d4e8;
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  background-color: var(--hb-card-bg);
+  border-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+  color: var(--hb-body-color);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+  background-color: rgba(var(--hb-primary-rgb), 0.12);
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+  background-color: #1e2132;
+  border-color: var(--hb-border-color);
+  color: var(--hb-body-color);
+}
+
+[data-bs-theme="dark"] .table {
+  color: var(--hb-body-color);
+  border-color: var(--hb-border-color);
+}
+
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom {
+  border-color: var(--hb-border-color) !important;
+}

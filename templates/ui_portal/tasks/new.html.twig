@@ -1,0 +1,57 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}New Task · HomeBalance{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="mb-4">
+            <a href="{{ path('portal_tasks_index') }}" class="text-muted">
+                <i class="bx bx-chevron-left"></i> Back to Tasks
+            </a>
+            <h4 class="mt-2">Create New Household Task</h4>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control form-control-lg border-primary-focus'}}) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control border-primary-focus'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_label(form.difficulty, null, {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.difficulty, {'attr': {'class': 'form-select border-primary-focus'}}) }}
+                                {{ form_errors(form.difficulty) }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_label(form.recurrence, null, {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.recurrence, {'attr': {'class': 'form-select border-primary-focus'}}) }}
+                                {{ form_errors(form.recurrence) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="bx bx-save me-1"></i> Create Task
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

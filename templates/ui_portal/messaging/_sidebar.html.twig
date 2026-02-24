@@ -1,0 +1,97 @@
+<div class="p-3 border-bottom shadow-sm bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold">Chats</h5>
+        <a href="{{ path('portal_messaging_create') }}" class="btn btn-icon btn-primary rounded-circle shadow-sm" title="New Conversation">
+            <i class="bx bx-plus"></i>
+        </a>
+    </div>
+    <div class="input-group input-group-merge shadow-none border-0 bg-light rounded-pill">
+        <span class="input-group-text bg-transparent border-0"><i class="bx bx-search text-muted"></i></span>
+        <input type="text" class="form-control bg-transparent border-0 ps-0" placeholder="Search conversations..." id="chat-search">
+    </div>
+</div>
+
+<div class="messaging-list flex-grow-1 overflow-auto bg-white">
+    {% if conversations is empty %}
+        <div class="text-center p-5 text-muted">
+            <i class="bx bx-message-square-detail bx-md mb-2"></i>
+            <p class="small mb-0">No conversations yet.</p>
+        </div>
+    {% else %}
+        <div class="list-group list-group-flush" id="conversation-list">
+            {% for conversation in conversations %}
+                {% set isActive = current_conversation and current_conversation.id == conversation.id %}
+                {% set otherParticipants = conversation.conversationParticipants|filter(p => p.user != app.user) %}
+                {% set conversationName = conversation.conversationName %}
+                {% set unreadCount = unread_counts[conversation.id]|default(0) %}
+                
+                {# Determine name for private chats if null #}
+                {% if conversation.type.value == 'private' %}
+                     {% set partner = otherParticipants|first.user|default(null) %}
+                     {% if partner %}
+                        {% set conversationName = partner.firstName ~ ' ' ~ partner.lastName %}
+                     {% else %}
+                        {% set conversationName = 'Unknown User' %}
+                     {% endif %}
+                {% endif %}
+
+                <a href="{{ path('portal_messaging_show', {id: conversation.id}) }}" 
+                   class="list-group-item list-group-item-action {{ isActive ? 'active border-primary shadow-sm' : 'border-0' }} py-3 px-3 transition-all conversation-item"
+                   data-conversation-name="{{ conversationName|lower }}"
+                   data-turbo-frame="chat_view">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 avatar avatar-online me-3">
+                             {% if conversation.type.value == 'private' and partner is defined and partner.avatarPath %}
+                                <img src="{{ asset(partner.avatarPath) }}" alt class="w-px-40 h-auto rounded-circle">
+                             {% else %}
+                                <span class="avatar-initial rounded-circle {{ isActive ? 'bg-white text-primary' : 'bg-label-primary' }}">
+                                    {{ conversationName|slice(0, 2)|upper }}
+                                </span>
+                             {% endif %}
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 text-truncate fw-semibold {{ isActive ? 'text-white' : 'text-heading' }}">{{ conversationName }}</h6>
+                                <small class="{{ isActive ? 'text-white-50' : 'text-muted' }}" style="font-size: 0.7rem;">
+                                    {% if conversation.messages is not empty %}
+                                        {{ conversation.messages|last.sentAt|date('H:i') }}
+                                    {% else %}
+                                        {{ conversation.createdAt|date('M d') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="mb-0 small text-truncate {{ isActive ? 'text-white-50' : 'text-muted' }}" style="max-width: 85%;">
+                                    {% if conversation.messages is not empty %}
+                                        {% set lastMsg = conversation.messages|last %}
+                                        <span class="{{ not isActive and unreadCount > 0 ? 'fw-bold text-dark' : '' }}">
+                                            {{ lastMsg.sender == app.user ? 'You: ' : '' }}{{ lastMsg.content }}
+                                        </span>
+                                    {% else %}
+                                        <em>No messages yet</em>
+                                    {% endif %}
+                                </p>
+                                {% if unreadCount > 0 %}
+                                    <span class="badge badge-center rounded-pill bg-danger" style="width: 1.2rem; height: 1.2rem; font-size: 0.65rem;">{{ unreadCount }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Simple filter for conversations - client side for instant feel, 
+    // but follows your "no JS logic" rule for validation/security by only affecting UI visibility
+    document.getElementById('chat-search')?.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            const name = item.getAttribute('data-conversation-name');
+            item.style.display = name.includes(query) ? 'block' : 'none';
+        });
+    });
+</script>
+

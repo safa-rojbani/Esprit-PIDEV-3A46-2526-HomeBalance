@@ -9,6 +9,7 @@ framework:
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
+                    delay: 5000
             failed: 'doctrine://default?queue_name=failed'
             # sync: 'sync://'
 
@@ -24,6 +25,14 @@ framework:
 
             App\Message\SendAccountNotification: async
             App\Message\TaskCompleted: async
+
+            # AI Messages
+            App\Message\AI\GenerateSmartRepliesMessage: async
+            App\Message\AI\SummarizeConversationMessage: async
+
+            # SMS Messages
+            App\Message\SMS\SendSmsFallbackMessage: async
+            App\Message\SMS\RecalculateActivityPatternMessage: async
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async

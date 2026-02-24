@@ -22,6 +22,11 @@
     </div>
 
     <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+      <li class="nav-item me-2">
+        <a class="nav-link" href="#" id="theme-toggle" title="Toggle dark mode">
+          <i class="icon-base bx bx-moon icon-md" id="theme-icon"></i>
+        </a>
+      </li>
       {% if is_granted('ROLE_ADMIN') %}
         <li class="nav-item me-3 d-none d-md-inline-flex">
           <a class="btn btn-outline-primary d-flex align-items-center gap-2" href="{{ path('portal_admin_users') }}">
@@ -57,6 +62,38 @@
             <a class="dropdown-item" href="{{ path('portal_account_notifications') }}">
               <i class="icon-base bx bx-cog icon-md me-3"></i><span>Notifications</span>
             </a>
+          </li>
+          <li><div class="dropdown-divider my-1"></div></li>
+          <!-- UI-Only Status Selector -->
+          <li>
+            <div class="px-4 py-2">
+                <small class="text-muted d-block mb-2">Status</small>
+                <div class="btn-group w-100" role="group" aria-label="User Status">
+                    <input type="radio" class="btn-check" name="userStatus" id="statusOnline" autocomplete="off" checked>
+                    <label class="btn btn-outline-success btn-xs" for="statusOnline" title="Online"><i class="bx bx-check-circle"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusAway" autocomplete="off">
+                    <label class="btn btn-outline-warning btn-xs" for="statusAway" title="Away"><i class="bx bx-time"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusDND" autocomplete="off">
+                    <label class="btn btn-outline-danger btn-xs" for="statusDND" title="Do Not Disturb"><i class="bx bx-minus-circle"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusOffline" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-xs" for="statusOffline" title="Offline"><i class="bx bx-radio-circle"></i></label>
+                </div>
+            </div>
+          </li>
+          <li>
+             <div class="px-4 py-2">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="toggleSound" checked>
+                    <label class="form-check-label small" for="toggleSound">Sounds</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="toggleDesktop">
+                    <label class="form-check-label small" for="toggleDesktop">Desktop Notif</label>
+                </div>
+             </div>
           </li>
           <li><div class="dropdown-divider my-1"></div></li>
           {% if is_granted('ROLE_ADMIN') %}

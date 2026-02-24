@@ -12,6 +12,7 @@ import PulseCardController from './controllers/pulse_card_controller.js';
 import NotificationHeatmapController from './controllers/notification_heatmap_controller.js';
 import FocusQueueController from './controllers/focus_queue_controller.js';
 import TimelinePeekController from './controllers/timeline_peek_controller.js';
+import MessagingController from './controllers/messaging_controller.js';
 
 const app = startStimulusApp();
 
@@ -27,3 +28,4 @@ app.register('pulse-card', PulseCardController);
 app.register('notification-heatmap', NotificationHeatmapController);
 app.register('focus-queue', FocusQueueController);
 app.register('timeline-peek', TimelinePeekController);
+app.register('messaging', MessagingController);

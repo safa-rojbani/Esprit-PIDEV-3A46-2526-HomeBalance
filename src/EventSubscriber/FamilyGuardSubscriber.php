@@ -57,6 +57,11 @@ final class FamilyGuardSubscriber implements EventSubscriberInterface
             return;
         }
 
+        // Admins never need a family — skip the guard entirely
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+
         if ($this->familyResolver->hasActiveFamily($user)) {
             return;
         }

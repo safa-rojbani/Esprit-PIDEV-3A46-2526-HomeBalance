@@ -1,0 +1,152 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Ticket #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{{ path('portal_admin_support_index') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bx bx-arrow-back me-1"></i> Back to all tickets
+    </a>
+  </div>
+
+  <div class="row">
+    {# ── Left: ticket detail + conversation ── #}
+    <div class="col-lg-8">
+      {# Ticket details #}
+      <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <h5 class="mb-1">Ticket #{{ ticket.id }} — {{ ticket.subject }}</h5>
+            <small class="text-muted">
+              By {{ ticket.user ? ticket.user.firstName ~ ' ' ~ ticket.user.lastName ~ ' (' ~ ticket.user.email ~ ')' : '—' }}
+              · {{ ticket.createdAt ? ticket.createdAt|date('M d, Y H:i') : '—' }}
+            </small>
+          </div>
+          <div class="d-flex gap-2">
+            <span class="badge {{ ticket.statusBadgeClass }} fs-6">
+              {{ ticket.status ? ticket.status.value|replace({'_': ' '})|upper : '—' }}
+            </span>
+            <span class="badge {{ ticket.priorityBadgeClass }} fs-6">
+              {{ ticket.priority ? ticket.priority.value|upper : '—' }}
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="mb-0" style="white-space: pre-line;">{{ ticket.message }}</p>
+        </div>
+      </div>
+
+      {# Conversation #}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bx bx-chat me-1"></i> Conversation ({{ ticket.messages|length }})</h6>
+        </div>
+        <div class="card-body">
+          {% if ticket.messages is empty %}
+            <p class="text-muted text-center py-3 mb-0">No replies yet.</p>
+          {% else %}
+            {% for msg in ticket.messages %}
+              {% set isAdmin = 'ROLE_ADMIN' in msg.author.roles %}
+              <div class="d-flex mb-3">
+                <div class="flex-shrink-0 me-2">
+                  <div class="avatar avatar-sm">
+                    <span class="avatar-initial rounded-circle {{ isAdmin ? 'bg-label-success' : 'bg-label-primary' }}">
+                      {{ msg.author.firstName|first|upper }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex-grow-1" style="max-width: 85%;">
+                  <div class="p-3 rounded {{ isAdmin ? 'bg-label-success' : 'bg-lighter' }}">
+                    <div class="d-flex justify-content-between mb-1">
+                      <strong>
+                        {{ msg.author.firstName }} {{ msg.author.lastName }}
+                        {% if isAdmin %}<span class="badge bg-success ms-1">Admin</span>{% endif %}
+                      </strong>
+                      <small class="text-muted">{{ msg.createdAt|date('M d, Y H:i') }}</small>
+                    </div>
+                    <p class="mb-0" style="white-space: pre-line;">{{ msg.content }}</p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      {# Admin reply form #}
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bx bx-reply me-1"></i> Reply as Admin</h6>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ path('portal_admin_support_show', { id: ticket.id }) }}">
+            <input type="hidden" name="action" value="reply" />
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_reply_' ~ ticket.id) }}" />
+            <div class="mb-3">
+              <textarea name="reply_content" class="form-control" rows="4" placeholder="Write your response to the user..." required></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                <i class="bx bx-send me-1"></i> Send Reply
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {# ── Right: status management sidebar ── #}
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bx bx-cog me-1"></i> Manage Ticket</h6>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ path('portal_admin_support_show', { id: ticket.id }) }}">
+            <input type="hidden" name="action" value="change_status" />
+            <input type="hidden" name="_token" value="{{ csrf_token('change_status_' ~ ticket.id) }}" />
+            <div class="mb-3">
+              <label class="form-label">Change Status</label>
+              <select name="status" class="form-select">
+                {% for status in statusChoices %}
+                  <option value="{{ status.value }}" {{ ticket.status == status ? 'selected' }}>
+                    {{ status.value|replace({'_': ' '})|title }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-outline-primary w-100">
+              <i class="bx bx-check me-1"></i> Update Status
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bx bx-info-circle me-1"></i> Ticket Info</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <strong>Priority:</strong>
+              <span class="badge {{ ticket.priorityBadgeClass }}">{{ ticket.priority ? ticket.priority.value|upper : '—' }}</span>
+            </li>
+            <li class="mb-2">
+              <strong>Created:</strong><br>
+              {{ ticket.createdAt ? ticket.createdAt|date('M d, Y H:i') : '—' }}
+            </li>
+            <li class="mb-2">
+              <strong>Last Updated:</strong><br>
+              {{ ticket.updatedAt ? ticket.updatedAt|date('M d, Y H:i') : 'Never' }}
+            </li>
+            <li>
+              <strong>Total Replies:</strong>
+              {{ ticket.messages|length }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

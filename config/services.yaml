@@ -6,6 +6,11 @@
 parameters:
     app.notification_from: 'no-reply@homebalance.local'
     app.audit_retention_days: 180
+    chat_attachments_directory: '%kernel.project_dir%/public/uploads/chat'
+    mercure.jwt_secret: '%env(MERCURE_JWT_SECRET)%'
+    mercure.public_url: '%env(MERCURE_PUBLIC_URL)%'
+    app.sms.offline_threshold_minutes: 5
+    app.url: '%env(APP_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -27,3 +32,11 @@ services:
     App\Service\AvatarStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Service\ChatAttachmentStorage:
+        arguments:
+            $chatAttachmentsDirectory: '%chat_attachments_directory%'
+
+    App\Service\Messaging\MercureTokenFactory:
+        arguments:
+            $jwtSecret: '%mercure.jwt_secret%'

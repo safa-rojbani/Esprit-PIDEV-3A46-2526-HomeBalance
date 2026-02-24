@@ -1,0 +1,110 @@
+{% set isMe = message.sender == app.user %}
+{% set msgReactions = reactions[message.id] ?? {} %}
+
+<div class="d-flex {{ isMe ? 'justify-content-end' : 'justify-content-start' }} mb-3"
+     id="message-{{ message.id }}">
+
+    {# Avatar for other people #}
+    {% if not isMe %}
+        <div class="me-2 flex-shrink-0" style="margin-top:2px;">
+            {% if message.sender.avatarPath %}
+                <img src="{{ asset(message.sender.avatarPath) }}"
+                     class="rounded-circle"
+                     style="width:32px;height:32px;object-fit:cover;" alt="">
+            {% else %}
+                <span class="avatar-initial rounded-circle bg-label-secondary d-inline-flex align-items-center justify-content-center"
+                      style="width:32px;height:32px;font-size:.8rem;">
+                    {{ message.sender.firstName|slice(0,1) }}
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div style="max-width:72%;">
+        {# Sender name in group chats #}
+        {% if not isMe and current_conversation.type.value == 'group' %}
+            <small class="text-muted d-block mb-1 ms-1" style="font-size:.72rem;">
+                {{ message.sender.firstName }}
+            </small>
+        {% endif %}
+
+        {# Bubble — wrap in a group so the reaction picker can be positioned relative to it #}
+        <div class="message-bubble-group position-relative">
+            <div class="{{ isMe ? 'chat-bubble-me' : 'chat-bubble-other' }}">
+
+                {# ── Quoted parent (reply preview) ──────────────────────── #}
+                {% if message.parentMessage %}
+                    {% set parent = message.parentMessage %}
+                    <div class="reply-quote mb-2">
+                        <div class="reply-quote-author">
+                            {{ parent.sender ? parent.sender.firstName : 'Unknown' }}
+                        </div>
+                        <div class="reply-quote-content text-truncate">
+                            {{ parent.content|slice(0, 120) }}{% if parent.content|length > 120 %}…{% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <p class="mb-0" style="white-space:pre-wrap;">{{ message.content }}</p>
+                {% if message.attachmentURL %}
+                    <div class="mt-2">
+                        <img src="{{ asset(message.attachmentURL) }}"
+                             class="img-fluid rounded"
+                             style="max-height:240px;max-width:100%;"
+                             alt="Attachment">
+                    </div>
+                {% endif %}
+            </div>
+
+            {# ── Action buttons (React + Reply) ────────────────────────── #}
+            <button type="button"
+                    class="reaction-trigger btn btn-sm btn-icon btn-text-secondary"
+                    title="React"
+                    data-message-id="{{ message.id }}"
+                    data-action="click->messaging#toggleReactionPicker">
+                <i class="bx bx-smile" style="font-size:.9rem;"></i>
+            </button>
+            <button type="button"
+                    class="reply-trigger btn btn-sm btn-icon btn-text-secondary"
+                    style="position:absolute;bottom:-10px;right:20px;opacity:0;transition:opacity .15s;background:#fff;border:1px solid #e4e6f0;border-radius:50%;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.1);z-index:10;"
+                    title="Reply"
+                    data-message-id="{{ message.id }}"
+                    data-sender-name="{{ message.sender ? message.sender.firstName : 'Unknown' }}"
+                    data-content="{{ (message.content|slice(0, 200))|e('html_attr') }}"
+                    data-action="click->messaging#reply">
+                <i class="bx bx-reply" style="font-size:.9rem;"></i>
+            </button>
+        </div>
+
+        {# ── Reaction bar ────────────────────────────────────────────── #}
+        <div class="reaction-bar d-flex flex-wrap gap-1 mt-1 {{ isMe ? 'justify-content-end' : '' }}"
+             id="reactions-{{ message.id }}">
+            {% for emoji, data in msgReactions %}
+                {% set userIds = data.users|keys %}
+                {% set iReacted = app.user and (app.user.id in userIds) %}
+                <button type="button"
+                        class="reaction-pill btn btn-sm {{ iReacted ? 'btn-primary' : 'btn-outline-secondary' }}"
+                        data-message-id="{{ message.id }}"
+                        data-emoji="{{ emoji }}"
+                        data-action="click->messaging#react"
+                        title="{{ data.users|join(', ') }}">
+                    {{ emoji }} <span class="reaction-count">{{ data.count }}</span>
+                </button>
+            {% endfor %}
+        </div>
+
+        {# Timestamp + read receipt #}
+        <div class="d-flex align-items-center mt-1 gap-1 {{ isMe ? 'justify-content-end' : '' }}">
+            <small class="text-muted" style="font-size:.68rem;">
+                {{ message.sentAt|date('H:i') }}
+            </small>
+            {% if isMe %}
+                <i class="bx bx-check-double {{ message.isRead ? 'text-primary' : 'text-muted' }}"
+                   style="font-size:.85rem;"
+                   id="tick-{{ message.id }}"></i>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+    

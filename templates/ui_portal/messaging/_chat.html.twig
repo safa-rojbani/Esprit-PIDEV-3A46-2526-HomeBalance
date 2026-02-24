@@ -1,0 +1,161 @@
+{#
+  _chat.html.twig
+  This partial is rendered INSIDE <turbo-frame id="chat_view">,
+  which is a flex-column (position:absolute inset:0 via CSS).
+
+  The three direct children become flex items:
+    1. .messaging-chat-header  → flex-shrink:0  (pinned top)
+    2. .messaging-chat-body    → flex:1 min-height:0  (scrolls)
+    3. .messaging-chat-footer  → flex-shrink:0  (pinned bottom)
+#}
+
+{# ── Resolve conversation name / partner ─────────────────────── #}
+{% set otherParticipants = current_conversation.conversationParticipants|filter(p => p.user != app.user) %}
+{% set chatName = current_conversation.conversationName %}
+{% set chatPartner = null %}
+{% if current_conversation.type.value == 'private' %}
+    {% set chatPartner = otherParticipants|first.user|default(null) %}
+    {% set chatName = chatPartner
+        ? (chatPartner.firstName ~ ' ' ~ chatPartner.lastName)
+        : 'Unknown User' %}
+{% endif %}
+
+{# ── 1. HEADER ─────────────────────────────────────────────── #}
+<div class="messaging-chat-header">
+    <div class="d-flex align-items-center gap-3">
+        <div class="avatar">
+            {% if chatPartner and chatPartner.avatarPath %}
+                <img src="{{ asset(chatPartner.avatarPath) }}"
+                     class="w-px-40 rounded-circle" alt="">
+            {% else %}
+                <span class="avatar-initial rounded-circle bg-label-primary">
+                    {{ chatName|slice(0,2)|upper }}
+                </span>
+            {% endif %}
+        </div>
+        <div>
+            <div class="fw-semibold lh-sm">{{ chatName }}</div>
+            <small class="text-muted" style="font-size:.74rem;"
+                   id="chat-status-line"
+                   data-messaging-target="statusLine">
+                {% if current_conversation.type.value == 'group' %}
+                    {{ current_conversation.conversationParticipants|length }} members
+                {% else %}
+                    {# Presence dot — updated live by Mercure #}
+                    <span id="presence-dot-{{ chatPartner ? chatPartner.id : '' }}"
+                          class="badge rounded-pill bg-secondary"
+                          style="font-size:.65rem;padding:2px 6px;">
+                        Offline
+                    </span>
+                {% endif %}
+            </small>
+        </div>
+    </div>
+    <div class="d-flex gap-1">
+        <button class="btn btn-icon btn-text-secondary rounded-pill" type="button" title="Voice call"><i class="bx bx-phone"></i></button>
+        <button class="btn btn-icon btn-text-secondary rounded-pill" type="button" title="Video call"><i class="bx bx-video"></i></button>
+        <button class="btn btn-icon btn-text-secondary rounded-pill" type="button" title="More options"><i class="bx bx-dots-vertical-rounded"></i></button>
+    </div>
+</div>
+
+{# ── 2. SCROLLABLE BODY ────────────────────────────────────── #}
+<div class="messaging-chat-body"
+     id="chat-messages"
+     data-messaging-target="messages">
+
+    <div id="chat-messages-list">
+        {% if messages is empty %}
+            <div class="text-center py-5 text-muted" id="empty-chat-placeholder">
+                <i class="bx bx-message-rounded-dots" style="font-size:3rem;opacity:.22;"></i>
+                <p class="mt-2 small">No messages yet – say hello!</p>
+            </div>
+        {% else %}
+            {% set lastDate = null %}
+            {% for message in messages %}
+                {% set currentDate = message.sentAt|date('Y-m-d') %}
+                {% if currentDate != lastDate %}
+                    <div class="date-divider">
+                        <hr>
+                        <span>
+                            {% if currentDate == "now"|date('Y-m-d') %}Today
+                            {% elseif currentDate == ("now - 1 day")|date('Y-m-d') %}Yesterday
+                            {% else %}{{ message.sentAt|date('d M Y') }}
+                            {% endif %}
+                        </span>
+                        <hr>
+                    </div>
+                    {% set lastDate = currentDate %}
+                {% endif %}
+                {% include 'ui_portal/messaging/_message_item.html.twig' %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# ── Typing indicator (hidden by default, shown via Mercure) ── #}
+    <div id="typing-indicator"
+         class="d-none px-3 pb-2"
+         data-messaging-target="typingIndicator">
+        <span class="text-muted" style="font-size:.78rem;">
+            <span data-messaging-target="typingName"></span>
+            <span class="typing-dots">
+                <span></span><span></span><span></span>
+            </span>
+        </span>
+    </div>
+</div>
+
+{# ── 3. PINNED INPUT FOOTER ───────────────────────────────── #}
+<div class="messaging-chat-footer">
+
+    {{ form_start(form, {
+        'attr': {
+            'class': 'd-flex align-items-center gap-2 w-100',
+            'data-messaging-target': 'form',
+            'action': path('portal_messaging_show', {id: current_conversation.id})
+        }
+    }) }}
+
+        {# Hidden file input (triggered by the clip button) #}
+        <div class="d-none">
+            {{ form_widget(form.attachment, {
+                'attr': {
+                    'data-messaging-target': 'attachment',
+                    'data-action': 'change->messaging#handleSelection'
+                }
+            }) }}
+        </div>
+
+        <button type="button"
+                class="btn btn-icon btn-text-secondary rounded-pill"
+                title="Attach image"
+                data-action="click->messaging#triggerUpload">
+            <i class="bx bx-paperclip fs-5"></i>
+        </button>
+
+        <div class="flex-grow-1 position-relative">
+            <div data-messaging-target="attachmentPreview"
+                 class="badge bg-label-info d-none position-absolute"
+                 style="top:-30px;left:0;"></div>
+            {{ form_widget(form.content, {
+                'attr': {
+                    'data-messaging-target': 'input',
+                    'data-action': 'keydown->messaging#handleKeydown input->messaging#handleTyping',
+                    'class': 'message-input w-100',
+                    'placeholder': 'Type a message…',
+                    'rows': '1'
+                }
+            }) }}
+        </div>
+
+        <button type="submit" class="btn-send" title="Send">
+            <i class="bx bx-send"></i>
+        </button>
+
+    {{ form_end(form) }}
+
+    {# Reply preview area (shown when replying to a message) #}
+    <div data-messaging-target="replyPreview"
+         class="reply-preview d-none">
+    </div>
+
+</div>
