@@ -18,12 +18,14 @@ use App\Service\ActiveFamilyResolver;
 final class HistoriqueAchatController extends AbstractController
 {
     #[Route(name: 'app_historique_achat_index', methods: ['GET'])]
-    public function index(HistoriqueAchatRepository $historiqueAchatRepository, ActiveFamilyResolver $familyResolver): Response
+    public function index(Request $request, HistoriqueAchatRepository $historiqueAchatRepository, ActiveFamilyResolver $familyResolver): Response
     {
         $family = $this->resolveFamily($familyResolver);
+        $searchQuery = trim((string) $request->query->get('q', ''));
 
         return $this->render('module_charge/User/historique_achat/index.html.twig', [
-            'historique_achats' => $historiqueAchatRepository->findBy(['family' => $family]),
+            'historique_achats' => $historiqueAchatRepository->searchByFamily($family, $searchQuery),
+            'searchQuery' => $searchQuery,
         ]);
     }
 

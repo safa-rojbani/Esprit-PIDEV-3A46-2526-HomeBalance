@@ -1,0 +1,27 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Nouveau credit{% endblock %}
+{% block page_title %}Nouveau credit{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold mb-0">Ajouter un credit</h2>
+    <a href="{{ path('app_credit_index') }}" class="btn btn-outline-secondary">Retour</a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      {{ form_start(form) }}
+      <div class="mb-3">{{ form_row(form.title) }}</div>
+      <div class="mb-3">{{ form_row(form.principal) }}</div>
+      <div class="mb-3">{{ form_row(form.termMonths) }}</div>
+      <div class="mb-3">{{ form_row(form.useApiRate) }}</div>
+      <div class="mb-3">{{ form_row(form.countryCode) }}</div>
+      <div class="mb-3">{{ form_row(form.annualRate) }}</div>
+      <button class="btn btn-primary">Enregistrer</button>
+      {{ form_end(form) }}
+    </div>
+  </div>
+</div>
+{% endblock %}

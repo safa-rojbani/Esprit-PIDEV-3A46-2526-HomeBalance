@@ -31,15 +31,16 @@
           <span class="badge-modern">{{ historique_achats|length }}</span>
         </div>
 
-        <div class="input-group" style="max-width: 360px;">
+        <form method="get" action="{{ path('app_historique_achat_index') }}" class="input-group" style="max-width: 360px;">
           <span class="input-group-text bg-light border-0">
             <i class="bi bi-search"></i>
           </span>
-          <input id="histSearch" type="text"
+          <input name="q" type="text"
                  class="form-control bg-light border-0"
                  placeholder="Rechercher (article, montant...)"
+                 value="{{ searchQuery|default('') }}"
                  autocomplete="off">
-        </div>
+        </form>
 
       </div>
     </div>
@@ -177,18 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // tooltips
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
   tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
-
-  // search
-  const input = document.getElementById('histSearch');
-  const rows = Array.from(document.querySelectorAll('#histTable tr'));
-  if (input) {
-    input.addEventListener('input', () => {
-      const q = input.value.toLowerCase().trim();
-      rows.forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
-      });
-    });
-  }
 
   // confirm delete
   document.querySelectorAll('.form-delete').forEach(form => {

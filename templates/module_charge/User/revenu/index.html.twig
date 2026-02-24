@@ -89,12 +89,12 @@
     <div class="card-header bg-white border-bottom py-3">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-semibold">Liste des revenus</h5>
-        <div class="input-group" style="width: 300px;">
+        <form method="get" action="{{ path('app_revenu_index') }}" class="input-group" style="width: 300px;">
           <span class="input-group-text bg-light border-end-0">
             <i class="bi bi-search"></i>
           </span>
-          <input id="revSearch" type="text" class="form-control border-start-0 bg-light" placeholder="Rechercher...">
-        </div>
+          <input name="q" type="text" class="form-control border-start-0 bg-light" placeholder="Rechercher..." value="{{ searchQuery|default('') }}">
+        </form>
       </div>
     </div>
 
@@ -184,21 +184,6 @@
     </div>
   </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('revSearch');
-  const rows = Array.from(document.querySelectorAll('#revTable tr'));
-  if (!input) return;
-
-  input.addEventListener('input', () => {
-    const q = input.value.toLowerCase().trim();
-    rows.forEach(r => {
-      r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
-    });
-  });
-});
-</script>
 
 <style>
   /* petite icône du type */

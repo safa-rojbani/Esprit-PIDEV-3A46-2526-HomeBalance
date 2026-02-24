@@ -54,7 +54,10 @@
           : (route starts with 'app_achat'
             or route starts with 'app_revenu'
             or route starts with 'app_historique_achat'
-            or route starts with 'app_categorie_achat') ? 'module-charge'
+            or route starts with 'app_categorie_achat'
+            or route starts with 'app_type_revenu'
+            or route starts with 'app_saving_goal'
+            or route starts with 'app_credit') ? 'module-charge'
           : (route starts with 'parent_task'
             or route starts with 'child_task'
             or route starts with 'family_task'
@@ -65,14 +68,17 @@
 
         {% set default_charge_submenus = is_granted('ROLE_ADMIN')
           ? [
-            {'label': 'Categories achat', 'route': 'app_categorie_achat_index'}
+            {'label': 'Categories achat', 'route': 'app_categorie_achat_index'},
+            {'label': 'Types revenus', 'route': 'app_type_revenu_index'}
           ]
           : [
             {'label': 'Achats', 'route': 'app_achat_index'},
             {'label': 'Historique', 'route': 'app_historique_achat_index'},
             {'label': 'Categories achat', 'route': 'app_categorie_achat_index'},
             {'label': 'Revenus', 'route': 'app_revenu_index'},
-            {'label': 'Budget', 'route': 'app_revenu_budget'}
+            {'label': 'Budget', 'route': 'app_revenu_budget'},
+            {'label': 'Epargne auto', 'route': 'app_saving_goal_index'},
+            {'label': 'Credits', 'route': 'app_credit_index'}
           ]
         %}
         {% set default_documents_submenus = is_granted('ROLE_ADMIN')

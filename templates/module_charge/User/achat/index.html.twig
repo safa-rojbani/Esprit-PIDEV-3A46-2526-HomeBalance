@@ -29,10 +29,10 @@
     {# Card #}
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-header bg-white border-0 py-3 px-4">
-            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap achat-header-row">
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted" style="font-size:.95rem;">Total</span>
-                    <span class="badge-modern">{{ achats|length }}</span>
+                    <span class="badge-modern">{{ achats.getTotalItemCount }}</span>
                 </div>
 
                 {# Statistiques rapides #}
@@ -50,6 +50,47 @@
                         <span>{{ nonAchetes }} en attente</span>
                     </div>
                 </div>
+
+                <form method="get" action="{{ path('app_achat_index') }}" class="d-flex align-items-center gap-2 flex-wrap achat-filter-form">
+                    <div class="input-group" style="min-width: 240px;">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input name="q" type="text" class="form-control border-start-0 bg-light"
+                               placeholder="Rechercher un achat..."
+                               value="{{ searchQuery|default('') }}"
+                               autocomplete="off">
+                    </div>
+
+                    <input type="month"
+                           name="month"
+                           class="form-control bg-light"
+                           style="min-width: 150px;"
+                           value="{{ selectedMonth|default('') }}">
+
+                    <select name="category" class="form-select bg-light" style="min-width: 170px;">
+                        <option value="">Toutes catégories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {{ selectedCategoryId is same as(category.id) ? 'selected' : '' }}>
+                                {{ category.nomCategorie }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="limit" class="form-select bg-light" style="min-width: 110px;">
+                        <option value="10" {{ selectedLimit == 10 ? 'selected' : '' }}>10/page</option>
+                        <option value="20" {{ selectedLimit == 20 ? 'selected' : '' }}>20/page</option>
+                    </select>
+
+                    <button type="submit" class="btn-modern btn-modern-primary btn-modern-sm">
+                        <i class="bi bi-funnel"></i>
+                        <span>Filtrer</span>
+                    </button>
+                    <a href="{{ path('app_achat_index') }}" class="btn-modern btn-modern-secondary btn-modern-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <span>Réinitialiser</span>
+                    </a>
+                </form>
             </div>
         </div>
 
@@ -192,6 +233,10 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="px-4 py-3 border-top bg-white pagination-wrap">
+            {{ knp_pagination_render(achats) }}
+        </div>
     </div>
 
 </div>
@@ -289,6 +334,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {# Styles modernes #}
 <style>
+    .achat-header-row {
+        row-gap: 12px;
+    }
+
+    .achat-filter-form {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: minmax(240px, 2fr) minmax(150px, 1fr) minmax(170px, 1fr) minmax(120px, 0.7fr) auto auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        border: 1px solid #e2e8f0;
+    }
+
+    .achat-filter-form .input-group {
+        min-width: 0 !important;
+    }
+
+    .achat-filter-form .input-group-text {
+        border-color: #d1d5db;
+        background: white !important;
+        border-right: 0;
+    }
+
+    .achat-filter-form .form-control,
+    .achat-filter-form .form-select {
+        height: 42px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: white !important;
+        box-shadow: none;
+    }
+
+    .achat-filter-form .form-control:focus,
+    .achat-filter-form .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .achat-filter-form .input-group .form-control {
+        border-left: 0;
+    }
+
+    .pagination-wrap {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    }
+
+    .pagination-wrap .pagination {
+        margin: 0;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .pagination-wrap .page-item .page-link {
+        min-width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        background: #eef2ff;
+        font-weight: 600;
+    }
+
+    .pagination-wrap .page-item.active .page-link {
+        color: #fff;
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+    }
+
+    .pagination-wrap .page-item.disabled .page-link {
+        background: #f1f5f9;
+        color: #94a3b8;
+    }
+
+    .table thead th {
+        letter-spacing: .02em;
+        font-size: .82rem;
+        color: #475569;
+        text-transform: uppercase;
+    }
+
     /* === BADGE MODERNE === */
     .badge-modern {
         display: inline-flex;
@@ -656,6 +787,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
+        .achat-filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .achat-filter-form > * {
+            width: 100%;
+        }
+
+        .achat-filter-form .btn-modern {
+            justify-content: center;
+        }
+
         .btn-modern span {
             display: none;
         }

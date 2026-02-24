@@ -4,37 +4,25 @@
 
 {% block body %}
 <div class="container mt-4">
-
-  {# Header #}
   <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
     <div>
       <h2 class="fw-bold mb-1">Modifier le revenu</h2>
-      <div class="text-muted" style="font-size:.95rem;">
-        Mets à jour les informations de cette source de revenu.
-      </div>
+      <div class="text-muted" style="font-size:.95rem;">Mets a jour les informations de cette source de revenu.</div>
     </div>
-
     <a href="{{ path('app_revenu_index') }}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Retour à la liste
+      <i class="bi bi-arrow-left"></i> Retour a la liste
     </a>
   </div>
 
   <div class="row justify-content-center">
     <div class="col-12 col-lg-8 col-xl-6">
-
       <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-4">
-
-          {# Titre + icône #}
           <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="rev-icon-lg">
-              <i class="bi bi-pencil-square"></i>
-            </div>
+            <div class="rev-icon-lg"><i class="bi bi-pencil-square"></i></div>
             <div>
               <h4 class="mb-1 fw-bold">{{ revenu.typeRevenu }}</h4>
-              <div class="text-muted" style="font-size:.9rem;">
-                Modification du revenu
-              </div>
+              <div class="text-muted" style="font-size:.9rem;">Modification du revenu</div>
             </div>
           </div>
 
@@ -42,29 +30,21 @@
 
           {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
 
-          {# Type existant #}
           <div class="mb-3">
             <label class="form-label fw-semibold">
               <i class="bi bi-tag me-1"></i> Type de revenu
             </label>
             {{ form_widget(form.typeRevenu, {'attr': {'class': 'form-select form-select-lg'}}) }}
             <div class="text-danger small mt-1">{{ form_errors(form.typeRevenu) }}</div>
-          </div>
-
-          {# Type libre #}
-          <div class="mb-3">
-            <label class="form-label fw-semibold">
-              <i class="bi bi-stars me-1"></i> Nouveau type (optionnel)
+            <label class="form-label fw-semibold mt-3">
+              <i class="bi bi-plus-circle me-1"></i> Nouveau type (si besoin)
             </label>
-            {{ form_widget(form.typeRevenuLibre, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Ex: Freelance, Prime...'}}) }}
+            {{ form_widget(form.typeRevenuLibre, {'attr': {'class': 'form-control form-control-lg'}}) }}
             <div class="text-danger small mt-1">{{ form_errors(form.typeRevenuLibre) }}</div>
-            <div class="form-text">
-              Si tu remplis ce champ, il remplacera le type sélectionné.
-            </div>
+            <div class="form-text">Choisis un type admin dans la liste ou saisis ton propre type.</div>
           </div>
 
           <div class="row g-3">
-            {# Montant #}
             <div class="col-12 col-md-6">
               <label class="form-label fw-semibold">
                 <i class="bi bi-cash-stack me-1"></i> Montant
@@ -76,7 +56,6 @@
               <div class="text-danger small mt-1">{{ form_errors(form.montant) }}</div>
             </div>
 
-            {# Date #}
             <div class="col-12 col-md-6">
               <label class="form-label fw-semibold">
                 <i class="bi bi-calendar-event me-1"></i> Date du revenu
@@ -88,35 +67,27 @@
 
           <hr class="my-4">
 
-          {# Actions #}
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
             <a href="{{ path('app_revenu_index') }}" class="btn btn-light action-btn">
               <i class="bi bi-x-circle"></i> Annuler
             </a>
-
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary action-btn">
-                <i class="bi bi-check-circle-fill"></i>
-                Mettre à jour
-              </button>
-
-              <form method="post"
-                    action="{{ path('app_revenu_delete', {'id': revenu.id}) }}"
-                    onsubmit="return confirm('Supprimer ce revenu ?');">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ revenu.id) }}">
-                <button class="btn btn-outline-danger action-btn">
-                  <i class="bi bi-trash"></i>
-                  Supprimer
-                </button>
-              </form>
-            </div>
+            <button type="submit" class="btn btn-primary action-btn">
+              <i class="bi bi-check-circle-fill"></i> Mettre a jour
+            </button>
           </div>
 
           {{ form_end(form) }}
 
+          <div class="pt-3 mt-3 border-top">
+            <form method="post" action="{{ path('app_revenu_delete', {'id': revenu.id}) }}" onsubmit="return confirm('Supprimer ce revenu ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ revenu.id) }}">
+              <button class="btn btn-outline-danger action-btn">
+                <i class="bi bi-trash"></i> Supprimer
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>

@@ -33,12 +33,13 @@
           <span class="badge-modern">{{ categorie_achats|length }}</span>
         </div>
 
-        <div class="search-box">
+        <form method="get" action="{{ path('app_categorie_achat_index') }}" class="search-box">
           <i class="bi bi-search"></i>
-          <input id="catSearch" type="text"
+          <input name="q" type="text"
                  placeholder="Rechercher une catégorie..."
+                 value="{{ searchQuery|default('') }}"
                  autocomplete="off">
-        </div>
+        </form>
 
       </div>
     </div>
@@ -143,21 +144,6 @@
 {# Recherche front: filtre uniquement le NOM #}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('catSearch');
-  const rows = Array.from(document.querySelectorAll('#catTable tr'));
-
-  if (!input) return;
-
-  input.addEventListener('input', () => {
-    const q = input.value.toLowerCase().trim();
-
-    rows.forEach(row => {
-      const nameEl = row.querySelector('.cat-name');
-      if (!nameEl) return;
-      const name = nameEl.innerText.toLowerCase();
-      row.style.display = name.includes(q) ? '' : 'none';
-    });
-  });
 
   // Gestion des tooltips Bootstrap
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

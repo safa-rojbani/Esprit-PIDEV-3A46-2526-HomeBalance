@@ -1,0 +1,60 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Credits{% endblock %}
+{% block page_title %}Credits{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Credits et dettes</h2>
+      <p class="text-muted mb-0">Simulation mensualite + calcul automatique des interets.</p>
+    </div>
+    <a href="{{ path('app_credit_new') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Nouveau credit
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+      <form method="get" class="input-group" style="max-width: 360px;">
+        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ searchQuery|default('') }}" class="form-control border-start-0 bg-light" placeholder="Rechercher un credit...">
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Titre</th>
+            <th>Montant</th>
+            <th>Taux annuel</th>
+            <th>Mensualite</th>
+            <th>Interets</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for credit in credits %}
+            {% set s = simulations[credit.id] ?? null %}
+            <tr>
+              <td>{{ credit.title }}</td>
+              <td>{{ credit.principal }} TND</td>
+              <td>{{ credit.annualRate }}%</td>
+              <td>{{ s ? s.monthlyPayment : '-' }} TND</td>
+              <td>{{ s ? s.totalInterest : '-' }} TND</td>
+              <td class="text-end">
+                <a href="{{ path('app_credit_show', {'id': credit.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Aucun credit pour le moment.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

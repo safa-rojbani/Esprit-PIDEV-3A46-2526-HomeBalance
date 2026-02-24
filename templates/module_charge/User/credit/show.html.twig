@@ -1,0 +1,38 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Detail credit{% endblock %}
+{% block page_title %}Detail credit{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold mb-0">{{ credit.title }}</h2>
+    <div class="d-flex gap-2">
+      <a href="{{ path('app_credit_edit', {'id': credit.id}) }}" class="btn btn-outline-primary">Modifier</a>
+      <a href="{{ path('app_credit_index') }}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3"><strong>Montant:</strong> {{ credit.principal }} TND</div>
+        <div class="col-md-3"><strong>Taux annuel:</strong> {{ credit.annualRate }}%</div>
+        <div class="col-md-3"><strong>Duree:</strong> {{ credit.termMonths }} mois</div>
+        <div class="col-md-3"><strong>Date creation:</strong> {{ credit.createdAt ? credit.createdAt|date('d/m/Y') : '-' }}</div>
+      </div>
+      <hr>
+      <div class="row g-3">
+        <div class="col-md-4"><strong>Mensualite:</strong> {{ simulation.monthlyPayment }} TND</div>
+        <div class="col-md-4"><strong>Total remboursement:</strong> {{ simulation.totalRepayment }} TND</div>
+        <div class="col-md-4"><strong>Total interets:</strong> {{ simulation.totalInterest }} TND</div>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" action="{{ path('app_credit_delete', {'id': credit.id}) }}" onsubmit="return confirm('Supprimer ce credit ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete_credit_' ~ credit.id) }}">
+    <button class="btn btn-outline-danger">Supprimer</button>
+  </form>
+</div>
+{% endblock %}

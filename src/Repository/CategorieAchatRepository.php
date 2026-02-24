@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CategorieAchat;
+use App\Entity\Family;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,23 @@ class CategorieAchatRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /**
+     * @return array<int, CategorieAchat>
+     */
+    public function searchByFamily(Family $family, string $query): array
+    {
+        $term = trim($query);
+        $qb = $this->createQueryBuilder('c')
+            ->andWhere('c.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('c.nomCategorie', 'ASC');
+
+        if ($term !== '') {
+            $qb->andWhere('LOWER(c.nomCategorie) LIKE :q')
+                ->setParameter('q', '%'.strtolower($term).'%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

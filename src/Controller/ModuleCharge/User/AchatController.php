@@ -7,8 +7,10 @@ use App\Entity\Family;
 use App\Entity\User;
 use App\Form\ModuleCharge\AchatType;
 use App\Repository\AchatRepository;
+use App\Repository\CategorieAchatRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\HistoriqueAchatRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,10 +24,33 @@ use App\Service\ActiveFamilyResolver;
 final class AchatController extends AbstractController
 {
  #[Route('', name: 'app_achat_index', methods: ['GET','POST'])]
-public function index(Request $request, AchatRepository $achatRepository, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
+public function index(
+    Request $request,
+    AchatRepository $achatRepository,
+    CategorieAchatRepository $categorieAchatRepository,
+    EntityManagerInterface $entityManager,
+    ActiveFamilyResolver $familyResolver,
+    PaginatorInterface $paginator
+): Response
 {
     $family = $this->resolveFamily($familyResolver);
     $user = $this->getUser();
+    $searchQuery = trim((string) $request->query->get('q', ''));
+    $month = trim((string) $request->query->get('month', ''));
+    $categoryId = $request->query->getInt('category', 0);
+    $page = max(1, $request->query->getInt('page', 1));
+    $limit = $request->query->getInt('limit', 10);
+    if (!\in_array($limit, [10, 20], true)) {
+        $limit = 10;
+    }
+
+    $selectedCategory = null;
+    if ($categoryId > 0) {
+        $candidate = $categorieAchatRepository->find($categoryId);
+        if ($candidate !== null && $candidate->getFamily()?->getId() === $family->getId()) {
+            $selectedCategory = $candidate;
+        }
+    }
 
     $achat = new Achat();
     $formNew = $this->createForm(AchatType::class, $achat);
@@ -43,10 +68,23 @@ public function index(Request $request, AchatRepository $achatRepository, Entity
         return $this->redirectToRoute('app_achat_index');
     }
 
+    $queryBuilder = $achatRepository->createFilteredByFamilyQueryBuilder(
+        $family,
+        $searchQuery,
+        $selectedCategory,
+        $month !== '' ? $month : null
+    );
+    $pagination = $paginator->paginate($queryBuilder, $page, $limit);
+
     return $this->render('module_charge/User/achat/index.html.twig', [
-        'achats' => $achatRepository->findBy(['family' => $family], ['createdAt' => 'DESC']),
+        'achats' => $pagination,
         'formNew' => $formNew->createView(),
         'openOffcanvas' => $formNew->isSubmitted() && !$formNew->isValid(), // pour rouvrir si erreur
+        'searchQuery' => $searchQuery,
+        'categories' => $categorieAchatRepository->findBy(['family' => $family], ['nomCategorie' => 'ASC']),
+        'selectedCategoryId' => $selectedCategory?->getId(),
+        'selectedMonth' => $month,
+        'selectedLimit' => $limit,
     ]);
 }
 
@@ -132,8 +170,17 @@ public function toggle(Request $request, Achat $achat, EntityManagerInterface $e
     $this->assertSameFamily($family, $achat->getFamily());
 
     if ($this->isCsrfTokenValid('toggle'.$achat->getId(), $request->request->get('_token'))) {
-        // inverse la valeur (false -> true, true -> false)
-        $achat->setEstAchete(!$achat->isEstAchete());
+        // Keep state consistent with HistoriqueAchat flow.
+        // Confirmed purchase must go through /confirmer to capture amount.
+        if (!$achat->isEstAchete()) {
+            return $this->redirectToRoute('app_achat_confirmer', ['id' => $achat->getId()]);
+        }
+
+        $achat->setEstAchete(false);
+        $historiques = $entityManager->getRepository(HistoriqueAchat::class)->findBy(['achat' => $achat]);
+        foreach ($historiques as $historique) {
+            $entityManager->remove($historique);
+        }
         $entityManager->flush();
     }
 
@@ -154,6 +201,15 @@ public function confirmer(
 
     // éviter duplication si déjà acheté
     if ($achat->isEstAchete()) {
+        return $this->redirectToRoute('app_achat_index');
+    }
+
+    // Defensive check: if history already exists, keep flags aligned.
+    $existingHistorique = $entityManager->getRepository(HistoriqueAchat::class)->findOneBy(['achat' => $achat]);
+    if ($existingHistorique !== null) {
+        $achat->setEstAchete(true);
+        $entityManager->flush();
+
         return $this->redirectToRoute('app_achat_index');
     }
 
@@ -210,8 +266,8 @@ public function annuler(
 
     $achat->setEstAchete(false);
 
-    $historique = $historiqueAchatRepository->findOneBy(['achat' => $achat]);
-    if ($historique) {
+    $historiques = $historiqueAchatRepository->findBy(['achat' => $achat]);
+    foreach ($historiques as $historique) {
         $entityManager->remove($historique);
     }
 

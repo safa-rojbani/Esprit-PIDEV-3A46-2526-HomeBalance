@@ -85,4 +85,45 @@ public function findDistinctTypesByFamily(Family $family): array
     return array_values(array_filter(array_map(static fn(array $row) => $row['type'] ?? null, $rows)));
 }
 
+/**
+ * @return array<int, Revenu>
+ */
+public function searchByFamily(Family $family, string $query): array
+{
+    $term = trim($query);
+    if ($term == '') {
+        return $this->findBy(['family' => $family], ['dateRevenu' => 'DESC']);
+    }
+
+    return $this->createQueryBuilder('r')
+        ->andWhere('r.family = :family')
+        ->andWhere('LOWER(r.typeRevenu) LIKE :q')
+        ->setParameter('family', $family)
+        ->setParameter('q', '%'.strtolower($term).'%')
+        ->orderBy('r.dateRevenu', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
+
+public function averageMonthlyByFamily(Family $family, int $months = 3): string
+{
+    $months = max(1, $months);
+    $fromDate = (new \DateTimeImmutable('first day of this month'))->modify(sprintf('-%d months', $months - 1));
+
+    $sum = (string) $this->createQueryBuilder('r')
+        ->select('COALESCE(SUM(r.montant), 0)')
+        ->andWhere('r.family = :family')
+        ->andWhere('r.dateRevenu >= :fromDate')
+        ->setParameter('family', $family)
+        ->setParameter('fromDate', $fromDate)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    if (function_exists('bcdiv')) {
+        return bcdiv($sum, (string) $months, 2);
+    }
+
+    return number_format(((float) $sum) / $months, 2, '.', '');
+}
+
 }

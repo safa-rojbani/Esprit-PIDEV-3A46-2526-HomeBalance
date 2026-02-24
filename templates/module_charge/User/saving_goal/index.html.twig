@@ -1,0 +1,55 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+{% block title %}Plans d'epargne{% endblock %}
+{% block page_title %}Plans d'epargne{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Plans d'epargne automatique</h2>
+      <p class="text-muted mb-0">Capacite mensuelle estimee: <strong>{{ monthlyCapacity }} TND/mois</strong></p>
+    </div>
+    <a href="{{ path('app_saving_goal_new') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Nouvel objectif
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+      <form method="get" action="{{ path('app_saving_goal_index') }}" class="input-group" style="max-width:360px;">
+        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control border-start-0 bg-light" name="q" placeholder="Rechercher un objectif..." value="{{ searchQuery|default('') }}">
+      </form>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for goal in saving_goals %}
+          {% set plan = plans[goal.id] ?? null %}
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="mb-1">{{ goal.name }}</h5>
+                <span class="badge {{ plan and plan.status == 'atteint' ? 'bg-success' : (plan and plan.status == 'en_retard' ? 'bg-danger' : 'bg-warning text-dark') }}">
+                  {{ plan ? plan.status|replace({'_':' '}) : 'en cours' }}
+                </span>
+              </div>
+              <div class="text-muted small mb-2">Cible: {{ goal.targetAmount }} TND</div>
+              <div class="progress mb-2" style="height:10px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ plan ? plan.progress : 0 }}%;"></div>
+              </div>
+              <div class="small mb-1">Reste: <strong>{{ plan ? plan.remaining : '-' }} TND</strong></div>
+              <div class="small mb-1">Mensuel requis: <strong>{{ plan and plan.monthlyRequired ? plan.monthlyRequired ~ ' TND' : '-' }}</strong></div>
+              <div class="small mb-3">Date estimee: <strong>{{ plan and plan.estimatedDate ? plan.estimatedDate|date('d/m/Y') : '-' }}</strong></div>
+              <a href="{{ path('app_saving_goal_show', {'id': goal.id}) }}" class="btn btn-sm btn-outline-primary">Voir details</a>
+            </div>
+          </div>
+        {% else %}
+          <div class="col-12 text-center py-4 text-muted">
+            Aucun objectif d'epargne.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Types de revenu{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Types de revenu</h2>
+      <p class="text-muted mb-0">Liste geree par l admin. Les utilisateurs la voient dans le formulaire revenu.</p>
+    </div>
+    <a href="{{ path('app_type_revenu_new') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Ajouter un type
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      {% if types_revenu is empty %}
+        <div class="p-4 text-center text-muted">
+          Aucun type configure. Les utilisateurs peuvent quand meme saisir un type libre.
+        </div>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Type</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for type in types_revenu %}
+                <tr>
+                  <td class="ps-4 fw-semibold">{{ type.nomType }}</td>
+                  <td class="text-end pe-4">
+                    <a href="{{ path('app_type_revenu_edit', {'id': type.id}) }}" class="btn btn-sm btn-outline-primary me-1">
+                      Modifier
+                    </a>
+                    <form method="post" action="{{ path('app_type_revenu_delete', {'id': type.id}) }}" class="d-inline" onsubmit="return confirm('Supprimer ce type ?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_type_revenu_' ~ type.id) }}">
+                      <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

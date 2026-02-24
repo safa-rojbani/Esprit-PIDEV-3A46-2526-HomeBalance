@@ -20,12 +20,17 @@ use App\Service\ActiveFamilyResolver;
 final class CategorieAchatController extends AbstractController
 {
     #[Route(name: 'app_categorie_achat_index', methods: ['GET'])]
-    public function index(CategorieAchatService $Service, ActiveFamilyResolver $familyResolver): Response
+    public function index(Request $request, CategorieAchatService $Service, CategorieAchatRepository $categorieAchatRepository, ActiveFamilyResolver $familyResolver): Response
     {
         $family = $this->resolveFamily($familyResolver);
+        $searchQuery = trim((string) $request->query->get('q', ''));
+        $categories = $searchQuery !== '' && $family !== null
+            ? $categorieAchatRepository->searchByFamily($family, $searchQuery)
+            : ($family ? $Service->findAllByFamily($family) : $Service->findAll());
 
         return $this->render('module_charge/Admin/categorie_achat/index.html.twig', [
-            'categorie_achats' => $family ? $Service->findAllByFamily($family) : $Service->findAll(),
+            'categorie_achats' => $categories,
+            'searchQuery' => $searchQuery,
         ]);
     }
 

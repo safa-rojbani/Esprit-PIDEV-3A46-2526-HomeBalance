@@ -314,8 +314,14 @@ final class UiPortalController extends AbstractController
     }
 
     #[Route('/auth/login', name: 'auth_login', methods: ['GET', 'POST'])]
-    public function authLogin(AuthenticationUtils $authenticationUtils): Response
+    public function authLogin(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
+        if ($request->hasSession()) {
+            $session = $request->getSession();
+            $session->remove('_security.main.target_path');
+            $session->remove('_security_main.target_path');
+        }
+
         if ($this->getUser()) {
             return $this->redirectToRoute('portal_dashboard');
         }

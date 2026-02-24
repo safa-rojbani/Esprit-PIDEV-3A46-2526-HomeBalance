@@ -1,0 +1,54 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+{% block title %}Detail objectif epargne{% endblock %}
+{% block page_title %}Detail objectif epargne{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold mb-0">{{ saving_goal.name }}</h2>
+    <div class="d-flex gap-2">
+      <a href="{{ path('app_saving_goal_edit', {'id': saving_goal.id}) }}" class="btn btn-outline-primary">Modifier</a>
+      <a href="{{ path('app_saving_goal_index') }}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3"><strong>Cible:</strong> {{ saving_goal.targetAmount }} TND</div>
+        <div class="col-md-3"><strong>Epargne:</strong> {{ saving_goal.currentAmount }} TND</div>
+        <div class="col-md-3"><strong>Reste:</strong> {{ plan.remaining }} TND</div>
+        <div class="col-md-3"><strong>Progression:</strong> {{ plan.progress }}%</div>
+      </div>
+      <div class="progress mt-3" style="height: 12px;">
+        <div class="progress-bar" style="width: {{ plan.progress }}%;"></div>
+      </div>
+      <div class="row g-3 mt-2">
+        <div class="col-md-4"><strong>Mensuel requis:</strong> {{ plan.monthlyRequired ?: '-' }}{% if plan.monthlyRequired %} TND{% endif %}</div>
+        <div class="col-md-4"><strong>Date estimee:</strong> {{ plan.estimatedDate ? plan.estimatedDate|date('d/m/Y') : '-' }}</div>
+        <div class="col-md-4"><strong>Statut:</strong> {{ plan.status|replace({'_':' '}) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Ajouter une contribution</h5>
+      <form method="post" action="{{ path('app_saving_goal_contribute', {'id': saving_goal.id}) }}" class="row g-2">
+        <input type="hidden" name="_token" value="{{ csrf_token('contribute_' ~ saving_goal.id) }}">
+        <div class="col-md-4">
+          <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="Montant (TND)" required>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary">Ajouter</button>
+        </div>
+      </form>
+
+      <form method="post" action="{{ path('app_saving_goal_delete', {'id': saving_goal.id}) }}" class="mt-4" onsubmit="return confirm('Supprimer cet objectif ?');">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete_saving_goal_' ~ saving_goal.id) }}">
+        <button class="btn btn-outline-danger">Supprimer l'objectif</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

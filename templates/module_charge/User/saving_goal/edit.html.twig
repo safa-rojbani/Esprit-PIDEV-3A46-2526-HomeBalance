@@ -1,0 +1,23 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+{% block title %}Modifier objectif epargne{% endblock %}
+{% block page_title %}Modifier objectif epargne{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold mb-0">Modifier l'objectif</h2>
+    <a href="{{ path('app_saving_goal_index') }}" class="btn btn-outline-secondary">Retour</a>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      {{ form_start(form) }}
+      <div class="mb-3">{{ form_row(form.name) }}</div>
+      <div class="mb-3">{{ form_row(form.targetAmount) }}</div>
+      <div class="mb-3">{{ form_row(form.currentAmount) }}</div>
+      <div class="mb-3">{{ form_row(form.targetDate) }}</div>
+      <button class="btn btn-primary">Mettre a jour</button>
+      {{ form_end(form) }}
+    </div>
+  </div>
+</div>
+{% endblock %}

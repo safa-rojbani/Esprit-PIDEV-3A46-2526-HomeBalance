@@ -23,6 +23,7 @@ security:
                 username_parameter: _username
                 password_parameter: _password
                 default_target_path: portal_dashboard
+                always_use_default_target_path: true
                 enable_csrf: true
                 csrf_token_id: authenticate
             login_throttling:
