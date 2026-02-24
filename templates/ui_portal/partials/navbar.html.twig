@@ -7,7 +7,7 @@
     </a>
   </div>
 
-  <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+  <div class="navbar-nav-right d-flex align-items-center justify-content-end w-100" id="navbar-collapse">
     <div class="navbar-nav align-items-center me-auto">
       <form class="nav-item d-flex align-items-center" method="get" action="{{ path('portal_search') }}">
         <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
@@ -21,7 +21,7 @@
       </form>
     </div>
 
-    <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+    <ul class="navbar-nav flex-row align-items-center ms-auto">
       {% if is_granted('ROLE_ADMIN') %}
         <li class="nav-item me-3 d-none d-md-inline-flex">
           <a class="btn btn-outline-primary d-flex align-items-center gap-2" href="{{ path('portal_admin_users') }}">
@@ -32,8 +32,19 @@
       {% endif %}
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
         <a class="nav-link dropdown-toggle hide-arrow p-0" href="#accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <div class="avatar avatar-online">
-            <img src="{{ app.user and app.user.avatarPath ? asset(app.user.avatarPath) : asset('materio/img/avatars/1.png') }}" alt="User avatar" class="w-px-40 h-auto rounded-circle" />
+          <div class="avatar avatar-online" style="width: 3.25rem; height: 3.25rem;">
+            {% set navbarAvatarPath = app.user ? app.user.avatarPath : null %}
+            {% set navbarAvatarFallback = 'https://api.dicebear.com/9.x/adventurer/svg?seed=' ~ (app.user ? app.user.id : 'homebalance') %}
+            {% set navbarAvatarHasUsablePath = navbarAvatarPath and ((navbarAvatarPath starts with 'http://') or (navbarAvatarPath starts with 'https://') or ('/' in navbarAvatarPath)) %}
+            {% set navbarAvatarSrc = navbarAvatarHasUsablePath
+              ? ((navbarAvatarPath starts with 'http://') or (navbarAvatarPath starts with 'https://') ? navbarAvatarPath : asset(navbarAvatarPath))
+              : navbarAvatarFallback
+            %}
+            <img
+              src="{{ navbarAvatarSrc }}"
+              alt="User avatar"
+              class="w-px-52 h-px-52 rounded-circle object-fit-cover"
+              onerror="this.onerror=null;this.src='{{ navbarAvatarFallback }}';" />
           </div>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
@@ -66,8 +77,8 @@
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="{{ path('portal_admin_gamification_badges') }}">
-                <i class="icon-base bx bx-medal icon-md me-3"></i><span>Admin : gamification</span>
+              <a class="dropdown-item" href="{{ path('portal_admin_console_families') }}">
+                <i class="icon-base bx bx-grid-alt icon-md me-3"></i><span>Admin : console UMS</span>
               </a>
             </li>
             <li><div class="dropdown-divider my-1"></div></li>

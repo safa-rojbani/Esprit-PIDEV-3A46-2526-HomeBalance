@@ -1,0 +1,119 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Console UMS · Families{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/admin/console/_nav.html.twig' %}
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Families</h5>
+          <a href="{{ path('portal_admin_families_new') }}" class="btn btn-sm btn-primary">Nouvelle famille</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Code</th>
+                <th>Creee le</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for family in families %}
+                <tr>
+                  <td>{{ family.name }}</td>
+                  <td><code>{{ family.joinCode }}</code></td>
+                  <td>{{ family.createdAt ? family.createdAt|date('Y-m-d H:i') : '—' }}</td>
+                  <td>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_families_edit', {id: family.id}) }}">Edit</a>
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Aucune famille trouvee.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Invitations</h5>
+          <a href="{{ path('portal_admin_invitations_new') }}" class="btn btn-sm btn-primary">Nouvelle invitation</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Famille</th>
+                <th>Status</th>
+                <th>Code</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for invitation in invitations %}
+                <tr>
+                  <td>{{ invitation.invitedEmail }}</td>
+                  <td>{{ invitation.family ? invitation.family.name : '—' }}</td>
+                  <td>{{ invitation.status ? invitation.status.value : '—' }}</td>
+                  <td><code>{{ invitation.joinCode }}</code></td>
+                  <td>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_invitations_edit', {id: invitation.id}) }}">Edit</a>
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucune invitation trouvee.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Memberships</h5>
+          <a href="{{ path('portal_admin_memberships_new') }}" class="btn btn-sm btn-primary">Nouveau membership</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Famille</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for membership in memberships %}
+                <tr>
+                  <td>{{ membership.user.email }}</td>
+                  <td>{{ membership.family.name }}</td>
+                  <td>{{ membership.role.value }}</td>
+                  <td>{{ membership.joinedAt ? membership.joinedAt|date('Y-m-d H:i') : '—' }}</td>
+                  <td>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_memberships_edit', {id: membership.id}) }}">Edit</a>
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucun membership trouve.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

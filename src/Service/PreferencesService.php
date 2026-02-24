@@ -57,6 +57,28 @@ final class PreferencesService
         ],
     ];
 
+    /**
+     * @var array<string, array{label: string, description: string}>
+     */
+    public const MODULES = [
+        'module-charge' => [
+            'label' => 'Budget',
+            'description' => 'Afficher le module budget (achats, revenus, categories).',
+        ],
+        'module-documents' => [
+            'label' => 'Documents',
+            'description' => 'Afficher les galeries et documents de la famille.',
+        ],
+        'module-tasks' => [
+            'label' => 'Taches',
+            'description' => 'Afficher les taches parent/enfant/famille.',
+        ],
+        'module-events' => [
+            'label' => 'Evenements',
+            'description' => 'Afficher calendrier, evenements et rappels.',
+        ],
+    ];
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly AuditTrailService $auditTrailService,
@@ -68,6 +90,7 @@ final class PreferencesService
      * @return array{
      *     topics: list<string>,
      *     channels: list<string>,
+     *     modules: list<string>,
      *     quietStart: ?string,
      *     quietEnd: ?string,
      *     weeklySummary: bool,
@@ -81,6 +104,7 @@ final class PreferencesService
         return [
             'topics' => $communication['topics'] ?? ['tasks', 'budget'],
             'channels' => $communication['channels'] ?? ['email'],
+            'modules' => $communication['modules'] ?? array_keys(self::MODULES),
             'quietStart' => $communication['quietHours']['start'] ?? null,
             'quietEnd' => $communication['quietHours']['end'] ?? null,
             'weeklySummary' => (bool) ($communication['weeklySummary'] ?? false),
@@ -93,7 +117,18 @@ final class PreferencesService
      */
     public function savePreferences(User $user, array $submitted): PreferenceUpdateResult
     {
+        $current = $this->viewDataFor($user);
         $data = $this->sanitize($submitted);
+
+        // Topics/channels are no longer editable from this page; preserve existing values
+        // unless they are explicitly submitted.
+        if (!array_key_exists('topics', $submitted)) {
+            $data['topics'] = $current['topics'];
+        }
+        if (!array_key_exists('channels', $submitted)) {
+            $data['channels'] = $current['channels'];
+        }
+
         $data['updatedAt'] = $user->getPreferences()['communication']['updatedAt'] ?? null;
         $errors = $this->validate($data);
 
@@ -105,6 +140,7 @@ final class PreferencesService
         $payload = [
             'topics' => $data['topics'],
             'channels' => $data['channels'],
+            'modules' => $data['modules'],
             'quietHours' => [
                 'start' => $data['quietStart'],
                 'end' => $data['quietEnd'],
@@ -139,6 +175,7 @@ final class PreferencesService
      * @return array{
      *     topics: list<string>,
      *     channels: list<string>,
+     *     modules: list<string>,
      *     quietStart: ?string,
      *     quietEnd: ?string,
      *     weeklySummary: bool,
@@ -149,6 +186,7 @@ final class PreferencesService
     {
         $topicKeys = array_map('strval', array_keys(self::TOPICS));
         $channelKeys = array_map('strval', array_keys(self::CHANNELS));
+        $moduleKeys = array_map('strval', array_keys(self::MODULES));
 
         $topics = array_values(array_intersect(
             array_map('strval', (array) ($submitted['topics'] ?? [])),
@@ -158,10 +196,19 @@ final class PreferencesService
             array_map('strval', (array) ($submitted['channels'] ?? [])),
             $channelKeys,
         ));
+        $submittedModules = array_key_exists('modules', $submitted)
+            ? (array) $submitted['modules']
+            : array_keys(self::MODULES);
+
+        $modules = array_values(array_intersect(
+            array_map('strval', $submittedModules),
+            $moduleKeys,
+        ));
 
         return [
             'topics' => $topics,
             'channels' => $channels,
+            'modules' => $modules,
             'quietStart' => $this->toNullableString($submitted['quietStart'] ?? null),
             'quietEnd' => $this->toNullableString($submitted['quietEnd'] ?? null),
             'weeklySummary' => filter_var($submitted['weeklySummary'] ?? false, FILTER_VALIDATE_BOOL),
@@ -173,6 +220,7 @@ final class PreferencesService
      * @param array{
      *     topics: list<string>,
      *     channels: list<string>,
+     *     modules: list<string>,
      *     quietStart: ?string,
      *     quietEnd: ?string,
      *     weeklySummary: bool,
@@ -190,6 +238,10 @@ final class PreferencesService
 
         if ($data['channels'] === []) {
             $errors[] = 'Choose at least one channel so we know how to reach you.';
+        }
+
+        if ($data['modules'] === []) {
+            $errors[] = 'Select at least one module to keep in your sidebar.';
         }
 
         $startInput = $data['quietStart'];

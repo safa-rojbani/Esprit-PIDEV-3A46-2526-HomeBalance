@@ -1,5 +1,5 @@
 {% set account_menus = ['account', 'notifications', 'preferences'] %}
-{% set admin_menus = ['admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails'] %}
+{% set admin_menus = ['admin-console', 'admin-users', 'admin-badges', 'admin-notifications', 'admin-families', 'admin-invitations', 'admin-memberships', 'admin-ums-badges', 'admin-family-badges', 'admin-account-notifications', 'admin-audit-trails', 'admin-security-ai'] %}
 {% set current_route = app.request.attributes.get('_route') %}
 {% set is_portal_admin = is_granted('ROLE_ADMIN') %}
 {% set family_role_value = (app.user and app.user.familyRole) ? app.user.familyRole.value : null %}
@@ -32,6 +32,11 @@
     icon: 'bx bx-calendar'
   }
 ] %}
+{% set default_module_keys = ['module-charge', 'module-documents', 'module-tasks', 'module-events'] %}
+{% set selected_module_keys = default_module_keys %}
+{% if app.user and app.user.preferences is defined and app.user.preferences.communication is defined and app.user.preferences.communication.modules is defined and app.user.preferences.communication.modules is iterable and app.user.preferences.communication.modules|length > 0 %}
+  {% set selected_module_keys = app.user.preferences.communication.modules %}
+{% endif %}
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo">
@@ -87,96 +92,72 @@
 
     <li class="menu-header small text-uppercase"><span class="menu-header-text">Modules</span></li>
     {% for module in module_items %}
-      {% set subitems = module_submenus[module.key]|default([]) %}
-      {% set sub_active = false %}
-      {% for item in subitems %}
-        {% if current_route == item.route %}
-          {% set sub_active = true %}
-        {% endif %}
-      {% endfor %}
-      {% set is_open = active_menu == module.key or sub_active %}
+      {% if module.key in selected_module_keys %}
+        {% set subitems = module_submenus[module.key]|default([]) %}
+        {% set sub_active = false %}
+        {% for item in subitems %}
+          {% if current_route == item.route %}
+            {% set sub_active = true %}
+          {% endif %}
+        {% endfor %}
+        {% set is_open = active_menu == module.key or sub_active %}
 
-      <li class="menu-item {{ is_open ? 'active open' }}">
-        <a href="{{ path(module.route) }}" class="menu-link">
-          <i class="menu-icon tf-icons {{ module.icon }}"></i>
-          <div class="text-truncate">{{ module.label }}</div>
-        </a>
+        <li class="menu-item {{ is_open ? 'active open' }}">
+          <a href="{{ path(module.route) }}" class="menu-link">
+            <i class="menu-icon tf-icons {{ module.icon }}"></i>
+            <div class="text-truncate">{{ module.label }}</div>
+          </a>
 
-        {% if subitems|length and is_open %}
-          <ul class="menu-sub" style="display:block;">
-            {% for item in subitems %}
-              <li class="menu-item {{ current_route == item.route ? 'active' }}">
-                <a href="{{ path(item.route) }}" class="menu-link">
-                  <div class="text-truncate">{{ item.label }}</div>
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </li>
+          {% if subitems|length and is_open %}
+            <ul class="menu-sub" style="display:block;">
+              {% for item in subitems %}
+                <li class="menu-item {{ current_route == item.route ? 'active' }}">
+                  <a href="{{ path(item.route) }}" class="menu-link">
+                    <div class="text-truncate">{{ item.label }}</div>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li>
+      {% endif %}
     {% endfor %}
 
     {% if is_portal_admin %}
       <li class="menu-header small text-uppercase"><span class="menu-header-text">Administration</span></li>
-      <li class="menu-item {{ active_menu == 'admin-users' ? 'active' }}">
-        <a href="{{ path('portal_admin_users') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
-          <div class="text-truncate">Utilisateurs</div>
+      {% set console_open = active_menu in admin_menus %}
+      <li class="menu-item {{ console_open ? 'active open' }}">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons bx bx-grid-alt"></i>
+          <div class="text-truncate">Console UMS</div>
         </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-families' ? 'active' }}">
-        <a href="{{ path('portal_admin_families_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-home-heart"></i>
-          <div class="text-truncate">Familles</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-invitations' ? 'active' }}">
-        <a href="{{ path('portal_admin_invitations_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-envelope"></i>
-          <div class="text-truncate">Invitations</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-memberships' ? 'active' }}">
-        <a href="{{ path('portal_admin_memberships_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-group"></i>
-          <div class="text-truncate">Adhesions</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-ums-badges' ? 'active' }}">
-        <a href="{{ path('portal_admin_badges_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-medal"></i>
-          <div class="text-truncate">Badges (CRUD)</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-family-badges' ? 'active' }}">
-        <a href="{{ path('portal_admin_family_badges_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-medal"></i>
-          <div class="text-truncate">Badges famille</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-account-notifications' ? 'active' }}">
-        <a href="{{ path('portal_admin_account_notifications_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-bell"></i>
-          <div class="text-truncate">Notifications compte</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-audit-trails' ? 'active' }}">
-        <a href="{{ path('portal_admin_audit_trails_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-list-check"></i>
-          <div class="text-truncate">Journal d audit</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-badges' ? 'active' }}">
-        <a href="{{ path('portal_admin_gamification_badges') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-medal"></i>
-          <div class="text-truncate">Gamification</div>
-        </a>
-      </li>
-      <li class="menu-item {{ active_menu == 'admin-notifications' ? 'active' }}">
-        <a href="{{ path('portal_admin_notifications_index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-bell"></i>
-          <div class="text-truncate">Notifications</div>
-        </a>
+        <ul class="menu-sub">
+          <li class="menu-item {{ active_menu == 'admin-users' ? 'active' }}">
+            <a href="{{ path('portal_admin_users') }}" class="menu-link">
+              <div class="text-truncate">Users</div>
+            </a>
+          </li>
+          <li class="menu-item {{ active_menu == 'admin-families' ? 'active' }}">
+            <a href="{{ path('portal_admin_console_families') }}" class="menu-link">
+              <div class="text-truncate">Families</div>
+            </a>
+          </li>
+          <li class="menu-item {{ active_menu == 'admin-badges' ? 'active' }}">
+            <a href="{{ path('portal_admin_console_badges') }}" class="menu-link">
+              <div class="text-truncate">Badges</div>
+            </a>
+          </li>
+          <li class="menu-item {{ active_menu == 'admin-notifications' ? 'active' }}">
+            <a href="{{ path('portal_admin_console_notifications') }}" class="menu-link">
+              <div class="text-truncate">Notifications</div>
+            </a>
+          </li>
+          <li class="menu-item {{ active_menu == 'admin-security-ai' ? 'active' }}">
+            <a href="{{ path('portal_admin_console_security_ai') }}" class="menu-link">
+              <div class="text-truncate">Security & AI</div>
+            </a>
+          </li>
+        </ul>
       </li>
     {% endif %}
   </ul>

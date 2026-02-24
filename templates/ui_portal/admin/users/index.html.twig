@@ -94,15 +94,8 @@
     </div>
 
     <div class="card-footer d-flex justify-content-between align-items-center">
-      <div class="text-muted">Affichage {{ pagination.currentRange }} sur {{ pagination.total }} utilisateurs</div>
-      <div>
-        {% if pagination.previous %}
-          <a class="btn btn-outline-secondary btn-sm" href="{{ pagination.previous }}">Précédent</a>
-        {% endif %}
-        {% if pagination.next %}
-          <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ pagination.next }}">Suivant</a>
-        {% endif %}
-      </div>
+      <div class="text-muted">Affichage {{ paginationMeta.first }}-{{ paginationMeta.last }} sur {{ paginationMeta.total }} utilisateurs</div>
+      <div>{{ knp_pagination_render(pagination) }}</div>
     </div>
   </div>
 {% endblock %}

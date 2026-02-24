@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\AccountNotification;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,17 +22,24 @@ final class AccountNotificationRepository extends ServiceEntityRepository
      */
     public function findRecent(?string $status = null, int $limit = 50): array
     {
+        return $this->createRecentQueryBuilder($status)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function createRecentQueryBuilder(?string $status = null): QueryBuilder
+    {
         $qb = $this->createQueryBuilder('n')
             ->addSelect('u')
             ->join('n.user', 'u')
-            ->orderBy('n.createdAt', 'DESC')
-            ->setMaxResults($limit);
+            ->orderBy('n.createdAt', 'DESC');
 
         if ($status !== null) {
             $qb->andWhere('n.status = :status')
                 ->setParameter('status', $status);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 }

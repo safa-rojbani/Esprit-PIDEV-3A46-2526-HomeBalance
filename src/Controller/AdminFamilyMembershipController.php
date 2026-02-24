@@ -8,6 +8,7 @@ use App\Form\Admin\FamilyMembershipAdminType;
 use App\Form\Admin\FamilyMembershipCreateType;
 use App\Enum\FamilyRole;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AdminFamilyMembershipController extends AbstractController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, PaginatorInterface $paginator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -43,11 +44,20 @@ final class AdminFamilyMembershipController extends AbstractController
                 ->setParameter('q', '%' . mb_strtolower($query) . '%');
         }
 
-        $memberships = $qb
-            ->orderBy($sortField, $direction)
-            ->setMaxResults(50)
-            ->getQuery()
-            ->getResult();
+        $qb->orderBy($sortField, $direction);
+
+        $page = max(1, $request->query->getInt('page', 1));
+        $membershipsPagination = $paginator->paginate($qb, $page, 20, [
+            'distinct' => true,
+            'sortFieldParameterName' => '_knp_sort',
+            'sortDirectionParameterName' => '_knp_dir',
+        ]);
+
+        /** @var list<FamilyMembership> $memberships */
+        $memberships = $membershipsPagination->getItems();
+        $total = (int) $membershipsPagination->getTotalItemCount();
+        $first = $total > 0 ? (($page - 1) * 20) + 1 : 0;
+        $last = min($page * 20, $total);
 
         $grouped = [];
         foreach ($memberships as $membership) {
@@ -63,6 +73,12 @@ final class AdminFamilyMembershipController extends AbstractController
         return $this->render('ui_portal/admin/ums/memberships/index.html.twig', [
             'active_menu' => 'admin-memberships',
             'memberships' => $memberships,
+            'pagination' => $membershipsPagination,
+            'paginationMeta' => [
+                'first' => $first,
+                'last' => $last,
+                'total' => $total,
+            ],
             'groupedMemberships' => $grouped,
             'filters' => [
                 'query' => $query,

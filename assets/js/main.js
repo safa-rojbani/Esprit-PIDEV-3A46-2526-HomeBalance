@@ -49,8 +49,27 @@
     });
   };
 
+  const bindSidebarSubmenuToggles = () => {
+    document.querySelectorAll('.menu-link.menu-toggle').forEach((toggleLink) => {
+      toggleLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        const parent = toggleLink.closest('.menu-item');
+        const submenu = parent ? parent.querySelector(':scope > .menu-sub') : null;
+
+        if (!parent || !submenu) {
+          return;
+        }
+
+        const isOpen = parent.classList.contains('open');
+        parent.classList.toggle('open', !isOpen);
+        submenu.style.display = isOpen ? '' : 'block';
+      });
+    });
+  };
+
   ready(() => {
     togglePasswordVisibility();
     bindMenuToggle();
+    bindSidebarSubmenuToggles();
   });
 })();

@@ -63,5 +63,9 @@
         </tbody>
       </table>
     </div>
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <div class="text-muted">Showing {{ paginationMeta.first }}-{{ paginationMeta.last }} of {{ paginationMeta.total }} notifications</div>
+      <div>{{ knp_pagination_render(notifications) }}</div>
+    </div>
   </div>
 {% endblock %}

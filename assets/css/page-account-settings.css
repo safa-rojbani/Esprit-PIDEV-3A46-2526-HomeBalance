@@ -1,0 +1,7 @@
+/*
+ * Placeholder styles for account settings pages.
+ * Keeps spacing consistent with the rest of the portal when no vendor CSS is present.
+ */
+.account-settings-card + .account-settings-card {
+  margin-top: 1.5rem;
+}

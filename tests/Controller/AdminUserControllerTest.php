@@ -89,6 +89,36 @@ final class AdminUserControllerTest extends DatabaseTestCase
         self::assertNull($refetchedUser->getFamily());
     }
 
+    public function testAdminUsersIndexSupportsSortAndFilterQueryWithoutPaginatorException(): void
+    {
+        $admin = $this->createAdmin();
+        $user = new User();
+        $user
+            ->setEmail('query_member_' . uniqid('', false) . '@example.com')
+            ->setUsername('query_member_' . uniqid('', false))
+            ->setPassword('password')
+            ->setFirstName('Query')
+            ->setLastName('Member')
+            ->setBirthDate(new DateTime('2001-01-01'))
+            ->setLocale('en')
+            ->setTimeZone('UTC')
+            ->setRoles(['ROLE_USER'])
+            ->setStatus(UserStatus::ACTIVE)
+            ->setSystemRole(SystemRole::CUSTOMER)
+            ->setFamilyRole(FamilyRole::SOLO)
+            ->setEmailVerifiedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($admin);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($admin);
+
+        $this->client->request('GET', '/portal/admin/users?q=query_member&sort=createdAt&dir=DESC');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h4', 'Tous les utilisateurs');
+    }
+
     /**
      * @return array{0: User, 1: User, 2: Family}
      */

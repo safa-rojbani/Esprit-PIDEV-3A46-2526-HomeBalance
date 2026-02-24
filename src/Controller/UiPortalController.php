@@ -42,6 +42,7 @@ use Doctrine\ORM\EntityRepository;
 #[Route('/portal', name: 'portal_')]
 final class UiPortalController extends AbstractController
 {
+    private const DICEBEAR_HOST = 'api.dicebear.com';
     private const DEFAULT_NOTIFICATION_MATRIX = [
         'new_for_you' => ['email' => true, 'browser' => true, 'app' => true],
         'account_activity' => ['email' => true, 'browser' => true, 'app' => true],
@@ -264,6 +265,69 @@ final class UiPortalController extends AbstractController
         return new JsonResponse(['success' => true, 'matrix' => $matrix]);
     }
 
+    #[Route('/account/notifications/browser-feed', name: 'account_notifications_browser_feed', methods: ['GET'])]
+    public function browserNotificationFeed(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $sinceId = max(0, (int) $request->query->get('since', 0));
+
+        $records = $entityManager->getRepository(AccountNotification::class)
+            ->createQueryBuilder('n')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.id > :sinceId')
+            ->andWhere('n.status IN (:statuses)')
+            ->setParameter('user', $user)
+            ->setParameter('sinceId', $sinceId)
+            ->setParameter('statuses', ['PENDING', 'SENT'])
+            ->orderBy('n.id', 'ASC')
+            ->setMaxResults(25)
+            ->getQuery()
+            ->getResult();
+
+        $preferences = $user->getPreferences() ?? [];
+        $matrix = $preferences['notifications']['matrix'] ?? self::DEFAULT_NOTIFICATION_MATRIX;
+
+        $maxId = $sinceId;
+        $notifications = [];
+
+        foreach ($records as $record) {
+            if (!$record instanceof AccountNotification) {
+                continue;
+            }
+
+            $type = $this->notificationTypeForKey((string) $record->getKey());
+            $channels = $matrix[$type] ?? [];
+            $browserEnabled = (bool) ($channels['browser'] ?? false);
+            $appEnabled = (bool) ($channels['app'] ?? false);
+            if (!$browserEnabled && !$appEnabled) {
+                continue;
+            }
+
+            $summary = $this->notificationSummary((string) $record->getKey(), $record->getPayload() ?? []);
+            $notificationId = (int) $record->getId();
+            $maxId = max($maxId, $notificationId);
+
+            $notifications[] = [
+                'id' => $notificationId,
+                'type' => $type,
+                'title' => $summary['title'],
+                'body' => $summary['body'],
+                'channels' => [
+                    'browser' => $browserEnabled,
+                    'app' => $appEnabled,
+                ],
+                'createdAt' => $record->getCreatedAt()?->format(DATE_ATOM),
+            ];
+        }
+
+        return new JsonResponse([
+            'notifications' => $notifications,
+            'maxId' => $maxId,
+        ]);
+    }
     #[Route('/account/preferences', name: 'account_preferences', methods: ['GET', 'POST'])]
     public function accountPreferences(Request $request, PreferencesService $preferencesService): Response
     {
@@ -277,6 +341,7 @@ final class UiPortalController extends AbstractController
             'errors' => [],
             'channels' => PreferencesService::CHANNELS,
             'topics' => PreferencesService::TOPICS,
+            'modules' => PreferencesService::MODULES,
         ];
 
         if ($request->isMethod('POST')) {
@@ -747,13 +812,20 @@ final class UiPortalController extends AbstractController
     {
         $errors = [];
         $changed = false;
+        $apiAvatarUrl = trim((string) $request->request->get('avatar_api_url', ''));
 
         $removeRequested = (bool) $request->request->get('avatar_remove');
-        if ($removeRequested && $user->getAvatarPath() !== null) {
-            $avatarStorage->remove($user->getAvatarPath());
-            $user->setAvatarPath(null);
-            $user->setUpdatedAt(new DateTimeImmutable());
-            $changed = true;
+        if ($removeRequested) {
+            if ($user->getAvatarPath() !== null) {
+                if (!$this->isExternalUrl($user->getAvatarPath())) {
+                    $avatarStorage->remove($user->getAvatarPath());
+                }
+                $user->setAvatarPath(null);
+                $user->setUpdatedAt(new DateTimeImmutable());
+                $changed = true;
+            }
+
+            return [$changed, $errors];
         }
 
         $uploadedAvatar = $request->files->get('avatar');
@@ -768,7 +840,9 @@ final class UiPortalController extends AbstractController
                 } elseif ($mime !== null && !in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], true)) {
                     $errors[] = 'Only JPG, PNG, GIF, or WebP files are allowed.';
                 } else {
-                    $avatarStorage->remove($user->getAvatarPath());
+                    if (!$this->isExternalUrl($user->getAvatarPath())) {
+                        $avatarStorage->remove($user->getAvatarPath());
+                    }
                     $relativePath = $avatarStorage->store($uploadedAvatar);
                     $user->setAvatarPath($relativePath);
                     $user->setUpdatedAt(new DateTimeImmutable());
@@ -777,9 +851,50 @@ final class UiPortalController extends AbstractController
             }
         }
 
+        if ($apiAvatarUrl !== '' && $this->isAllowedAvatarApiUrl($apiAvatarUrl)) {
+            if (!$this->isExternalUrl($user->getAvatarPath())) {
+                $avatarStorage->remove($user->getAvatarPath());
+            }
+            $user->setAvatarPath($apiAvatarUrl);
+            $user->setUpdatedAt(new DateTimeImmutable());
+            $changed = true;
+        } elseif ($apiAvatarUrl !== '') {
+            $errors[] = 'Selected avatar source is not allowed.';
+        }
+
         return [$changed, $errors];
     }
 
+    private function isAllowedAvatarApiUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = (string) ($parts['path'] ?? '');
+
+        if ($scheme !== 'https') {
+            return false;
+        }
+
+        if ($host !== self::DICEBEAR_HOST) {
+            return false;
+        }
+
+        return str_starts_with($path, '/9.x/') && str_ends_with($path, '/svg');
+    }
+
+    private function isExternalUrl(?string $value): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+
+        return str_starts_with($value, 'http://') || str_starts_with($value, 'https://');
+    }
     /**
      * @return array<int, array{key: string, label: string}>
      */
@@ -810,6 +925,71 @@ final class UiPortalController extends AbstractController
         return $matrix;
     }
 
+    private function notificationTypeForKey(string $key): string
+    {
+        if (str_contains($key, 'browser')) {
+            return 'new_browser';
+        }
+
+        if (str_contains($key, 'device')) {
+            return 'new_device';
+        }
+
+        if (in_array($key, ['welcome', 'family_created', 'family_joined', 'preferences_updated', 'notifications_updated'], true)) {
+            return 'new_for_you';
+        }
+
+        return 'account_activity';
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{title: string, body: string}
+     */
+    private function notificationSummary(string $key, array $payload): array
+    {
+        if ($key === 'verify_email') {
+            return [
+                'title' => 'Verification requise',
+                'body' => 'Confirmez votre adresse e-mail HomeBalance.',
+            ];
+        }
+
+        if ($key === 'reset_requested') {
+            return [
+                'title' => 'Demande de reinitialisation',
+                'body' => 'Un lien de reinitialisation vient d etre genere.',
+            ];
+        }
+
+        if ($key === 'password_changed' || $key === 'password_reset') {
+            return [
+                'title' => 'Mot de passe mis a jour',
+                'body' => 'Le mot de passe du compte a ete modifie.',
+            ];
+        }
+
+        if (str_starts_with($key, 'family_')) {
+            return [
+                'title' => 'Mise a jour famille',
+                'body' => 'Votre foyer a recu une nouvelle mise a jour.',
+            ];
+        }
+
+        if ($key === 'profile_updated') {
+            $fields = isset($payload['fields']) && is_array($payload['fields']) ? count($payload['fields']) : null;
+
+            return [
+                'title' => 'Profil mis a jour',
+                'body' => $fields ? sprintf('%d champ(s) profil modifies.', $fields) : 'Vos informations de profil ont ete mises a jour.',
+            ];
+        }
+
+        return [
+            'title' => 'Notification HomeBalance',
+            'body' => 'Une nouvelle activite est disponible sur votre compte.',
+        ];
+    }
     private function buildAccountFormData(User $user): array
     {
         $profile = $user->getPreferences()['profile'] ?? [];
@@ -831,3 +1011,6 @@ final class UiPortalController extends AbstractController
         ];
     }
 }
+
+
+
