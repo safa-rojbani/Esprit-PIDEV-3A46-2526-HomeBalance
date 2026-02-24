@@ -57,7 +57,8 @@
             or route starts with 'app_categorie_achat'
             or route starts with 'app_type_revenu'
             or route starts with 'app_saving_goal'
-            or route starts with 'app_credit') ? 'module-charge'
+            or route starts with 'app_credit'
+            or route starts with 'app_monthly_report') ? 'module-charge'
           : (route starts with 'parent_task'
             or route starts with 'child_task'
             or route starts with 'family_task'
@@ -78,6 +79,7 @@
             {'label': 'Revenus', 'route': 'app_revenu_index'},
             {'label': 'Budget', 'route': 'app_revenu_budget'},
             {'label': 'Epargne auto', 'route': 'app_saving_goal_index'},
+            {'label': 'Rapport IA', 'route': 'app_monthly_report_index'},
             {'label': 'Credits', 'route': 'app_credit_index'}
           ]
         %}

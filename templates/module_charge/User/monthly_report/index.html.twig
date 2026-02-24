@@ -1,0 +1,65 @@
+{% extends 'module_charge/layout/base.html.twig' %}
+
+{% block title %}Rapport mensuel IA{% endblock %}
+{% block page_title %}Rapport mensuel IA{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Rapport mensuel intelligent</h2>
+      <p class="text-muted mb-0">Les calculs sont faits par le backend, l'IA rédige le résumé et les suggestions.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <form method="get" action="{{ path('app_monthly_report_index') }}" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Mois analysé</label>
+          <input type="month" name="month" value="{{ monthValue }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-primary">Mettre à jour</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4"><strong>Dépenses:</strong> {{ report.expensesCurrent|number_format(2, '.', ' ') }} TND</div>
+        <div class="col-md-4"><strong>Variation dépenses:</strong> {{ report.expenseChangePercent|number_format(2, '.', ' ') }}%</div>
+        <div class="col-md-4"><strong>Revenus:</strong> {{ report.incomesCurrent|number_format(2, '.', ' ') }} TND</div>
+        <div class="col-md-4"><strong>Variation revenus:</strong> {{ report.incomeChangePercent|number_format(2, '.', ' ') }}%</div>
+        <div class="col-md-4"><strong>Capacité actuelle:</strong> {{ report.capacityCurrent|number_format(2, '.', ' ') }} TND</div>
+        <div class="col-md-4"><strong>Catégorie principale:</strong> {{ report.topCategoryName }}</div>
+        <div class="col-md-4"><strong>Catégorie (montant):</strong> {{ report.topCategoryCurrent|number_format(2, '.', ' ') }} TND</div>
+        <div class="col-md-4"><strong>Variation catégorie:</strong> {{ report.topCategoryChangePercent|number_format(2, '.', ' ') }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <form method="post" action="{{ path('app_monthly_report_index') }}" data-turbo="false" class="mb-3">
+        <input type="hidden" name="month" value="{{ monthValue }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('generate_ai_monthly_report') }}">
+        <button type="submit" class="btn btn-primary">
+          🧠 Générer résumé IA
+        </button>
+      </form>
+
+      {% if aiSummary %}
+        <div class="alert {{ aiSummary.fallback ? 'alert-warning' : 'alert-info' }} mb-0">
+          <div class="fw-bold mb-1">Résumé ({{ aiSummary.provider }})</div>
+          <div>{{ aiSummary.text }}</div>
+        </div>
+      {% else %}
+        <div class="text-muted">Clique sur “Générer résumé IA” pour obtenir l'analyse rédigée.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

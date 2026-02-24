@@ -103,4 +103,45 @@ public function averageMonthlyByFamily(Family $family, int $months = 3): string
     return number_format(((float) $sum) / $months, 2, '.', '');
 }
 
+public function sumByFamilyAndPeriod(Family $family, \DateTimeImmutable $from, \DateTimeImmutable $to): string
+{
+    return (string) $this->createQueryBuilder('h')
+        ->select('COALESCE(SUM(h.montantAchete), 0)')
+        ->andWhere('h.family = :family')
+        ->andWhere('h.dateAchat >= :fromDate')
+        ->andWhere('h.dateAchat < :toDate')
+        ->setParameter('family', $family)
+        ->setParameter('fromDate', $from)
+        ->setParameter('toDate', $to)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+/**
+ * @return array<int, array{category: string, total: string}>
+ */
+public function categoryTotalsByFamilyAndPeriod(Family $family, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+{
+    $rows = $this->createQueryBuilder('h')
+        ->select("COALESCE(c.nomCategorie, 'Sans categorie') AS category")
+        ->addSelect('COALESCE(SUM(h.montantAchete), 0) AS total')
+        ->leftJoin('h.achat', 'a')
+        ->leftJoin('a.categorie', 'c')
+        ->andWhere('h.family = :family')
+        ->andWhere('h.dateAchat >= :fromDate')
+        ->andWhere('h.dateAchat < :toDate')
+        ->setParameter('family', $family)
+        ->setParameter('fromDate', $from)
+        ->setParameter('toDate', $to)
+        ->groupBy('c.id, c.nomCategorie')
+        ->orderBy('total', 'DESC')
+        ->getQuery()
+        ->getArrayResult();
+
+    return array_map(static fn(array $row): array => [
+        'category' => (string) ($row['category'] ?? 'Sans categorie'),
+        'total' => (string) ($row['total'] ?? '0'),
+    ], $rows);
+}
+
 }

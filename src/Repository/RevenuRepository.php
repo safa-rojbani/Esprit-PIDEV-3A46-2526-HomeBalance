@@ -126,4 +126,18 @@ public function averageMonthlyByFamily(Family $family, int $months = 3): string
     return number_format(((float) $sum) / $months, 2, '.', '');
 }
 
+public function sumByFamilyAndPeriod(Family $family, \DateTimeImmutable $from, \DateTimeImmutable $to): string
+{
+    return (string) $this->createQueryBuilder('r')
+        ->select('COALESCE(SUM(r.montant), 0)')
+        ->andWhere('r.family = :family')
+        ->andWhere('r.dateRevenu >= :fromDate')
+        ->andWhere('r.dateRevenu < :toDate')
+        ->setParameter('family', $family)
+        ->setParameter('fromDate', $from)
+        ->setParameter('toDate', $to)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
 }

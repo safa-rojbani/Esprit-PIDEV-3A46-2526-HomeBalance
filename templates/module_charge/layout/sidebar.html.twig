@@ -43,6 +43,10 @@
     Epargne auto
   </a>
 
+  <a class="nav-link {% if r starts with 'app_monthly_report_' %}active{% endif %}" href="{{ path('app_monthly_report_index') }}">
+    Rapport IA
+  </a>
+
   <a class="nav-link {% if r starts with 'app_credit_' %}active{% endif %}" href="{{ path('app_credit_index') }}">
     Credits
   </a>
