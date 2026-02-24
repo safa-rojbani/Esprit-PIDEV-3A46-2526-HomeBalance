@@ -1,4 +1,4 @@
-{% extends 'ui_portal/layouts/base.html.twig' %}
+﻿{% extends 'ui_portal/layouts/base.html.twig' %}
 
 {% block title %}Admin · {{ user.username }}{% endblock %}
 
@@ -10,11 +10,10 @@
     </div>
     <div class="d-flex gap-3 flex-wrap">
       <a href="{{ path('portal_admin_users_edit', { id: user.id }) }}" class="btn btn-outline-secondary">Modifier</a>
+      <a href="{{ path('portal_admin_users_audit_export', { id: user.id }) }}" class="btn btn-outline-secondary">Exporter audit CSV</a>
       <form method="post" action="{{ path('portal_admin_users_toggle_status', { id: user.id }) }}">
         <input type="hidden" name="_token" value="{{ csrf_token('toggle_status_' ~ user.id) }}" />
-        <button class="btn btn-outline-warning" type="submit">
-          {{ user.statusLabel == 'Active' ? 'Suspendre' : 'Activer' }}
-        </button>
+        <button class="btn btn-outline-warning" type="submit">{{ user.statusLabel == 'Active' ? 'Suspendre' : 'Activer' }}</button>
       </form>
       <form method="post" action="{{ path('portal_admin_users_reset_password', { id: user.id }) }}">
         <input type="hidden" name="_token" value="{{ csrf_token('reset_password_' ~ user.id) }}" />
@@ -23,12 +22,12 @@
       {% if familyContext.current %}
         <form method="post" action="{{ path('portal_admin_users_detach_family', { id: user.id }) }}">
           <input type="hidden" name="_token" value="{{ csrf_token('detach_family_' ~ user.id) }}" />
-          <button class="btn btn-outline-danger" type="submit">Détacher la famille</button>
+          <button class="btn btn-outline-danger" type="submit">Detacher la famille</button>
         </form>
       {% elseif familyContext.previous %}
         <form method="post" action="{{ path('portal_admin_users_reinvite_family', { id: user.id }) }}">
           <input type="hidden" name="_token" value="{{ csrf_token('reinvite_family_' ~ user.id) }}" />
-          <button class="btn btn-outline-info" type="submit">Envoyer l’invitation</button>
+          <button class="btn btn-outline-info" type="submit">Envoyer l'invitation</button>
         </form>
       {% endif %}
       <form method="post" action="{{ path('portal_admin_users_delete', { id: user.id }) }}">
@@ -38,11 +37,81 @@
     </div>
   </div>
 
+  {% if stepUpPrompt.required %}
+    <div class="card border-warning mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Verification requise pour action sensible</h5>
+        <p class="text-muted mb-3">Action: <code>{{ stepUpPrompt.actionKey }}</code>. Verifiez votre identite ci-dessous, puis relancez l'action.</p>
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <form method="post" action="{{ path('portal_admin_security_face_verify') }}" enctype="multipart/form-data" class="border rounded p-3 h-100 js-camera-form">
+              <input type="hidden" name="_token" value="{{ csrf_token('face_verify') }}" />
+              <input type="hidden" name="action_key" value="{{ stepUpPrompt.actionKey }}" />
+              <input type="hidden" name="target_user_id" value="{{ stepUpPrompt.targetUserId }}" />
+              <input type="hidden" name="return_to" value="{{ stepUpPrompt.returnTo }}" />
+              <h6 class="mb-2">Face verification</h6>
+              <div class="mb-2">
+                <label class="form-label">Selfie</label>
+                <input type="file" name="selfie" accept="image/*" class="form-control js-selfie-input" required />
+                <small class="text-muted">Upload or capture from camera.</small>
+              </div>
+              <div class="mb-2 border rounded p-2">
+                <video class="w-100 rounded d-none js-camera-video" playsinline autoplay style="max-height: 220px; object-fit: cover;"></video>
+                <img class="w-100 rounded d-none js-camera-preview" alt="Selfie preview" style="max-height: 220px; object-fit: cover;" />
+                <canvas class="d-none js-camera-canvas"></canvas>
+                <div class="d-flex gap-2 mt-2">
+                  <button type="button" class="btn btn-outline-primary btn-sm js-open-camera">Open camera</button>
+                  <button type="button" class="btn btn-outline-success btn-sm d-none js-capture-camera">Take selfie</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm d-none js-retake-camera">Retake</button>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-outline-primary btn-sm">Verifier par Face ID (Luxand)</button>
+            </form>
+          </div>
+          <div class="col-lg-6">
+            <form method="post" action="{{ path('portal_admin_security_manual_fallback') }}" class="border rounded p-3 h-100">
+              <input type="hidden" name="_token" value="{{ csrf_token('manual_fallback') }}" />
+              <input type="hidden" name="action_key" value="{{ stepUpPrompt.actionKey }}" />
+              <input type="hidden" name="target_user_id" value="{{ stepUpPrompt.targetUserId }}" />
+              <input type="hidden" name="return_to" value="{{ stepUpPrompt.returnTo }}" />
+              <h6 class="mb-2">Fallback manuel</h6>
+              <div class="mb-2">
+                <label class="form-label">Mot de passe admin actuel</label>
+                <input type="password" name="current_password" class="form-control" required />
+              </div>
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Verifier manuellement</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   <div class="row g-4">
     <div class="col-xl-4 d-flex flex-column gap-4">
       <div class="card">
         <div class="card-header pb-0">
-          <h5 class="card-title mb-0">Résumé du compte</h5>
+          <h5 class="card-title mb-0">Health score</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-end justify-content-between mb-2">
+            <div class="display-6 fw-semibold">{{ accountHealth.score }}</div>
+            <span class="badge bg-label-primary">{{ accountHealth.label }}</span>
+          </div>
+          <div class="progress mb-3" style="height: 8px;">
+            <div class="progress-bar" role="progressbar" style="width: {{ accountHealth.score }}%;" aria-valuenow="{{ accountHealth.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <ul class="mb-0 ps-3">
+            {% for explanation in accountHealth.explanations %}
+              <li class="small text-muted mb-1">{{ explanation }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header pb-0">
+          <h5 class="card-title mb-0">Resume du compte</h5>
         </div>
         <div class="card-body">
           <ul class="list-unstyled mb-0">
@@ -55,20 +124,20 @@
               <span class="fw-semibold">{{ user.email }}</span>
             </li>
             <li class="mb-3">
-              <span class="text-muted small d-block">Rôle système</span>
+              <span class="text-muted small d-block">Role systeme</span>
               <span class="badge bg-label-primary">{{ user.systemRoleLabel }}</span>
             </li>
             <li class="mb-3">
-              <span class="text-muted small d-block">Rôle famille</span>
-              <span class="badge bg-label-info">{{ user.familyRoleLabel ?? '—' }}</span>
+              <span class="text-muted small d-block">Role famille</span>
+              <span class="badge bg-label-info">{{ user.familyRoleLabel ?? '-' }}</span>
             </li>
             <li class="mb-3">
               <span class="text-muted small d-block">Statut</span>
               <span class="badge {{ user.statusBadgeClass }}">{{ user.statusLabel }}</span>
             </li>
             <li>
-              <span class="text-muted small d-block">Dernière connexion</span>
-              <span class="fw-semibold">{{ user.lastLogin ? user.lastLogin|date('d/m/Y H:i') : '—' }}</span>
+              <span class="text-muted small d-block">Derniere connexion</span>
+              <span class="fw-semibold">{{ user.lastLogin ? user.lastLogin|date('d/m/Y H:i') : '-' }}</span>
             </li>
           </ul>
         </div>
@@ -86,24 +155,20 @@
                 <span class="fw-semibold">{{ familyContext.current.name }}</span>
               </li>
               <li class="mb-3">
-                <span class="text-muted small d-block">Code d’accès</span>
-                <span class="fw-semibold">{{ familyContext.current.joinCode ?? 'Non défini' }}</span>
+                <span class="text-muted small d-block">Code d'acces</span>
+                <span class="fw-semibold">{{ familyContext.current.joinCode ?? 'Non defini' }}</span>
               </li>
               <li class="mb-3">
                 <span class="text-muted small d-block">Expiration du code</span>
-                <span class="fw-semibold">
-                  {{ familyContext.current.codeExpiresAt ? familyContext.current.codeExpiresAt|date('d/m/Y H:i') : '—' }}
-                </span>
+                <span class="fw-semibold">{{ familyContext.current.codeExpiresAt ? familyContext.current.codeExpiresAt|date('d/m/Y H:i') : '-' }}</span>
               </li>
               <li>
                 <span class="text-muted small d-block">Rejoint le</span>
-                <span class="fw-semibold">
-                  {{ familyContext.current.joinedAt ? familyContext.current.joinedAt|date('d/m/Y H:i') : '—' }}
-                </span>
+                <span class="fw-semibold">{{ familyContext.current.joinedAt ? familyContext.current.joinedAt|date('d/m/Y H:i') : '-' }}</span>
               </li>
             </ul>
           {% elseif familyContext.previous %}
-            <p class="text-muted mb-3">Aucune famille active associée.</p>
+            <p class="text-muted mb-3">Aucune famille active associee.</p>
             <ul class="list-unstyled mb-0">
               <li class="mb-3">
                 <span class="text-muted small d-block">Dernier foyer</span>
@@ -111,15 +176,11 @@
               </li>
               <li class="mb-3">
                 <span class="text-muted small d-block">Rejoint le</span>
-                <span class="fw-semibold">
-                  {{ familyContext.previous.joinedAt ? familyContext.previous.joinedAt|date('d/m/Y H:i') : '—' }}
-                </span>
+                <span class="fw-semibold">{{ familyContext.previous.joinedAt ? familyContext.previous.joinedAt|date('d/m/Y H:i') : '-' }}</span>
               </li>
               <li>
-                <span class="text-muted small d-block">Quitté le</span>
-                <span class="fw-semibold">
-                  {{ familyContext.previous.leftAt ? familyContext.previous.leftAt|date('d/m/Y H:i') : '—' }}
-                </span>
+                <span class="text-muted small d-block">Quitte le</span>
+                <span class="fw-semibold">{{ familyContext.previous.leftAt ? familyContext.previous.leftAt|date('d/m/Y H:i') : '-' }}</span>
               </li>
             </ul>
           {% else %}
@@ -129,18 +190,86 @@
       </div>
     </div>
 
-    <div class="col-xl-8">
-      <div class="card h-100">
+    <div class="col-xl-8 d-flex flex-column gap-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h5 class="card-title mb-0">Role change approval</h5>
+          <p class="text-muted mb-0">Submit and review role changes for this account.</p>
+        </div>
+        <div class="card-body">
+          {{ form_start(roleChangeForm) }}
+          <div class="row g-3 align-items-end">
+            <div class="col-md-6">{{ form_row(roleChangeForm.requestedRole) }}</div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" type="submit">Create request</button>
+            </div>
+          </div>
+          {{ form_end(roleChangeForm) }}
+
+          <hr class="my-4" />
+
+          {% if roleChangeRequests is empty %}
+            <p class="text-muted mb-0">No role change requests yet.</p>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Requested Role</th>
+                    <th>Status</th>
+                    <th>Requested By</th>
+                    <th>Created</th>
+                    <th>Reviewed</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for request in roleChangeRequests %}
+                    <tr>
+                      <td>{{ request.requestedRole ? request.requestedRole.value : '-' }}</td>
+                      <td>
+                        {% set statusClass = request.status == 'APPROVED' ? 'success' : (request.status == 'REJECTED' ? 'danger' : 'warning') %}
+                        <span class="badge bg-label-{{ statusClass }}">{{ request.status|title }}</span>
+                      </td>
+                      <td>{{ request.requestedBy ? request.requestedBy.username : '-' }}</td>
+                      <td>{{ request.createdAt ? request.createdAt|date('d/m/Y H:i') : '-' }}</td>
+                      <td>{{ request.reviewedAt ? request.reviewedAt|date('d/m/Y H:i') : '-' }}</td>
+                      <td class="text-end">
+                        {% if request.status == 'PENDING' %}
+                          <div class="d-inline-flex gap-1">
+                            <form method="post" action="{{ path('portal_admin_users_role_change_approve', { id: user.id, requestId: request.id }) }}">
+                              <input type="hidden" name="_token" value="{{ csrf_token('approve_role_change_' ~ request.id) }}" />
+                              <button class="btn btn-sm btn-outline-success" type="submit">Approve</button>
+                            </form>
+                            <form method="post" action="{{ path('portal_admin_users_role_change_reject', { id: user.id, requestId: request.id }) }}">
+                              <input type="hidden" name="_token" value="{{ csrf_token('reject_role_change_' ~ request.id) }}" />
+                              <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                            </form>
+                          </div>
+                        {% else %}
+                          <span class="text-muted small">Reviewed</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-header pb-0 d-flex justify-content-between align-items-center">
           <div>
-            <h5 class="card-title mb-0">Activité récente</h5>
-            <p class="text-muted mb-0">Entrées du journal d’audit pour cet utilisateur.</p>
+            <h5 class="card-title mb-0">Activite recente</h5>
+            <p class="text-muted mb-0">Entrees du journal d'audit pour cet utilisateur.</p>
           </div>
-          <a href="{{ path('portal_admin_audit_trails_index') }}" class="btn btn-sm btn-outline-secondary">Voir l’historique</a>
+          <a href="{{ path('portal_admin_audit_trails_index') }}" class="btn btn-sm btn-outline-secondary">Voir l'historique</a>
         </div>
         <div class="card-body">
           {% if activity is empty %}
-            <p class="text-muted mb-0">Aucun événement d’audit.</p>
+            <p class="text-muted mb-0">Aucun evenement d'audit.</p>
           {% else %}
             <ul class="timeline timeline-center mt-3">
               {% for event in activity %}
@@ -162,3 +291,101 @@
     </div>
   </div>
 {% endblock %}
+
+{% block extra_javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      async function openCamera(video) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = stream;
+        return stream;
+      }
+
+      function stopCamera(stream) {
+        if (!stream) {
+          return;
+        }
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      function dataUrlToFile(dataUrl, filename) {
+        const [meta, data] = dataUrl.split(',');
+        const mimeMatch = /data:(.*?);base64/.exec(meta || '');
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const bytes = atob(data || '');
+        const buffer = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          buffer[i] = bytes.charCodeAt(i);
+        }
+        return new File([buffer], filename, { type: mime });
+      }
+
+      document.querySelectorAll('.js-camera-form').forEach((form) => {
+        const openBtn = form.querySelector('.js-open-camera');
+        const captureBtn = form.querySelector('.js-capture-camera');
+        const retakeBtn = form.querySelector('.js-retake-camera');
+        const video = form.querySelector('.js-camera-video');
+        const preview = form.querySelector('.js-camera-preview');
+        const canvas = form.querySelector('.js-camera-canvas');
+        const fileInput = form.querySelector('.js-selfie-input');
+        let stream = null;
+
+        openBtn?.addEventListener('click', async () => {
+          try {
+            stream = await openCamera(video);
+            video.classList.remove('d-none');
+            preview.classList.add('d-none');
+            captureBtn?.classList.remove('d-none');
+            retakeBtn?.classList.add('d-none');
+          } catch (e) {
+            alert('Camera access failed. You can still upload a selfie file.');
+          }
+        });
+
+        captureBtn?.addEventListener('click', () => {
+          if (!video || !canvas || !fileInput) {
+            return;
+          }
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return;
+          }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          preview.src = dataUrl;
+          preview.classList.remove('d-none');
+          video.classList.add('d-none');
+          captureBtn.classList.add('d-none');
+          retakeBtn?.classList.remove('d-none');
+          stopCamera(stream);
+          stream = null;
+
+          const file = dataUrlToFile(dataUrl, 'selfie.jpg');
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInput.files = dt.files;
+        });
+
+        retakeBtn?.addEventListener('click', async () => {
+          preview.classList.add('d-none');
+          try {
+            stream = await openCamera(video);
+            video.classList.remove('d-none');
+            captureBtn?.classList.remove('d-none');
+            retakeBtn.classList.add('d-none');
+          } catch (e) {
+            alert('Camera access failed. You can still upload a selfie file.');
+          }
+        });
+
+        form.addEventListener('submit', () => {
+          stopCamera(stream);
+        });
+      });
+    })();
+  </script>
+{% endblock %}
+

@@ -1,0 +1,138 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Console UMS{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">Console UMS</h4>
+      <p class="text-muted mb-0">Centre de pilotage unique pour les domaines admin sans perdre les ecrans existants.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0">A. Gamification et Badges</h5>
+            <small class="text-muted">Regroupe les vues metier et les CRUD de badges.</small>
+          </div>
+          <span class="badge bg-label-primary">A</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Definitions de badges</small>
+                <h5 class="mb-0">{{ aStats.badgeDefinitions }}</h5>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Badges famille attribues</small>
+                <h5 class="mb-0">{{ aStats.familyBadgeAwards }}</h5>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('portal_admin_gamification_badges') }}" class="btn btn-outline-primary">Gamification</a>
+            <a href="{{ path('portal_admin_badges_index') }}" class="btn btn-outline-primary">Badges CRUD</a>
+            <a href="{{ path('portal_admin_family_badges_index') }}" class="btn btn-outline-primary">Family Badges</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0">B. Notifications et Audit</h5>
+            <small class="text-muted">Regroupe la supervision des envois et la tracabilite UMS.</small>
+          </div>
+          <span class="badge bg-label-info">B</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Notifications en attente</small>
+                <h5 class="mb-0">{{ bStats.notificationsPending }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Notifications en echec</small>
+                <h5 class="mb-0">{{ bStats.notificationsFailed }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Audit (24h)</small>
+                <h5 class="mb-0">{{ bStats.auditLast24h }}</h5>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('portal_admin_notifications_index') }}" class="btn btn-outline-info">Notifications</a>
+            <a href="{{ path('portal_admin_account_notifications_index') }}" class="btn btn-outline-info">Account Notifications</a>
+            <a href="{{ path('portal_admin_audit_trails_index') }}" class="btn btn-outline-info">Audit Trail</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0">C. Famille et Adhesions</h5>
+            <small class="text-muted">Regroupe la structure du foyer, les invitations et les memberships.</small>
+          </div>
+          <span class="badge bg-label-success">C</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Familles</small>
+                <h5 class="mb-0">{{ cStats.families }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Invitations en attente</small>
+                <h5 class="mb-0">{{ cStats.invitationsPending }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block">Memberships actifs</small>
+                <h5 class="mb-0">{{ cStats.membershipsActive }}</h5>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('portal_admin_families_index') }}" class="btn btn-outline-success">Families</a>
+            <a href="{{ path('portal_admin_invitations_index') }}" class="btn btn-outline-success">Invitations</a>
+            <a href="{{ path('portal_admin_memberships_index') }}" class="btn btn-outline-success">Memberships</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <h6 class="mb-1">Acces direct utilisateurs</h6>
+            <small class="text-muted">La gestion des comptes reste accessible en un clic depuis la sidebar.</small>
+          </div>
+          <a href="{{ path('portal_admin_users') }}" class="btn btn-primary">Aller aux utilisateurs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

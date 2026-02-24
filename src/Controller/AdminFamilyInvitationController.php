@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\FamilyInvitation;
 use App\Form\Admin\FamilyInvitationAdminType;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AdminFamilyInvitationController extends AbstractController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, PaginatorInterface $paginator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -41,15 +42,30 @@ final class AdminFamilyInvitationController extends AbstractController
                 ->setParameter('q', '%' . mb_strtolower($query) . '%');
         }
 
-        $invitations = $qb
-            ->orderBy($sortField, $direction)
-            ->setMaxResults(50)
-            ->getQuery()
-            ->getResult();
+        $qb->orderBy($sortField, $direction);
+
+        $page = max(1, $request->query->getInt('page', 1));
+        $invitationsPagination = $paginator->paginate($qb, $page, 20, [
+            'distinct' => true,
+            'sortFieldParameterName' => '_knp_sort',
+            'sortDirectionParameterName' => '_knp_dir',
+        ]);
+
+        /** @var list<FamilyInvitation> $invitations */
+        $invitations = $invitationsPagination->getItems();
+        $total = (int) $invitationsPagination->getTotalItemCount();
+        $first = $total > 0 ? (($page - 1) * 20) + 1 : 0;
+        $last = min($page * 20, $total);
 
         return $this->render('ui_portal/admin/ums/invitations/index.html.twig', [
             'active_menu' => 'admin-invitations',
             'invitations' => $invitations,
+            'pagination' => $invitationsPagination,
+            'paginationMeta' => [
+                'first' => $first,
+                'last' => $last,
+                'total' => $total,
+            ],
             'filters' => [
                 'query' => $query,
                 'sort' => $sort,

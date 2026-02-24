@@ -2,18 +2,25 @@
 
 namespace App\Controller;
 
+use App\Entity\RoleChangeRequest;
 use App\Entity\User;
 use App\Enum\FamilyRole;
 use App\Enum\SystemRole;
 use App\Enum\UserStatus;
+use App\Form\Admin\RoleChangeRequestType;
 use App\Form\Admin\UserAdminType;
 use App\Repository\FamilyMembershipRepository;
+use App\Repository\RoleChangeRequestRepository;
 use App\Repository\UserRepository;
+use App\Service\CsvExportService;
+use App\Service\AccountHealthScoreService;
 use App\Service\AuditNotifier;
 use App\Service\AuditTrailService;
 use App\Service\FamilyManager;
+use App\Service\Security\StepUpGuardService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -26,7 +33,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final class AdminUserController extends AbstractController
 {
     #[Route('/users', name: 'users', methods: ['GET'])]
-    public function index(Request $request, UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository, PaginatorInterface $paginator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -38,7 +45,23 @@ final class AdminUserController extends AbstractController
             'direction' => $request->query->get('dir', 'DESC'),
         ];
 
-        $users = $userRepository->adminSearch($filters);
+        $page = max(1, $request->query->getInt('page', 1));
+        $usersPagination = $paginator->paginate(
+            $userRepository->adminSearchQueryBuilder($filters),
+            $page,
+            20,
+            [
+                'distinct' => true,
+                'sortFieldParameterName' => '_knp_sort',
+                'sortDirectionParameterName' => '_knp_dir',
+            ],
+        );
+
+        /** @var list<User> $users */
+        $users = $usersPagination->getItems();
+        $total = (int) $usersPagination->getTotalItemCount();
+        $first = $total > 0 ? (($page - 1) * 20) + 1 : 0;
+        $last = min($page * 20, $total);
 
         return $this->render('ui_portal/admin/users/index.html.twig', [
             'active_menu' => 'admin-users',
@@ -52,11 +75,11 @@ final class AdminUserController extends AbstractController
                 'statusChoices' => $this->statusChoices(),
             ],
             'users' => array_map([$this, 'presentUser'], $users),
-            'pagination' => [
-                'currentRange' => sprintf('%d-%d', $users ? 1 : 0, count($users)),
-                'total' => count($users),
-                'previous' => null,
-                'next' => null,
+            'pagination' => $usersPagination,
+            'paginationMeta' => [
+                'first' => $first,
+                'last' => $last,
+                'total' => $total,
             ],
         ]);
     }
@@ -64,17 +87,30 @@ final class AdminUserController extends AbstractController
     #[Route('/users/{id}', name: 'users_view', methods: ['GET'], requirements: ['id' => '[0-9a-fA-F-]{36}'])]
     public function view(
         User $user,
+        Request $request,
         AuditTrailService $auditTrailService,
         FamilyMembershipRepository $membershipRepository,
+        AccountHealthScoreService $accountHealthScoreService,
+        RoleChangeRequestRepository $roleChangeRequestRepository,
     ): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $roleChangeRequest = (new RoleChangeRequest())->setUser($user);
+        $roleChangeForm = $this->createForm(RoleChangeRequestType::class, $roleChangeRequest, [
+            'action' => $this->generateUrl('portal_admin_users_role_change_request', ['id' => $user->getId()]),
+            'method' => 'POST',
+        ]);
 
         return $this->render('ui_portal/admin/users/view.html.twig', [
             'active_menu' => 'admin-users',
             'user' => $this->presentUser($user),
             'familyContext' => $this->buildFamilyContext($user, $membershipRepository),
             'activity' => $auditTrailService->recentForUser($user),
+            'accountHealth' => $accountHealthScoreService->evaluate($user),
+            'roleChangeForm' => $roleChangeForm->createView(),
+            'roleChangeRequests' => $roleChangeRequestRepository->findRecentForUser($user),
+            'stepUpPrompt' => $this->buildStepUpPrompt($request, $user),
         ]);
     }
 
@@ -152,11 +188,23 @@ final class AdminUserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         \App\Service\UserAnonymizer $userAnonymizer,
+        StepUpGuardService $stepUpGuardService,
     ): RedirectResponse {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.anonymize',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
         }
 
         $userAnonymizer->anonymize($user);
@@ -173,12 +221,24 @@ final class AdminUserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         AuditNotifier $auditNotifier,
+        StepUpGuardService $stepUpGuardService,
     ): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('toggle_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.toggle_status',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
         }
 
         $status = $user->getStatus() === UserStatus::ACTIVE ? UserStatus::SUSPENDED : UserStatus::ACTIVE;
@@ -207,12 +267,24 @@ final class AdminUserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         AuditNotifier $auditNotifier,
+        StepUpGuardService $stepUpGuardService,
     ): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if (!$this->isCsrfTokenValid('reset_password_' . $user->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.reset_password',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
         }
 
         $user->setResetToken(bin2hex(random_bytes(32)));
@@ -228,7 +300,7 @@ final class AdminUserController extends AbstractController
             $this->currentActor(),
         );
 
-        $this->addFlash('success', 'Reset instructions sent (simulated).');
+        $this->addFlash('success', 'Reset instructions queued.');
 
         return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
     }
@@ -331,6 +403,195 @@ final class AdminUserController extends AbstractController
         return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
     }
 
+    #[Route('/users/{id}/role-change-request', name: 'users_role_change_request', methods: ['POST'], requirements: ['id' => '[0-9a-fA-F-]{36}'])]
+    public function requestRoleChange(
+        User $user,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        AuditTrailService $auditTrailService,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $roleChangeRequest = (new RoleChangeRequest())->setUser($user);
+        $form = $this->createForm(RoleChangeRequestType::class, $roleChangeRequest);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            $this->addFlash('error', 'Invalid role change request.');
+
+            return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+        }
+
+        $actor = $this->currentActor();
+        if (!$actor instanceof User) {
+            throw $this->createAccessDeniedException('Missing actor.');
+        }
+
+        $roleChangeRequest
+            ->setRequestedBy($actor)
+            ->setStatus(RoleChangeRequest::STATUS_PENDING)
+            ->setCreatedAt(new DateTimeImmutable());
+
+        $entityManager->persist($roleChangeRequest);
+        $entityManager->flush();
+
+        $requestedRole = $roleChangeRequest->getRequestedRole();
+        $auditTrailService->record($user, 'user.role.change.requested', [
+            'requestedRole' => $requestedRole?->value,
+            'requestId' => $roleChangeRequest->getId(),
+            'requestedBy' => $actor->getId(),
+        ], $user->getFamily());
+
+        $this->addFlash('success', 'Role change request created.');
+
+        return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+    }
+
+    #[Route('/users/{id}/role-change-requests/{requestId}/approve', name: 'users_role_change_approve', methods: ['POST'], requirements: ['id' => '[0-9a-fA-F-]{36}', 'requestId' => '\d+'])]
+    public function approveRoleChange(
+        User $user,
+        int $requestId,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        RoleChangeRequestRepository $roleChangeRequestRepository,
+        AuditTrailService $auditTrailService,
+        StepUpGuardService $stepUpGuardService,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $roleChangeRequest = $roleChangeRequestRepository->find($requestId);
+        if (!$roleChangeRequest instanceof RoleChangeRequest || $roleChangeRequest->getUser()?->getId() !== $user->getId()) {
+            throw $this->createNotFoundException('Role change request not found.');
+        }
+
+        if (!$this->isCsrfTokenValid('approve_role_change_' . $roleChangeRequest->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.role_change.approve',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
+        }
+
+        if ($roleChangeRequest->getStatus() !== RoleChangeRequest::STATUS_PENDING) {
+            $this->addFlash('warning', 'This request was already reviewed.');
+
+            return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+        }
+
+        $requestedRole = $roleChangeRequest->getRequestedRole();
+        if (!$requestedRole instanceof SystemRole) {
+            $this->addFlash('error', 'Requested role is invalid.');
+
+            return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+        }
+
+        $user->setSystemRole($requestedRole);
+        $this->syncSecurityRolesForSystemRole($user, $requestedRole);
+        $user->setUpdatedAt(new DateTimeImmutable());
+
+        $roleChangeRequest
+            ->setStatus(RoleChangeRequest::STATUS_APPROVED)
+            ->setReviewedBy($this->currentActor())
+            ->setReviewedAt(new DateTimeImmutable());
+
+        $entityManager->flush();
+
+        $auditTrailService->record($user, 'user.role.change.approved', [
+            'requestedRole' => $requestedRole->value,
+            'requestId' => $roleChangeRequest->getId(),
+            'reviewedBy' => $this->currentActor()?->getId(),
+        ], $user->getFamily());
+
+        $this->addFlash('success', 'Role change approved.');
+
+        return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+    }
+
+    #[Route('/users/{id}/role-change-requests/{requestId}/reject', name: 'users_role_change_reject', methods: ['POST'], requirements: ['id' => '[0-9a-fA-F-]{36}', 'requestId' => '\d+'])]
+    public function rejectRoleChange(
+        User $user,
+        int $requestId,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        RoleChangeRequestRepository $roleChangeRequestRepository,
+        AuditTrailService $auditTrailService,
+        StepUpGuardService $stepUpGuardService,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $roleChangeRequest = $roleChangeRequestRepository->find($requestId);
+        if (!$roleChangeRequest instanceof RoleChangeRequest || $roleChangeRequest->getUser()?->getId() !== $user->getId()) {
+            throw $this->createNotFoundException('Role change request not found.');
+        }
+
+        if (!$this->isCsrfTokenValid('reject_role_change_' . $roleChangeRequest->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.role_change.reject',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
+        }
+
+        if ($roleChangeRequest->getStatus() !== RoleChangeRequest::STATUS_PENDING) {
+            $this->addFlash('warning', 'This request was already reviewed.');
+
+            return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+        }
+
+        $roleChangeRequest
+            ->setStatus(RoleChangeRequest::STATUS_REJECTED)
+            ->setReviewedBy($this->currentActor())
+            ->setReviewedAt(new DateTimeImmutable());
+        $entityManager->flush();
+
+        $auditTrailService->record($user, 'user.role.change.rejected', [
+            'requestedRole' => $roleChangeRequest->getRequestedRole()?->value,
+            'requestId' => $roleChangeRequest->getId(),
+            'reviewedBy' => $this->currentActor()?->getId(),
+        ], $user->getFamily());
+
+        $this->addFlash('success', 'Role change rejected.');
+
+        return $this->redirectToRoute('portal_admin_users_view', ['id' => $user->getId()]);
+    }
+
+    #[Route('/users/{id}/audit-export', name: 'users_audit_export', methods: ['GET'], requirements: ['id' => '[0-9a-fA-F-]{36}'])]
+    public function exportAuditTrail(
+        User $user,
+        CsvExportService $csvExportService,
+        Request $request,
+        StepUpGuardService $stepUpGuardService,
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if ($redirect = $this->requireStepUp(
+            $request,
+            $stepUpGuardService,
+            'admin.user.audit_export',
+            $user,
+            'portal_admin_users_view',
+            ['id' => $user->getId()],
+        )) {
+            return $redirect;
+        }
+
+        return $csvExportService->streamUserAuditTrail($user);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -411,6 +672,20 @@ final class AdminUserController extends AbstractController
         return $actor instanceof User ? $actor : null;
     }
 
+    private function syncSecurityRolesForSystemRole(User $user, SystemRole $systemRole): void
+    {
+        $roles = array_values(array_filter(
+            $user->getRoles(),
+            static fn (string $role): bool => $role !== 'ROLE_ADMIN'
+        ));
+
+        if ($systemRole === SystemRole::ADMIN) {
+            $roles[] = 'ROLE_ADMIN';
+        }
+
+        $user->setRoles(array_values(array_unique($roles)));
+    }
+
     /**
      * @return list<string>
      */
@@ -426,5 +701,55 @@ final class AdminUserController extends AbstractController
         }
 
         return array_values(array_unique($messages));
+    }
+
+    private function requireStepUp(
+        Request $request,
+        StepUpGuardService $stepUpGuardService,
+        string $actionKey,
+        User $targetUser,
+        string $returnRoute,
+        array $returnParams = [],
+    ): ?RedirectResponse {
+        if ($stepUpGuardService->isSatisfied($request, $actionKey, $targetUser)) {
+            return null;
+        }
+
+        $this->addFlash('warning', 'Face verification is required before this sensitive action.');
+
+        return $this->redirectToRoute('portal_admin_users_view', [
+            'id' => $targetUser->getId(),
+            'stepup_required' => 1,
+            'action_key' => $actionKey,
+            'target_user_id' => $targetUser->getId(),
+            'return_to' => $this->generateUrl($returnRoute, $returnParams),
+        ]);
+    }
+
+    /**
+     * @return array{required: bool, actionKey: string, targetUserId: string, returnTo: string}
+     */
+    private function buildStepUpPrompt(Request $request, User $user): array
+    {
+        $required = $request->query->getBoolean('stepup_required', false);
+        $actionKey = trim((string) $request->query->get('action_key', ''));
+        $targetUserId = trim((string) $request->query->get('target_user_id', ''));
+        $returnTo = trim((string) $request->query->get('return_to', ''));
+
+        if (!$required || $actionKey === '' || $targetUserId !== $user->getId()) {
+            return [
+                'required' => false,
+                'actionKey' => '',
+                'targetUserId' => $user->getId(),
+                'returnTo' => '',
+            ];
+        }
+
+        return [
+            'required' => true,
+            'actionKey' => $actionKey,
+            'targetUserId' => $user->getId(),
+            'returnTo' => $returnTo !== '' ? $returnTo : $this->generateUrl('portal_admin_users_view', ['id' => $user->getId()]),
+        ];
     }
 }

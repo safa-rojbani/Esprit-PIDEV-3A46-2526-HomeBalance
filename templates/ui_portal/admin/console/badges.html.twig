@@ -1,0 +1,114 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Console UMS · Badges{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/admin/console/_nav.html.twig' %}
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Gamification</h5>
+          <form method="post" action="{{ path('portal_admin_gamification_award') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('award_badges') }}" />
+            <button type="submit" class="btn btn-sm btn-primary">Recalculate badges</button>
+          </form>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Badge</th>
+                <th>Scope</th>
+                <th>Holders</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in badgeSummaries %}
+                <tr>
+                  <td>{{ row.badge.name }}</td>
+                  <td>{{ row.scope.value }}</td>
+                  <td>{{ row.holders }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-4">Aucun badge configure.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Badges CRUD</h5>
+          <a href="{{ path('portal_admin_badges_new') }}" class="btn btn-sm btn-primary">Nouveau badge</a>
+        </div>
+        <div class="d-flex flex-wrap gap-2 p-3 border-bottom">
+          <a href="{{ path('portal_admin_badges_index') }}" class="btn btn-sm btn-outline-secondary">Ouvrir la liste complete</a>
+          <a href="{{ path('portal_admin_gamification_badges') }}" class="btn btn-sm btn-outline-secondary">Vue gamification detaillee</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Code</th>
+                <th>Points</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in badgeSummaries %}
+                <tr>
+                  <td>{{ row.badge.name }}</td>
+                  <td><code>{{ row.badge.code }}</code></td>
+                  <td>{{ row.badge.requiredPoints }}</td>
+                  <td><a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_badges_edit', {id: row.badge.id}) }}">Edit</a></td>
+                </tr>
+              {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Aucun badge trouve.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Family Badges</h5>
+          <a href="{{ path('portal_admin_family_badges_new') }}" class="btn btn-sm btn-primary">Nouveau family badge</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Famille</th>
+                <th>Badge</th>
+                <th>Awarded</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in familyBadges %}
+                <tr>
+                  <td>{{ record.family ? record.family.name : '—' }}</td>
+                  <td>{{ record.badge ? record.badge.name : '—' }}</td>
+                  <td>{{ record.awardedAt ? record.awardedAt|date('Y-m-d H:i') : '—' }}</td>
+                  <td><a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_family_badges_edit', {id: record.id}) }}">Edit</a></td>
+                </tr>
+              {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Aucun family badge trouve.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

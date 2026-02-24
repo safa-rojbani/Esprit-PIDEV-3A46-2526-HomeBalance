@@ -1,0 +1,30 @@
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h4 class="mb-0">Console UMS</h4>
+    <p class="text-muted mb-0">Navigation unifiee pour les operations UMS.</p>
+  </div>
+  <a href="{{ path('portal_admin_users') }}" class="btn btn-outline-primary">Utilisateurs</a>
+</div>
+
+<ul class="nav nav-pills mb-4 gap-2">
+  <li class="nav-item">
+    <a class="nav-link {{ consoleSection == 'families' ? 'active' : '' }}" href="{{ path('portal_admin_console_families') }}">
+      Families
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ consoleSection == 'badges' ? 'active' : '' }}" href="{{ path('portal_admin_console_badges') }}">
+      Badges
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ consoleSection == 'notifications' ? 'active' : '' }}" href="{{ path('portal_admin_console_notifications') }}">
+      Notifications
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ consoleSection == 'security_ai' ? 'active' : '' }}" href="{{ path('portal_admin_console_security_ai') }}">
+      Security & AI
+    </a>
+  </li>
+</ul>

@@ -127,6 +127,37 @@ final class AccountSettingsTest extends DatabaseTestCase
         self::assertTrue($preferences['communication']['weeklySummary']);
     }
 
+    public function testProfileUpdateAcceptsAllowedDicebearAvatarUrl(): void
+    {
+        $user = $this->createVerifiedUser();
+        $this->client->loginUser($user);
+
+        $this->client->request('POST', '/portal/account', [
+            '_token' => $this->accountProfileToken(),
+            'section' => 'profile',
+            'firstName' => 'Test',
+            'lastName' => 'User',
+            'email' => (string) $user->getEmail(),
+            'organization' => '',
+            'phoneNumber' => '',
+            'address' => '',
+            'state' => '',
+            'zipCode' => '',
+            'country' => 'United States',
+            'language' => 'en',
+            'timeZones' => 'UTC',
+            'currency' => 'usd',
+            'avatar_api_url' => 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=account-test',
+        ]);
+
+        self::assertResponseRedirects('/portal/account');
+        $this->client->followRedirect();
+
+        $refetched = $this->entityManager->getRepository(User::class)->find($user->getId());
+        self::assertNotNull($refetched);
+        self::assertSame('https://api.dicebear.com/9.x/fun-emoji/svg?seed=account-test', $refetched->getAvatarPath());
+    }
+
     private function createVerifiedUser(): User
     {
         $user = new User();
@@ -178,6 +209,11 @@ final class AccountSettingsTest extends DatabaseTestCase
     private function accountPasswordToken(): string
     {
         return $this->extractSectionToken('/portal/account', 'password');
+    }
+
+    private function accountProfileToken(): string
+    {
+        return $this->extractSectionToken('/portal/account', 'profile');
     }
 
     private function preferencesToken(): string

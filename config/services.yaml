@@ -4,8 +4,14 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    app.notification_from: 'no-reply@homebalance.local'
+    app.notification_from: '%env(string:MAIL_FROM)%'
     app.audit_retention_days: 180
+    app.feature_biometric_stepup: '%env(bool:FEATURE_BIOMETRIC_STEPUP)%'
+    app.feature_ai_admin_assistant: '%env(bool:FEATURE_AI_ADMIN_ASSISTANT)%'
+    app.feature_ai_execute_enabled: '%env(bool:FEATURE_AI_EXECUTE_ENABLED)%'
+    app.luxand_api_key: '%env(string:LUXAND_API_KEY)%'
+    app.groq_api_key: '%env(string:GROQ_API_KEY)%'
+    app.groq_model: '%env(string:GROQ_MODEL)%'
 
 services:
     # default configuration for services in *this* file
@@ -27,3 +33,26 @@ services:
     App\Service\AvatarStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Service\External\FacePlusPlusClient:
+        arguments:
+            $apiKey: '%app.luxand_api_key%'
+
+    App\Service\Security\TokenCipherService:
+        arguments:
+            $appSecret: '%kernel.secret%'
+
+    App\Service\Security\StepUpPolicyService:
+        arguments:
+            $featureEnabled: '%app.feature_biometric_stepup%'
+
+    App\Service\Ai\AdminIntentLlmService:
+        arguments:
+            $groqApiKey: '%app.groq_api_key%'
+            $model: '%app.groq_model%'
+            $cache: '@cache.app'
+
+    App\Controller\AdminAiAssistantController:
+        bind:
+            $featureAiAssistantEnabled: '%app.feature_ai_admin_assistant%'
+            $featureAiExecuteEnabled: '%app.feature_ai_execute_enabled%'

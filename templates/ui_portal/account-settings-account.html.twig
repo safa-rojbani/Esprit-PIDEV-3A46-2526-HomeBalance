@@ -21,13 +21,23 @@
     <form id="formAccountSettings" method="post" action="{{ path('portal_account') }}" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="_token" value="{{ csrf_token('account_update') }}" />
       <input type="hidden" name="section" value="profile" />
+      <input type="hidden" name="avatar_api_url" id="avatarApiUrl" value="" />
       <div class="card-body">
       <div class="d-flex align-items-start align-items-sm-center gap-6 pb-4 border-bottom">
+        {% set avatarPath = accountForm.avatarPath ?? null %}
+        {% set avatarFallback = 'https://api.dicebear.com/9.x/adventurer/svg?seed=' ~ (app.user ? app.user.id : 'homebalance') %}
+        {% set avatarHasUsablePath = avatarPath and ((avatarPath starts with 'http://') or (avatarPath starts with 'https://') or ('/' in avatarPath)) %}
+        {% set avatarSrc = avatarHasUsablePath
+          ? ((avatarPath starts with 'http://') or (avatarPath starts with 'https://') ? avatarPath : asset(avatarPath))
+          : avatarFallback
+        %}
         <img
-          src="{{ accountForm.avatarPath ? asset(accountForm.avatarPath) : asset('materio/img/avatars/1.png') }}"
+          src="{{ avatarSrc }}"
           alt="Avatar utilisateur"
-          class="d-block w-px-100 h-px-100 rounded"
-          id="uploadedAvatar" />
+          class="d-block rounded object-fit-cover"
+          style="width: 72px; height: 72px;"
+          id="uploadedAvatar"
+          onerror="this.onerror=null;this.src='{{ avatarFallback }}';" />
         <div class="button-wrapper">
           <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
             <span class="d-none d-sm-block">Mettre à jour la photo</span>
@@ -44,6 +54,10 @@
           <button type="submit" class="btn btn-outline-secondary account-image-reset mb-4" name="avatar_remove" value="1">
             <i class="icon-base bx bx-reset d-block d-sm-none"></i>
             <span class="d-none d-sm-block">Réinitialiser</span>
+          </button>
+          <button type="button" class="btn btn-outline-info mb-4" data-bs-toggle="modal" data-bs-target="#dicebearAvatarModal">
+            <i class="icon-base bx bx-happy-heart-eyes d-block d-sm-none"></i>
+            <span class="d-none d-sm-block">Choisir un avatar</span>
           </button>
           <div>JPG, PNG, GIF ou WebP, 2 Mo max. Les photos de famille sont les bienvenues.</div>
         </div>
@@ -291,9 +305,90 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="dicebearAvatarModal" tabindex="-1" aria-labelledby="dicebearAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dicebearAvatarModalLabel">Choisir un avatar DiceBear</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3" id="dicebearAvatarGrid"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-primary" id="dicebearApplyButton" disabled>Appliquer</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_javascripts %}
   {{ parent() }}
   <script src="{{ asset('js/pages-account-settings-account.js') }}"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('formAccountSettings');
+      const grid = document.getElementById('dicebearAvatarGrid');
+      const applyButton = document.getElementById('dicebearApplyButton');
+      const avatarApiInput = document.getElementById('avatarApiUrl');
+      const avatarPreview = document.getElementById('uploadedAvatar');
+      const modalElement = document.getElementById('dicebearAvatarModal');
+
+      if (!form || !grid || !applyButton || !avatarApiInput || !avatarPreview || !modalElement || typeof bootstrap === 'undefined') {
+        return;
+      }
+
+      const styles = ['adventurer', 'adventurer-neutral', 'big-ears', 'fun-emoji', 'lorelei', 'personas'];
+      const baseSeed = '{{ (app.user and app.user.email ? app.user.email : 'homebalance')|e('js') }}';
+      const avatars = [];
+
+      styles.forEach((style) => {
+        for (let i = 1; i <= 4; i += 1) {
+          const seed = `${baseSeed}-${style}-${i}`;
+          avatars.push(`https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`);
+        }
+      });
+
+      let selectedAvatar = null;
+      const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+      avatars.forEach((url) => {
+        const col = document.createElement('div');
+        col.className = 'col-6 col-md-3';
+        col.innerHTML = `
+          <button type="button" class="btn p-2 border rounded w-100 h-100 dicebear-option" data-url="${url}">
+            <img src="${url}" alt="Avatar DiceBear" class="w-100 rounded" loading="lazy" />
+          </button>
+        `;
+        grid.appendChild(col);
+      });
+
+      grid.addEventListener('click', function (event) {
+        const button = event.target.closest('.dicebear-option');
+        if (!button) {
+          return;
+        }
+
+        selectedAvatar = button.dataset.url || null;
+        applyButton.disabled = !selectedAvatar;
+
+        grid.querySelectorAll('.dicebear-option').forEach((item) => item.classList.remove('border-primary'));
+        button.classList.add('border-primary');
+      });
+
+      applyButton.addEventListener('click', function () {
+        if (!selectedAvatar) {
+          return;
+        }
+
+        avatarApiInput.value = selectedAvatar;
+        avatarPreview.src = selectedAvatar;
+        modal.hide();
+        form.submit();
+      });
+    })();
+  </script>
 {% endblock %}

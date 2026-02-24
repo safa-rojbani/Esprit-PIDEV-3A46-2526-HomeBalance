@@ -1,0 +1,126 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Console UMS · Notifications{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/admin/console/_nav.html.twig' %}
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Notifications</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <div class="border rounded p-3">
+                <small class="text-muted d-block">Pending</small>
+                <h5 class="mb-0">{{ statusSummary.pending }}</h5>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="border rounded p-3">
+                <small class="text-muted d-block">Sent</small>
+                <h5 class="mb-0">{{ statusSummary.sent }}</h5>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="border rounded p-3">
+                <small class="text-muted d-block">Failed</small>
+                <h5 class="mb-0">{{ statusSummary.failed }}</h5>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="border rounded p-3">
+                <small class="text-muted d-block">Skipped</small>
+                <h5 class="mb-0">{{ statusSummary.skipped }}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Account Notifications</h5>
+          <a href="{{ path('portal_admin_account_notifications_new') }}" class="btn btn-sm btn-primary">Nouvelle notification</a>
+        </div>
+        <div class="d-flex flex-wrap gap-2 p-3 border-bottom">
+          <a href="{{ path('portal_admin_notifications_index') }}" class="btn btn-sm btn-outline-secondary">Liste notification pipeline</a>
+          <a href="{{ path('portal_admin_account_notifications_index') }}" class="btn btn-sm btn-outline-secondary">Liste account notifications</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Key</th>
+                <th>Status</th>
+                <th>Channel</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in notificationRecords %}
+                <tr>
+                  <td>{{ record.user ? record.user.email : '—' }}</td>
+                  <td>{{ record.key }}</td>
+                  <td>{{ record.status }}</td>
+                  <td>{{ record.channel }}</td>
+                  <td>{{ record.createdAt ? record.createdAt|date('Y-m-d H:i') : '—' }}</td>
+                  <td><a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_account_notifications_edit', {id: record.id}) }}">Edit</a></td>
+                </tr>
+              {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">Aucune notification trouvee.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Audit Trail</h5>
+          <div class="text-muted small">Entries 24h: {{ auditLast24h }}</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 p-3 border-bottom">
+          <a href="{{ path('portal_admin_audit_trails_new') }}" class="btn btn-sm btn-primary">Nouvel audit</a>
+          <a href="{{ path('portal_admin_audit_trails_index') }}" class="btn btn-sm btn-outline-secondary">Liste audit complete</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>User</th>
+                <th>Family</th>
+                <th>Canal</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in auditRecords %}
+                <tr>
+                  <td>{{ record.action }}</td>
+                  <td>{{ record.user ? record.user.email : '—' }}</td>
+                  <td>{{ record.family ? record.family.name : '—' }}</td>
+                  <td>{{ record.channel ?? '—' }}</td>
+                  <td>{{ record.createdAt ? record.createdAt|date('Y-m-d H:i') : '—' }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucun audit trouve.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

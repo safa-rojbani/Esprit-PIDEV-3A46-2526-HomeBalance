@@ -1,0 +1,503 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · Console UMS · Security & AI{% endblock %}
+
+{% block content %}
+  {% include 'ui_portal/admin/console/_nav.html.twig' %}
+
+  {% set steps = {
+    'plan': '1. Plan',
+    'dry-run': '2. Dry-run',
+    'confirm': '3. Confirm',
+    'step-up': '4. Verify',
+    'done': '5. Done'
+  } %}
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="mb-2">AI Assistant Flow</h5>
+      <p class="text-muted mb-3">Follow the steps in order. Each step has one clear action.</p>
+      <div class="d-flex flex-wrap gap-2">
+        {% for key, label in steps %}
+          <span class="badge {{ wizardStep == key ? 'bg-primary' : 'bg-label-secondary' }}">{{ label }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if wizardStep == 'plan' %}
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Step 1: Describe what you want to do</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-lg-9">
+            <label class="form-label">Prompt</label>
+            <input id="ai-prompt" class="form-control" placeholder="Example: Suspend users with frequent password changes in the last 30 days.">
+          </div>
+          <div class="col-12 col-lg-3">
+            <button id="ai-plan-btn" class="btn btn-primary w-100">Generate plan</button>
+          </div>
+        </div>
+        <div class="alert alert-info mt-3 mb-0">
+          Tip: mention a target (email) for password reset or audit export.
+        </div>
+      </div>
+    </div>
+  {% elseif wizardStep == 'dry-run' %}
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Step 2: Dry-run the plan</h5>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_console_security_ai', { step: 'plan' }) }}">Back</a>
+      </div>
+      <div class="card-body">
+        {% if selectedSession %}
+          <p class="text-muted mb-2">Session: <code>{{ selectedSession.id }}</code></p>
+          <h6>Generated plan</h6>
+          <pre class="border rounded p-3 bg-light small">{{ selectedSession.normalizedIntent|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+          <div class="d-flex gap-2 mt-3">
+            <button id="ai-dry-run-btn" class="btn btn-primary" data-session-id="{{ selectedSession.id }}">Run dry-run</button>
+          </div>
+          <div class="alert alert-secondary mt-3 mb-0" id="dry-run-status">No dry-run executed yet.</div>
+        {% else %}
+          <div class="alert alert-warning mb-0">No session selected. Generate a plan first.</div>
+        {% endif %}
+      </div>
+    </div>
+  {% elseif wizardStep == 'confirm' %}
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Step 3: Confirm execution</h5>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_console_security_ai', { step: 'dry-run', session_id: selectedSession ? selectedSession.id : null }) }}">Back</a>
+      </div>
+      <div class="card-body">
+        {% if selectedSession %}
+          <p class="text-muted mb-2">Session: <code>{{ selectedSession.id }}</code></p>
+          <div class="alert alert-primary">
+            <strong>Execution summary:</strong> {{ impactSummary }}
+          </div>
+
+          {% if selectedSession.dryRunSnapshot %}
+            <h6>Dry-run output</h6>
+            <pre class="border rounded p-3 bg-light small">{{ selectedSession.dryRunSnapshot|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              {% if stepUpAlreadySatisfied %}
+                <button id="ai-exec-btn" class="btn btn-success" data-session-id="{{ selectedSession.id }}">Confirm and execute</button>
+              {% else %}
+                <a class="btn btn-primary" href="{{ path('portal_admin_console_security_ai', { step: 'step-up', session_id: selectedSession.id }) }}">Go to Step 4 verification (mandatory)</a>
+              {% endif %}
+            </div>
+            <div class="alert {{ stepUpAlreadySatisfied ? 'alert-secondary' : 'alert-warning' }} mt-3 mb-0" id="execute-status">
+              {{ stepUpAlreadySatisfied ? 'Execution has not been triggered yet.' : 'Step 4 verification is required before execution.' }}
+            </div>
+          {% else %}
+            <div class="alert alert-warning">No dry-run found. Run dry-run before execution.</div>
+            <a class="btn btn-primary" href="{{ path('portal_admin_console_security_ai', { step: 'dry-run', session_id: selectedSession.id }) }}">Go to dry-run step</a>
+          {% endif %}
+        {% else %}
+          <div class="alert alert-warning mb-0">No session selected. Generate a plan first.</div>
+        {% endif %}
+      </div>
+    </div>
+  {% elseif wizardStep == 'step-up' %}
+    <div class="row g-4">
+      <div class="col-12 col-xl-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Step 4: Verify identity (Face ID)</h5>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ path('portal_admin_console_security_ai', { step: 'confirm', session_id: selectedSession ? selectedSession.id : null }) }}">Back</a>
+          </div>
+          <div class="card-body">
+            {% if stepUpAlreadySatisfied %}
+              <div class="alert alert-success">
+                You are already verified for this action. You can go back to Step 3 and execute directly.
+              </div>
+              <a class="btn btn-primary" href="{{ path('portal_admin_console_security_ai', { step: 'confirm', session_id: selectedSession ? selectedSession.id : null }) }}">Back to Step 3</a>
+            {% elseif biometricEnrolled %}
+              <div class="alert alert-success">
+                Face ID is already enrolled{% if biometricProfile and biometricProfile.consentAt %} since {{ biometricProfile.consentAt|date('Y-m-d H:i') }}{% endif %}.
+                You only need to open your camera and take a live selfie for verification.
+              </div>
+            {% else %}
+              <div class="border rounded p-3 mb-3">
+                <h6 class="mb-2">Enroll once</h6>
+                {% if biometricNeedsMigration %}
+                  <div class="alert alert-warning">Your previous biometric profile uses an old provider. Re-enroll once to migrate to Luxand.</div>
+                {% endif %}
+                <p class="text-muted mb-3">This is a one-time setup. After enrollment, verification only uses live camera capture.</p>
+                <form method="post" action="{{ path('portal_admin_security_face_enroll') }}" enctype="multipart/form-data" class="row g-2 js-camera-form js-camera-required" data-turbo="false">
+                  <input type="hidden" name="_token" value="{{ csrf_token('face_enroll') }}">
+                  <input type="file" name="selfie" accept="image/*" class="d-none js-selfie-input" required>
+                  <div class="col-12">
+                    <div class="border rounded p-3">
+                      <video class="w-100 rounded d-none js-camera-video" playsinline autoplay style="max-height: 260px; object-fit: cover;"></video>
+                      <img class="w-100 rounded d-none js-camera-preview" alt="Selfie preview" style="max-height: 260px; object-fit: cover;" />
+                      <canvas class="d-none js-camera-canvas"></canvas>
+                      <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm js-open-camera">Open camera</button>
+                        <button type="button" class="btn btn-outline-success btn-sm d-none js-capture-camera">Take selfie</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm d-none js-retake-camera">Retake</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="1" id="face-consent" name="consent" required>
+                      <label class="form-check-label" for="face-consent">I consent to tokenized biometric verification.</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Save Face ID</button>
+                  </div>
+                </form>
+              </div>
+            {% endif %}
+
+            {% if not stepUpAlreadySatisfied %}
+            <form method="post" action="{{ path('portal_admin_security_face_verify') }}" enctype="multipart/form-data" class="row g-3 js-camera-form js-camera-required" data-turbo="false">
+              <input type="hidden" name="_token" value="{{ csrf_token('face_verify') }}">
+              <input type="hidden" name="return_to" value="{{ stepUpReturnTo }}">
+              <input type="hidden" name="action_key" value="{{ stepUpActionKey }}">
+              <input type="hidden" name="target_user_id" value="{{ sessionTargetUserId }}">
+              <input type="file" name="selfie" accept="image/*" class="d-none js-selfie-input" required>
+              <div class="col-12">
+                <div class="border rounded p-3">
+                  <video class="w-100 rounded d-none js-camera-video" playsinline autoplay style="max-height: 260px; object-fit: cover;"></video>
+                  <img class="w-100 rounded d-none js-camera-preview" alt="Selfie preview" style="max-height: 260px; object-fit: cover;" />
+                  <canvas class="d-none js-camera-canvas"></canvas>
+                  <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm js-open-camera">Open camera</button>
+                    <button type="button" class="btn btn-outline-success btn-sm d-none js-capture-camera">Take selfie</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm d-none js-retake-camera">Retake</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary">Verify face</button>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">Manual fallback</h5>
+          </div>
+          <div class="card-body">
+            {% if not stepUpAlreadySatisfied %}
+            <form method="post" action="{{ path('portal_admin_security_manual_fallback') }}" class="row g-3" data-turbo="false">
+              <input type="hidden" name="_token" value="{{ csrf_token('manual_fallback') }}">
+              <input type="hidden" name="action_key" value="{{ stepUpActionKey }}">
+              <input type="hidden" name="target_user_id" value="{{ sessionTargetUserId }}">
+              <input type="hidden" name="return_to" value="{{ stepUpReturnTo }}">
+              <div class="col-12">
+                <label class="form-label">Current password</label>
+                <input type="password" name="current_password" class="form-control" autocomplete="current-password" required>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-outline-secondary">Approve manual fallback</button>
+              </div>
+            </form>
+            {% else %}
+              <div class="alert alert-success mb-0">Manual fallback is not needed because this action is already verified.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% elseif wizardStep == 'done' %}
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Step 5: Execution result</h5>
+      </div>
+      <div class="card-body">
+        {% if selectedSession %}
+          {% set latestLog = selectedSessionLogs|first %}
+          {% if latestLog %}
+            {% set isSuccess = latestLog.result in ['SUCCESS', 'PARTIAL'] %}
+            <div class="alert {{ isSuccess ? 'alert-success' : 'alert-danger' }}">
+              <strong>{{ isSuccess ? 'Success.' : 'Failure.' }}</strong>
+              {{ impactSummary }}
+            </div>
+            <p class="mb-2"><strong>Result:</strong> {{ latestLog.result }}</p>
+            <p class="mb-2"><strong>Executed actions:</strong> {{ latestLog.executedActionsCount }}</p>
+            {% if latestLog.errorSummary %}
+              <p class="mb-2 text-danger"><strong>Error summary:</strong> {{ latestLog.errorSummary }}</p>
+            {% endif %}
+          {% else %}
+            <div class="alert alert-warning">No execution log found yet for this session.</div>
+          {% endif %}
+          <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-primary" href="{{ path('portal_admin_console_security_ai', { step: 'plan' }) }}">Start a new request</a>
+            <a class="btn btn-outline-secondary" href="{{ path('portal_admin_console_security_ai', { step: 'confirm', session_id: selectedSession.id }) }}">View confirmation</a>
+          </div>
+        {% else %}
+          <div class="alert alert-warning mb-0">No session selected.</div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h6 class="mb-0">Recent AI Sessions</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Session</th>
+            <th>Status</th>
+            <th>Step-up</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for session in recentAiSessions %}
+            <tr>
+              <td><code>{{ session.id }}</code></td>
+              <td>{{ session.status }}</td>
+              <td>{{ session.requiresStepUp ? 'Yes' : 'No' }}</td>
+              <td>{{ session.createdAt|date('Y-m-d H:i:s') }}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-primary" href="{{ path('portal_admin_console_security_ai', { step: 'confirm', session_id: session.id }) }}">Open</a>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No sessions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const planBtn = document.getElementById('ai-plan-btn');
+      const promptInput = document.getElementById('ai-prompt');
+      const dryRunBtn = document.getElementById('ai-dry-run-btn');
+      const dryRunStatus = document.getElementById('dry-run-status');
+      const execBtn = document.getElementById('ai-exec-btn');
+      const executeStatus = document.getElementById('execute-status');
+
+      async function postJson(url, payload) {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, status: res.status, data };
+      }
+
+      function buildReadableSummary(preview, intentName) {
+        if (!preview || typeof preview !== 'object') {
+          return 'No preview available.';
+        }
+        const count = Number(preview.count || 0);
+        const users = Array.isArray(preview.affectedUsers) ? preview.affectedUsers : [];
+        const labels = users.slice(0, 3).map((u) => (u && (u.email || u.username || u.id)) ? (u.email || u.username || u.id) : null).filter(Boolean);
+        const sample = labels.length ? ` Sample: ${labels.join(', ')}.` : '';
+
+        if (intentName === 'bulk_suspend_users') return `You will suspend ${count} user(s).${sample}`;
+        if (intentName === 'bulk_reactivate_users') return `You will reactivate ${count} user(s).${sample}`;
+        if (intentName === 'reset_user_password') return `You will reset password for ${count} user(s).${sample}`;
+        if (intentName === 'export_audit_for_user') return `You will prepare audit export for ${count} user(s).${sample}`;
+        return `You will run the selected action on ${count} user(s).${sample}`;
+      }
+
+      planBtn?.addEventListener('click', async function () {
+        const prompt = (promptInput?.value || '').trim();
+        if (!prompt) {
+          alert('Please enter a prompt first.');
+          return;
+        }
+
+        planBtn.disabled = true;
+        const response = await postJson('{{ path('portal_admin_ai_plan') }}', { prompt });
+        planBtn.disabled = false;
+
+        if (!response.ok || !response.data || !response.data.ok) {
+          const message = response.data?.user_message || response.data?.error || 'Plan generation failed.';
+          alert(message);
+          return;
+        }
+
+        const sessionId = response.data.session_id;
+        if (!sessionId) {
+          alert('No session was returned.');
+          return;
+        }
+
+        window.location.href = '{{ path('portal_admin_console_security_ai') }}?step=dry-run&session_id=' + encodeURIComponent(sessionId);
+      });
+
+      dryRunBtn?.addEventListener('click', async function () {
+        const sessionId = dryRunBtn.getAttribute('data-session-id');
+        if (!sessionId) {
+          return;
+        }
+
+        dryRunBtn.disabled = true;
+        dryRunStatus.textContent = 'Running dry-run...';
+        const response = await postJson('{{ path('portal_admin_ai_dry_run') }}', { session_id: sessionId });
+        dryRunBtn.disabled = false;
+
+        if (!response.ok || !response.data || !response.data.ok) {
+          dryRunStatus.textContent = response.data?.error || 'Dry-run failed.';
+          return;
+        }
+
+        const confirmToken = response.data.confirm_token || '';
+        if (confirmToken) {
+          sessionStorage.setItem('ai_confirm_' + sessionId, confirmToken);
+        }
+
+        const intentName = response.data.preview?.intent || '';
+        dryRunStatus.textContent = buildReadableSummary(response.data.preview, intentName);
+        window.location.href = '{{ path('portal_admin_console_security_ai') }}?step=confirm&session_id=' + encodeURIComponent(sessionId);
+      });
+
+      execBtn?.addEventListener('click', async function () {
+        const sessionId = execBtn.getAttribute('data-session-id');
+        if (!sessionId) {
+          return;
+        }
+
+        const confirmToken = sessionStorage.getItem('ai_confirm_' + sessionId) || '';
+        if (!confirmToken) {
+          executeStatus.textContent = 'Missing confirmation token. Please run dry-run again.';
+          return;
+        }
+
+        execBtn.disabled = true;
+        executeStatus.textContent = 'Executing...';
+        const response = await postJson('{{ path('portal_admin_ai_execute') }}', {
+          session_id: sessionId,
+          confirm_token: confirmToken
+        });
+        execBtn.disabled = false;
+
+        if (!response.ok || !response.data || !response.data.ok) {
+          if (response.status === 423 || response.data?.step_up_required) {
+            window.location.href = '{{ path('portal_admin_console_security_ai') }}?step=step-up&session_id=' + encodeURIComponent(sessionId);
+            return;
+          }
+          executeStatus.textContent = response.data?.error || 'Execution failed.';
+          return;
+        }
+
+        const result = response.data.result || {};
+        executeStatus.textContent = result.message || 'Execution completed.';
+        window.location.href = '{{ path('portal_admin_console_security_ai') }}?step=done&session_id=' + encodeURIComponent(sessionId);
+      });
+
+      async function openCamera(video) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = stream;
+        return stream;
+      }
+
+      function stopCamera(stream) {
+        if (!stream) {
+          return;
+        }
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      function dataUrlToFile(dataUrl, filename) {
+        const [meta, data] = dataUrl.split(',');
+        const mimeMatch = /data:(.*?);base64/.exec(meta || '');
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const bytes = atob(data || '');
+        const buffer = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          buffer[i] = bytes.charCodeAt(i);
+        }
+        return new File([buffer], filename, { type: mime });
+      }
+
+      document.querySelectorAll('.js-camera-form').forEach((form) => {
+        const openBtn = form.querySelector('.js-open-camera');
+        const captureBtn = form.querySelector('.js-capture-camera');
+        const retakeBtn = form.querySelector('.js-retake-camera');
+        const video = form.querySelector('.js-camera-video');
+        const preview = form.querySelector('.js-camera-preview');
+        const canvas = form.querySelector('.js-camera-canvas');
+        const fileInput = form.querySelector('.js-selfie-input');
+        let stream = null;
+
+        openBtn?.addEventListener('click', async () => {
+          try {
+            stream = await openCamera(video);
+            video.classList.remove('d-none');
+            preview.classList.add('d-none');
+            captureBtn?.classList.remove('d-none');
+            retakeBtn?.classList.add('d-none');
+          } catch (e) {
+            alert('Camera access failed. Please allow camera permissions and try again.');
+          }
+        });
+
+        captureBtn?.addEventListener('click', () => {
+          if (!video || !canvas || !fileInput) {
+            return;
+          }
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return;
+          }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          preview.src = dataUrl;
+          preview.classList.remove('d-none');
+          video.classList.add('d-none');
+          captureBtn.classList.add('d-none');
+          retakeBtn?.classList.remove('d-none');
+          stopCamera(stream);
+          stream = null;
+
+          const file = dataUrlToFile(dataUrl, 'selfie.jpg');
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInput.files = dt.files;
+        });
+
+        retakeBtn?.addEventListener('click', async () => {
+          preview.classList.add('d-none');
+          try {
+            stream = await openCamera(video);
+            video.classList.remove('d-none');
+            captureBtn?.classList.remove('d-none');
+            retakeBtn.classList.add('d-none');
+          } catch (e) {
+            alert('Camera access failed. Please allow camera permissions and try again.');
+          }
+        });
+
+        form.addEventListener('submit', (event) => {
+          if (form.classList.contains('js-camera-required') && fileInput && fileInput.files.length === 0) {
+            event.preventDefault();
+            alert('Please open the camera and take a selfie first.');
+            return;
+          }
+          stopCamera(stream);
+        });
+      });
+    })();
+  </script>
+{% endblock %}

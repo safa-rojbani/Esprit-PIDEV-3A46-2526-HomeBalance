@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Badge;
 use App\Entity\User;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
@@ -54,9 +55,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * @param array<string, mixed> $filters
-     * @return list<User>
      */
-    public function adminSearch(array $filters): array
+    public function adminSearchQueryBuilder(array $filters): QueryBuilder
     {
         $qb = $this->createQueryBuilder('u');
 
@@ -86,8 +86,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $direction = in_array($direction, ['ASC', 'DESC'], true) ? $direction : 'DESC';
         $sortField = $allowedSorts[$sort] ?? $allowedSorts['createdAt'];
 
-        return $qb
-            ->orderBy($sortField, $direction)
+        return $qb->orderBy($sortField, $direction);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return list<User>
+     */
+    public function adminSearch(array $filters): array
+    {
+        return $this->adminSearchQueryBuilder($filters)
             ->setMaxResults(25)
             ->getQuery()
             ->getResult();

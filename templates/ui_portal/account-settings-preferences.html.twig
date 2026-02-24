@@ -1,12 +1,12 @@
-{% extends 'ui_portal/layouts/base.html.twig' %}
+﻿{% extends 'ui_portal/layouts/base.html.twig' %}
 
-{% block title %}Paramètres du compte · Préférences de signal{% endblock %}
+{% block title %}Parametres du compte · Preferences de signal{% endblock %}
 
 {% block content %}
   {% include 'ui_portal/partials/account-settings-nav.html.twig' with { active_tab: 'preferences' } %}
 
   {% set pref = preferences.data %}
-  {% set lastTuned = pref.updatedAt is defined and pref.updatedAt ? pref.updatedAt|date('d M, H:i') : 'pas encore défini' %}
+  {% set lastTuned = pref.updatedAt is defined and pref.updatedAt ? pref.updatedAt|date('d M, H:i') : 'pas encore defini' %}
 
   <div class="row g-6 align-items-start">
     <div class="col-lg-7">
@@ -17,11 +17,11 @@
         <div class="card-body">
           <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
             <div>
-              <h5 class="mb-1">Priorités de signal</h5>
-              <p class="mb-0 text-muted">Dites à HomeBalance ce qui mérite un rappel et quand rester concentré.</p>
+              <h5 class="mb-1">Preferences de signal</h5>
+              <p class="mb-0 text-muted">Ajustez les modules visibles et vos plages de tranquillite.</p>
             </div>
             <div class="text-lg-end">
-              <small class="text-muted d-block">Dernier réglage · {{ lastTuned }}</small>
+              <small class="text-muted d-block">Dernier reglage · {{ lastTuned }}</small>
             </div>
           </div>
 
@@ -37,42 +37,20 @@
         </div>
 
         <div class="card-body border-top">
-          <h6 class="mb-2">Sujets qui comptent</h6>
-          <p class="text-muted">Choisissez ce qui mérite de vous interrompre.</p>
+          <h6 class="mb-2">Modules affiches dans la barre laterale</h6>
+          <p class="text-muted">Decochez les modules que vous ne souhaitez pas voir.</p>
           <div class="row g-4">
-            {% for key, topic in preferences.topics %}
-              {% set inputId = 'topic-' ~ key %}
-              <div class="col-sm-6">
-                <label class="card h-100 shadow-none border {{ key in pref.topics ? 'border-primary' }} cursor-pointer p-4" for="{{ inputId }}">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <span class="badge bg-label-primary mb-2 text-uppercase small">{{ loop.index }}</span>
-                      <div class="fw-semibold">{{ topic.label }}</div>
-                      <small class="text-muted">{{ topic.description }}</small>
-                    </div>
-                    <input type="checkbox" class="form-check-input mt-0" id="{{ inputId }}" name="preferences[topics][]" value="{{ key }}" {{ key in pref.topics ? 'checked' }} />
-                  </div>
-                </label>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="card-body border-top">
-          <h6 class="mb-2">Canaux de notification</h6>
-          <p class="text-muted">Combinez les canaux pour ne rien manquer d’important.</p>
-          <div class="row g-4">
-            {% for key, channel in preferences.channels %}
-              {% set inputId = 'channel-' ~ key %}
+            {% for key, module in preferences.modules %}
+              {% set inputId = 'module-' ~ key %}
               <div class="col-sm-6">
                 <div class="border rounded p-4 h-100">
                   <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                      <div class="fw-semibold">{{ channel.label }}</div>
-                      <small class="text-muted">{{ channel.description }}</small>
+                      <div class="fw-semibold">{{ module.label }}</div>
+                      <small class="text-muted">{{ module.description }}</small>
                     </div>
                     <div class="form-check form-switch mb-0">
-                      <input class="form-check-input" type="checkbox" role="switch" id="{{ inputId }}" name="preferences[channels][]" value="{{ key }}" {{ key in pref.channels ? 'checked' }} />
+                      <input class="form-check-input" type="checkbox" role="switch" id="{{ inputId }}" name="preferences[modules][]" value="{{ key }}" {{ key in pref.modules ? 'checked' }} />
                     </div>
                   </div>
                 </div>
@@ -82,11 +60,11 @@
         </div>
 
         <div class="card-body border-top">
-          <h6 class="mb-2">Heures calmes et synthèse</h6>
-          <p class="text-muted">Protégez votre attention puis recevez un récapitulatif hebdomadaire.</p>
+          <h6 class="mb-2">Heures calmes et synthese</h6>
+          <p class="text-muted">Protegez votre attention puis recevez un recapitulatif hebdomadaire.</p>
           <div class="row g-4">
             <div class="col-sm-6">
-              <label for="quietStart" class="form-label">Début des heures calmes</label>
+              <label for="quietStart" class="form-label">Debut des heures calmes</label>
               <input type="time" class="form-control" id="quietStart" name="preferences[quietStart]" value="{{ pref.quietStart ?? '' }}" />
             </div>
             <div class="col-sm-6">
@@ -96,7 +74,7 @@
             <div class="col-12">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="weeklySummary" name="preferences[weeklySummary]" value="1" {{ pref.weeklySummary ? 'checked' }} />
-                <label class="form-check-label" for="weeklySummary">Recevoir une synthèse hebdomadaire (budget, tâches, climat familial).</label>
+                <label class="form-check-label" for="weeklySummary">Recevoir une synthese hebdomadaire (budget, taches, climat familial).</label>
               </div>
             </div>
           </div>
@@ -104,41 +82,42 @@
 
         <div class="card-body border-top d-flex flex-column flex-md-row align-items-md-center gap-3">
           <button type="submit" class="btn btn-primary">Enregistrer</button>
-          <button type="reset" class="btn btn-outline-secondary">Réinitialiser</button>
-          <small class="text-muted">Ces réglages s’appliquent sur le web et le mobile.</small>
+          <button type="reset" class="btn btn-outline-secondary">Reinitialiser</button>
+          <small class="text-muted">Ces reglages s'appliquent sur le web et le mobile.</small>
         </div>
       </form>
     </div>
+
     <div class="col-lg-5">
       <div class="card border-0 shadow-sm bg-body-tertiary h-100">
         <div class="card-body">
-          <h6 class="text-uppercase text-muted fw-semibold mb-3">Comment HomeBalance s’en sert</h6>
+          <h6 class="text-uppercase text-muted fw-semibold mb-3">Comment HomeBalance s'en sert</h6>
           <ul class="list-unstyled mb-4">
             <li class="d-flex mb-3">
-              <i class="icon-base bx bx-target-lock text-primary me-3"></i>
+              <i class="icon-base bx bx-hide text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Prioriser l’essentiel</div>
-                <small class="text-muted">Les sujets pilotent les automatisations et ce qui apparaît sur votre tableau de bord.</small>
+                <div class="fw-semibold">Sidebar personnalisee</div>
+                <small class="text-muted">Les modules decoches disparaissent du menu lateral.</small>
               </div>
             </li>
             <li class="d-flex mb-3">
-              <i class="icon-base bx bx-navigation text-primary me-3"></i>
+              <i class="icon-base bx bx-moon text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Respecter votre disponibilité</div>
-                <small class="text-muted">Les heures calmes réduisent les alertes, sans perdre les informations clés.</small>
+                <div class="fw-semibold">Heures calmes</div>
+                <small class="text-muted">Reduit les interruptions pendant vos plages de concentration.</small>
               </div>
             </li>
             <li class="d-flex">
               <i class="icon-base bx bx-line-chart text-primary me-3"></i>
               <div>
-                <div class="fw-semibold">Mieux raconter le quotidien</div>
-                <small class="text-muted">La synthèse réunit budget, tâches et bien-être pour vos points famille.</small>
+                <div class="fw-semibold">Synthese hebdomadaire</div>
+                <small class="text-muted">Un recap de votre foyer pour suivre le rythme global.</small>
               </div>
             </li>
           </ul>
           <div class="bg-label-primary rounded p-4">
             <p class="mb-2 fw-semibold">Astuce</p>
-            <p class="mb-0 text-muted">Combinez e-mail et notifications push, puis activez les SMS lors des périodes chargées.</p>
+            <p class="mb-0 text-muted">Gardez au moins un module visible pour naviguer facilement.</p>
           </div>
         </div>
       </div>

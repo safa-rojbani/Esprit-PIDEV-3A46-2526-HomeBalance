@@ -5,6 +5,13 @@
 {% block content %}
   {% set familyCount = metrics.familyMembers|default(1) %}
   {% set soloAccount = familyCount <= 1 %}
+  {% set moduleStats = moduleStats|default({
+    tasksActive: 0,
+    upcomingEvents: 0,
+    pendingPurchases: 0,
+    documentsStored: 0,
+    unreadReminders: 0
+  }) %}
   <div class="row g-4 mb-4">
     <div class="col-xl-7">
       <div class="card gradient-card orbit-card h-100" data-controller="orbit-card">
@@ -186,38 +193,46 @@
       </div>
     </div>
     <div class="col-xl-6">
-      <div class="card quick-list h-100" data-controller="focus-queue">
+            <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
           <div>
-            <h5 class="mb-0">Tâches du jour</h5>
-            <small class="text-muted">Les petits gestes comptent. Voici les priorités.</small>
+            <h5 class="mb-0">Activite des modules</h5>
+            <small class="text-muted">Chiffres reels collectes depuis les modules connectes.</small>
           </div>
-          <span class="badge bg-label-info">En direct</span>
         </div>
         <div class="card-body">
-          <ol class="focus-queue mb-0" data-focus-queue-target="list">
-            <li>
-              <div>
-                <h6 class="mb-1">Consulter les moments du jour</h6>
-                <p class="text-muted mb-0">{{ recentActivity|length }} nouveaux moments enregistrés sur les dernières 24 h.</p>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block mb-1">Taches actives</small>
+                <h5 class="mb-0">{{ moduleStats.tasksActive }}</h5>
               </div>
-              <a href="{{ path('portal_account') }}" class="btn btn-sm btn-outline-secondary">Voir</a>
-            </li>
-            <li>
-              <div>
-                <h6 class="mb-1">Vérifier les notifications</h6>
-                <p class="text-muted mb-0">Canal actuel : {{ engagement.delivery|title }} — ajustez si les habitudes évoluent.</p>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block mb-1">Evenements a venir</small>
+                <h5 class="mb-0">{{ moduleStats.upcomingEvents }}</h5>
               </div>
-              <a href="{{ path('portal_account_notifications') }}" class="btn btn-sm btn-outline-secondary">Mettre à jour</a>
-            </li>
-            <li>
-              <div>
-                <h6 class="mb-1">Inviter un proche</h6>
-                <p class="text-muted mb-0">Partager la charge, c’est plus simple. Envoyez un code quand vous voulez.</p>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block mb-1">Achats en attente</small>
+                <h5 class="mb-0">{{ moduleStats.pendingPurchases }}</h5>
               </div>
-              <a href="{{ path('portal_account') }}#family" class="btn btn-sm btn-outline-secondary">Partager le code</a>
-            </li>
-          </ol>
+            </div>
+            <div class="col-6">
+              <div class="border rounded p-3 h-100">
+                <small class="text-muted d-block mb-1">Documents stockes</small>
+                <h5 class="mb-0">{{ moduleStats.documentsStored }}</h5>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded p-3">
+                <small class="text-muted d-block mb-1">Rappels non lus</small>
+                <h5 class="mb-0">{{ moduleStats.unreadReminders }}</h5>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -253,3 +268,4 @@
     </div>
   </div>
 {% endblock %}
+

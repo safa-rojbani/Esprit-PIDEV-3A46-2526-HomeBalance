@@ -44,7 +44,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $crawler = $this->client->request('GET', '/portal/admin/users/new');
         self::assertResponseIsSuccessful();
 
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['user_admin[email]'] = 'crud_user@example.com';
         $form['user_admin[username]'] = 'crud_user';
         $form['user_admin[firstName]'] = 'Crud';
@@ -66,7 +66,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $crawler = $this->client->request('GET', '/portal/admin/users/' . $user->getId() . '/edit');
         self::assertResponseIsSuccessful();
 
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['user_admin[firstName]'] = 'Updated';
         $this->client->submit($form);
         self::assertResponseRedirects();
@@ -74,7 +74,8 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $deletePage = $this->client->request('GET', '/portal/admin/users/' . $user->getId());
         $token = $deletePage->filter(sprintf('form[action="/portal/admin/users/%s/delete"] input[name="_token"]', $user->getId()))->attr('value');
         $this->client->request('POST', '/portal/admin/users/' . $user->getId() . '/delete', ['_token' => $token]);
-        self::assertResponseRedirects('/portal/admin/users');
+        self::assertResponseStatusCodeSame(302);
+        self::assertStringContainsString('/portal/admin/users/' . $user->getId() . '?stepup_required=1', (string) $this->client->getResponse()->headers->get('Location'));
     }
 
     public function testFamilyCrud(): void
@@ -85,7 +86,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $crawler = $this->client->request('GET', '/portal/admin/ums/families/new');
         self::assertResponseIsSuccessful();
 
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_admin[name]'] = 'Crud Household';
         $form['family_admin[joinCode]'] = 'CRUDFAM';
         $form['family_admin[codeExpiresAt]'] = '2026-02-09 10:00';
@@ -99,7 +100,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         self::assertNotNull($family);
 
         $crawler = $this->client->request('GET', '/portal/admin/ums/families/' . $family->getId() . '/edit');
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_admin[name]'] = 'Crud Household Updated';
         $this->client->submit($form);
         self::assertResponseRedirects('/portal/admin/ums/families');
@@ -116,7 +117,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $this->client->loginUser($admin);
 
         $crawler = $this->client->request('GET', '/portal/admin/ums/invitations/new');
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_invitation_admin[invitedEmail]'] = 'invitee@example.com';
         $form['family_invitation_admin[joinCode]'] = 'INV123';
         $form['family_invitation_admin[status]'] = InvitationStatus::PENDING->value;
@@ -130,7 +131,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         self::assertNotNull($invitation);
 
         $crawler = $this->client->request('GET', '/portal/admin/ums/invitations/' . $invitation->getId() . '/edit');
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_invitation_admin[status]'] = InvitationStatus::ACCEPTED->value;
         $this->client->submit($form);
         self::assertResponseRedirects('/portal/admin/ums/invitations');
@@ -148,7 +149,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         $this->client->loginUser($admin);
 
         $crawler = $this->client->request('GET', '/portal/admin/ums/memberships/new');
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_membership_create[family]'] = $family->getId();
         $form['family_membership_create[user]'] = $member->getId();
         $form['family_membership_create[role]'] = FamilyRole::CHILD->value;
@@ -159,7 +160,7 @@ final class AdminUmsCrudTest extends DatabaseTestCase
         self::assertNotNull($membership);
 
         $crawler = $this->client->request('GET', '/portal/admin/ums/memberships/' . $membership->getId() . '/edit');
-        $form = $crawler->selectButton('Save')->form();
+        $form = $crawler->selectButton('Enregistrer')->form();
         $form['family_membership_admin[role]'] = FamilyRole::PARENT->value;
         $this->client->submit($form);
         self::assertResponseRedirects('/portal/admin/ums/memberships');

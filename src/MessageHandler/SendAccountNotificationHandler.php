@@ -156,8 +156,9 @@ final class SendAccountNotificationHandler
         }
 
         $matrix = $preferences['notifications']['matrix'] ?? self::DEFAULT_NOTIFICATION_MATRIX;
+        $type = $this->notificationTypeForKey($key);
 
-        $allowed = (bool) ($matrix['account_activity']['email'] ?? true);
+        $allowed = (bool) ($matrix[$type]['email'] ?? true);
 
         return [
             'allowed' => $allowed,
@@ -165,6 +166,22 @@ final class SendAccountNotificationHandler
         ];
     }
 
+    private function notificationTypeForKey(string $key): string
+    {
+        if (str_contains($key, 'browser')) {
+            return 'new_browser';
+        }
+
+        if (str_contains($key, 'device')) {
+            return 'new_device';
+        }
+
+        if (in_array($key, ['welcome', 'family_created', 'family_joined', 'preferences_updated', 'notifications_updated'], true)) {
+            return 'new_for_you';
+        }
+
+        return 'account_activity';
+    }
     /**
      * @param array<string, mixed> $preferences
      */
@@ -206,3 +223,4 @@ final class SendAccountNotificationHandler
         return $nowMinutes >= $startMinutes || $nowMinutes < $endMinutes;
     }
 }
+

@@ -1,41 +1,37 @@
-# UMS Demo Scenario (Front + Back Office)
+# UMS Demo Scenario
 
 ## Goal
-Provide a consistent, logical demo run for UMS validation: authentication, family onboarding, invitations, admin CRUD, and audit visibility.
+Demonstrate an end-to-end UMS flow with advanced features:
+- role approval workflow
+- account health score
+- audit export
+- invitation lifecycle
+- notifications and badges context
 
-## Test Data (Suggested)
-- Admin: `admin_demo@example.com` / username `admin_demo`
-- Parent: `parent_demo@example.com` / username `parent_demo`
-- Child: `child_demo@example.com` / username `child_demo`
-- Family name: `Demo Household`
-- Invitation email: `invitee_demo@example.com`
+## Seed Data
+Load fixtures:
 
-## Scenario Steps
-1. **Admin setup (Back Office)**
-   - Login as admin.
-   - Create a new user `parent_demo` with status Active, system role Customer, family role Parent.
-   - Create a family `Demo Household` with `parent_demo` as creator.
-   - Create a membership linking `parent_demo` to `Demo Household` with role Parent.
+```bash
+php bin/console doctrine:fixtures:load
+```
 
-2. **Parent onboarding (Front Office)**
-   - Login as `parent_demo`.
-   - Open Account → Family.
-   - Refresh join code if needed.
-   - Send invitation to `invitee_demo@example.com`.
+Main users:
+- `admin_demo@example.com` / `password123`
+- `parent_demo@example.com` / `password123`
+- `child_demo@example.com` / `password123`
+- `suspended_demo@example.com` / `password123`
 
-3. **Admin review (Back Office)**
-   - Open Invitations list; verify new invitation exists.
-   - Open Users list; verify `parent_demo` family role and status.
-   - Open Audit Trails list; verify entries for family creation/invite actions.
+## Walkthrough (7 Steps)
+1. Login as admin and open `Admin > Users > parent_demo`.
+2. Review the **Health score** widget and explain each explanation line.
+3. In **Role change approval**, create a request from `CUSTOMER` to `ADMIN`.
+4. Approve the request and confirm:
+   - status changes to `Approved`
+   - user system role updates
+   - audit timeline gets new entries.
+5. Click **Exporter audit CSV** and show downloaded audit evidence.
+6. Open `Admin > Invitations` and show pending/accepted/expired invitation records.
+7. Open `Admin > Notifications` and show pending/sent/failed deliveries.
 
-4. **Badge + notification records (Back Office)**
-   - Create a badge (e.g., `WELCOME` scope `user`, points `10`).
-   - Create a family badge award for `Demo Household` using that badge.
-   - Create a notification record for `parent_demo` with key `family_created`, status `PENDING`.
-
-5. **Cleanup**
-   - Delete the demo records using the admin CRUD pages.
-
-## Notes
-- No HTML or JS validation is required. All checks are done server‑side.
-- Use the admin CRUD pages under the Admin menu for full entity coverage.
+## Optional Gamification Step
+Open `Admin > Gamification > Badges` and run badge recalculation to show holder updates with seeded score data.
