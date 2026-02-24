@@ -9,8 +9,14 @@ framework:
           max_retries: 3
           multiplier: 2
 
+      ai_async:
+        dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        retry_strategy:
+          max_retries: 2
+          multiplier: 2
+
       # ✅ transport dédié au scheduler
-      scheduler_default: 'doctrine://default?queue_name=scheduler'
+      scheduler_default: 'schedule://default'
 
       failed: 'doctrine://default?queue_name=failed'
 
@@ -22,7 +28,10 @@ framework:
     routing:
       # ✅ notre message de purge va dans scheduler_default
       App\Message\PurgeTrashMessage: scheduler_default
+      App\Message\ApplyTaskPenaltiesMessage: scheduler_default
+      App\Message\RunWeeklyInsightsJobMessage: scheduler_default
 
+      App\Message\AnalyzeTaskProofImageMessage: ai_async
       App\Message\SendAccountNotification: async
       App\Message\TaskCompleted: async
       Symfony\Component\Mailer\Messenger\SendEmailMessage: async

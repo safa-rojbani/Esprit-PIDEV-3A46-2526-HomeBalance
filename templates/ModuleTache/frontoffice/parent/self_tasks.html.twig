@@ -14,6 +14,10 @@
             <h1 class="tm-title h3">Mes taches</h1>
             <p class="tm-subtitle">Suivez vos assignations et validez les taches familiales que vous prenez en charge.</p>
         </div>
+        <a href="{{ path('task_score_index') }}" class="btn btn-outline-primary">
+            <i class="bx bx-trophy"></i>
+            Voir les scores
+        </a>
     </div>
 
     <div class="row g-4">
@@ -32,6 +36,7 @@
                                     <div>
                                         <div class="tm-task-name">{{ a.task.title }}</div>
                                         <div class="tm-meta">Statut: {{ a.status.value }}</div>
+                                        <div class="tm-meta"><span class="tm-badge success">{{ taskPoints[a.task.id]|default(0) }} pts</span></div>
                                     </div>
                                     {% if a.status.value == 'assigned' %}
                                         <div class="tm-actions">
@@ -44,6 +49,9 @@
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="mt-3">
+                            {{ knp_pagination_render(assignedTasks) }}
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -94,7 +102,9 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
                                     <div>
                                         <div class="tm-task-name">{{ task.title }}</div>
+                                        <div class="tm-meta"><span class="tm-badge success">{{ taskPoints[task.id]|default(0) }} pts</span></div>
                                         {% if completion %}
+                                            {% set ai = completion.aiEvaluation %}
                                             {% if completion.isValidated is same as(true) %}
                                                 <div class="tm-meta"><span class="tm-badge success">Validee par le parent</span></div>
                                             {% elseif completion.isValidated is same as(false) %}
@@ -106,6 +116,14 @@
                                                 </div>
                                             {% else %}
                                                 <div class="tm-meta"><span class="tm-badge warning">En attente de validation parent</span></div>
+                                            {% endif %}
+
+                                            {% if ai %}
+                                                <div class="tm-meta mt-1">
+                                                    IA: {{ ai.status ? ai.status.value : 'N/A' }}
+                                                    {% if ai.decision %} / {{ ai.decision.value }}{% endif %}
+                                                    {% if ai.tidyScore is not null %} ({{ ai.tidyScore }}/100){% endif %}
+                                                </div>
                                             {% endif %}
                                         {% else %}
                                             {% if taskState == 'assigned_to_me' %}
@@ -128,17 +146,18 @@
                                         {% elseif taskState == 'reserved' %}
                                             <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Valider</button>
                                         {% else %}
-                                            <form method="post"
-                                                  action="{{ path('parent_self_task_complete', {id: task.id, filter: currentFilter, sort: currentSort}) }}"
-                                                  class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('parent_self_complete_' ~ task.id) }}">
-                                                <button type="submit" class="btn btn-sm btn-primary">Valider</button>
-                                            </form>
+                                            <a href="{{ path('parent_self_task_complete', {id: task.id, filter: currentFilter, sort: currentSort}) }}"
+                                               class="btn btn-sm btn-primary">
+                                                Valider
+                                            </a>
                                         {% endif %}
                                     </div>
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="mt-3">
+                            {{ knp_pagination_render(freeTasks) }}
+                        </div>
                     {% endif %}
                 </div>
             </div>

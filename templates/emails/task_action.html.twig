@@ -1,0 +1,30 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+  <p>Hi {{ name }},</p>
+  {% if key == 'task_penalty_parent_alert' %}
+    <p>Automatic penalty applied for a family task.</p>
+  {% else %}
+    <p>An automatic penalty was applied to your task activity.</p>
+  {% endif %}
+
+  {% if payload.taskTitle is defined and payload.taskTitle %}
+    <p class="muted">Task: {{ payload.taskTitle }}</p>
+  {% endif %}
+  {% if payload.memberName is defined and payload.memberName and key == 'task_penalty_parent_alert' %}
+    <p class="muted">Member: {{ payload.memberName }}</p>
+  {% endif %}
+  {% if payload.reasonLabel is defined and payload.reasonLabel %}
+    <p class="muted">Reason: {{ payload.reasonLabel }}</p>
+  {% endif %}
+  {% if payload.points is defined %}
+    <p class="muted">Points: {{ payload.points > 0 ? '+' : '' }}{{ payload.points }}</p>
+  {% endif %}
+  {% if payload.dueDate is defined and payload.dueDate %}
+    <p class="muted">Deadline: {{ payload.dueDate }}</p>
+  {% endif %}
+
+  {% if cta %}
+    <p><a class="cta" href="{{ cta }}">Open tasks</a></p>
+  {% endif %}
+{% endblock %}

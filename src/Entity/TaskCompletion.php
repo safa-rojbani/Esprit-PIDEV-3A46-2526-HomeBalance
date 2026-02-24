@@ -30,7 +30,7 @@ class TaskCompletion
     private ?\DateTimeImmutable $validatedAt = null;
 
     // Tâche concernée
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
@@ -47,6 +47,8 @@ class TaskCompletion
     #[ORM\Column(type: 'text', nullable: true)]
 private ?string $parentComment = null;
 
+    #[ORM\OneToOne(mappedBy: 'completion', targetEntity: AiImageEvaluation::class, cascade: ['persist', 'remove'])]
+    private ?AiImageEvaluation $aiEvaluation = null;
 
     /* =====================
         GETTERS / SETTERS
@@ -141,6 +143,21 @@ private ?string $parentComment = null;
 public function setParentComment(?string $parentComment): static
 {
     $this->parentComment = $parentComment;
+    return $this;
+}
+
+public function getAiEvaluation(): ?AiImageEvaluation
+{
+    return $this->aiEvaluation;
+}
+
+public function setAiEvaluation(?AiImageEvaluation $aiEvaluation): static
+{
+    $this->aiEvaluation = $aiEvaluation;
+    if ($aiEvaluation !== null && $aiEvaluation->getCompletion() !== $this) {
+        $aiEvaluation->setCompletion($this);
+    }
+
     return $this;
 }
 

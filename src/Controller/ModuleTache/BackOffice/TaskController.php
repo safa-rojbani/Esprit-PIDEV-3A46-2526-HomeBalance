@@ -5,7 +5,9 @@ namespace App\Controller\ModuleTache\BackOffice;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\TaskRepository;
+use App\Service\TaskPointResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,14 +18,27 @@ use App\Form\TaskType;
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'admin_task_index')]
-    public function index(TaskRepository $taskRepository): Response
+    public function index(
+        Request $request,
+        TaskRepository $taskRepository,
+        TaskPointResolver $taskPointResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $tasks = $taskRepository->findGlobalAdminTasks();
+        $taskPoints = $taskPointResolver->resolvePointsForTasks($tasks);
+        $tasks = $paginator->paginate(
+            $tasks,
+            max(1, $request->query->getInt('page', 1)),
+            10,
+            ['pageParameterName' => 'page']
+        );
 
         return $this->render('ModuleTache/backoffice/index.html.twig', [
             'tasks' => $tasks,
+            'taskPoints' => $taskPoints,
         ]);
     }
 

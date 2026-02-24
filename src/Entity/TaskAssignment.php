@@ -26,6 +26,12 @@ class TaskAssignment
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $refusedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $penaltyAppliedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $penaltyPoints = null;
+
     // Tâche concernée
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -84,6 +90,28 @@ class TaskAssignment
     public function setRefusedAt(?\DateTimeImmutable $refusedAt): static
     {
         $this->refusedAt = $refusedAt;
+        return $this;
+    }
+
+    public function getPenaltyAppliedAt(): ?\DateTimeImmutable
+    {
+        return $this->penaltyAppliedAt;
+    }
+
+    public function setPenaltyAppliedAt(?\DateTimeImmutable $penaltyAppliedAt): static
+    {
+        $this->penaltyAppliedAt = $penaltyAppliedAt;
+        return $this;
+    }
+
+    public function getPenaltyPoints(): ?int
+    {
+        return $this->penaltyPoints;
+    }
+
+    public function setPenaltyPoints(?int $penaltyPoints): static
+    {
+        $this->penaltyPoints = $penaltyPoints;
         return $this;
     }
 

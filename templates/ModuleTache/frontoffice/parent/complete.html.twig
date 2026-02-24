@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Valider la tache{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+{% endblock %}
+
+{% block body %}
+<div class="task-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">Valider la tache</h1>
+            <p class="tm-subtitle">Ajoutez une photo de preuve avant de marquer la tache comme terminee.</p>
+        </div>
+        <a href="{{ path('parent_self_task_index', {filter: currentFilter, sort: currentSort}) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back"></i>
+            Retour
+        </a>
+    </div>
+
+    <div class="card tm-card tm-form-wrap">
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="tm-task-name">{{ task.title }}</div>
+            </div>
+            <div class="alert alert-info py-2">
+                L'image sera analysee par IA. Le score decide une validation auto, un refus auto (optionnel) ou une revue manuelle.
+            </div>
+
+            {{ form_start(form, {
+                action: path('parent_self_task_complete', {id: task.id, filter: currentFilter, sort: currentSort}),
+                attr: { enctype: 'multipart/form-data' }
+            }) }}
+                {{ form_row(form.proof) }}
+                <div class="mt-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-camera"></i>
+                        Envoyer la preuve
+                    </button>
+                    <a href="{{ path('parent_self_task_index', {filter: currentFilter, sort: currentSort}) }}" class="btn btn-label-secondary">Annuler</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

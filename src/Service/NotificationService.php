@@ -21,17 +21,41 @@ class NotificationService
      */
     public function sendAccountNotification(User $user, string $key, array $context = []): void
     {
+        $notification = $this->createNotification($user, $key, 'email', 'PENDING', $context);
+        $this->messageBus->dispatch(new SendAccountNotification($notification->getId()));
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function sendInAppNotification(User $user, string $key, array $context = []): void
+    {
+        $this->createNotification($user, $key, 'app', 'SENT', $context, new \DateTimeImmutable());
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function createNotification(
+        User $user,
+        string $key,
+        string $channel,
+        string $status,
+        array $context,
+        ?\DateTimeImmutable $sentAt = null
+    ): AccountNotification {
         $notification = (new AccountNotification())
             ->setUser($user)
             ->setKey($key)
-            ->setChannel('email')
-            ->setStatus('PENDING')
+            ->setChannel($channel)
+            ->setStatus($status)
             ->setPayload($context)
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setCreatedAt(new \DateTimeImmutable())
+            ->setSentAt($sentAt);
 
         $this->entityManager->persist($notification);
         $this->entityManager->flush();
 
-        $this->messageBus->dispatch(new SendAccountNotification($notification->getId()));
+        return $notification;
     }
 }

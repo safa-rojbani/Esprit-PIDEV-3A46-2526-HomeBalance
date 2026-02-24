@@ -56,9 +56,11 @@
             or route starts with 'app_historique_achat'
             or route starts with 'app_categorie_achat') ? 'module-charge'
           : (route starts with 'parent_task'
+            or route starts with 'parent_self_task'
             or route starts with 'child_task'
             or route starts with 'family_task'
             or route starts with 'parent_validation'
+            or route starts with 'task_score'
             or route starts with 'admin_task') ? 'module-tasks'
           : 'dashboard'
         ) %}
@@ -88,21 +90,26 @@
         %}
         {% set default_tasks_submenus = is_granted('ROLE_ADMIN')
           ? [
-            {'label': 'Taches globales', 'route': 'admin_task_index'}
+            {'label': 'Taches globales', 'route': 'admin_task_index'},
+            {'label': 'Regles de points', 'route': 'task_score_rules'}
           ]
           : (
             family_role_value == 'PARENT'
               ? [
                 {'label': 'Taches parent', 'route': 'parent_task_index'},
+                {'label': 'Mes taches parent', 'route': 'parent_self_task_index'},
                 {'label': 'Assignations parent', 'route': 'parent_task_assign'},
                 {'label': 'Validations', 'route': 'parent_validation_index'},
-                {'label': 'Taches famille', 'route': 'family_task_list'}
+                {'label': 'Taches famille', 'route': 'family_task_list'},
+                {'label': 'Scores famille', 'route': 'task_score_index'},
+                {'label': 'Regles de points', 'route': 'task_score_rules'}
               ]
               : (
                 family_role_value == 'CHILD'
                   ? [
                     {'label': 'Taches famille', 'route': 'family_task_list'},
-                    {'label': 'Taches enfant', 'route': 'child_task_index'}
+                    {'label': 'Taches enfant', 'route': 'child_task_index'},
+                    {'label': 'Scores famille', 'route': 'task_score_index'}
                   ]
                   : [
                     {'label': 'Taches famille', 'route': 'family_task_list'}

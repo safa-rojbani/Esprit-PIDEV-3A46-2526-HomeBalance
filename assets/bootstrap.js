@@ -1,4 +1,5 @@
 import { startStimulusApp } from '@symfony/stimulus-bundle';
+import ChartjsController from '@symfony/ux-chartjs/controller';
 
 import AuthShellController from './controllers/auth_shell_controller.js';
 import ClockPillController from './controllers/clock_pill_controller.js';
@@ -14,6 +15,7 @@ import FocusQueueController from './controllers/focus_queue_controller.js';
 import TimelinePeekController from './controllers/timeline_peek_controller.js';
 
 const app = startStimulusApp();
+app.register('symfony--ux-chartjs--chart', ChartjsController);
 
 app.register('auth-shell', AuthShellController);
 app.register('clock-pill', ClockPillController);

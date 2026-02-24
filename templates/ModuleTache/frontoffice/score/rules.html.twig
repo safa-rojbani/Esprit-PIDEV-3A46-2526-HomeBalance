@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Regles de points{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+    <style>
+        .points-rules .pr-card {
+            border: 1px solid rgba(67, 89, 113, 0.12);
+            border-radius: 0.95rem;
+            background: linear-gradient(150deg, #ffffff, #f8f9ff);
+            box-shadow: 0 10px 22px rgba(67, 89, 113, 0.08);
+        }
+        .points-rules .pr-points {
+            font-weight: 800;
+            color: #1f7a25;
+        }
+        .points-rules .pr-meta {
+            color: #8592a3;
+            font-size: 0.85rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="task-module points-rules">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">{{ isAdminContext ? 'Regles de points globales' : 'Regles de points de la famille' }}</h1>
+            <p class="tm-subtitle">Definissez les points accordes par tache. Sans regle active, le bareme par difficulte s'applique.</p>
+        </div>
+        <a href="{{ isAdminContext ? path('admin_task_index') : path('task_score_index') }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back"></i>
+            {{ isAdminContext ? 'Retour aux taches' : 'Retour au score' }}
+        </a>
+    </div>
+
+    <div class="card tm-card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label for="rules-q" class="form-label mb-1">Recherche</label>
+                    <input id="rules-q" type="text" name="q" value="{{ currentSearch }}" class="form-control form-control-sm" placeholder="Titre ou description">
+                </div>
+                <div class="col-12 col-md-5">
+                    <label for="rules-sort" class="form-label mb-1">Trier</label>
+                    <select id="rules-sort" name="sort" class="form-select form-select-sm">
+                        <option value="newest" {{ currentSort == 'newest' ? 'selected' : '' }}>Plus recentes</option>
+                        <option value="oldest" {{ currentSort == 'oldest' ? 'selected' : '' }}>Plus anciennes</option>
+                        <option value="title_az" {{ currentSort == 'title_az' ? 'selected' : '' }}>Titre A-Z</option>
+                        <option value="title_za" {{ currentSort == 'title_za' ? 'selected' : '' }}>Titre Z-A</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-grid gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary">Appliquer</button>
+                    <a href="{{ path('task_score_rules') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if tasks is empty %}
+        <div class="tm-empty">Aucune tache pour ce filtre.</div>
+    {% else %}
+        <div class="row g-3">
+            {% for task in tasks %}
+                {% set rule = rulesByTaskId[task.id]|default(null) %}
+                <div class="col-12">
+                    <div class="pr-card p-3">
+                        <div class="d-flex flex-column flex-xl-row justify-content-between gap-3">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <div class="tm-task-name">{{ task.title }}</div>
+                                    <span class="tm-badge success">{{ resolvedPoints[task.id]|default(0) }} pts actifs</span>
+                                    <span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span>
+                                    <span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span>
+                                </div>
+                                <div class="tm-meta mt-1">{{ task.description }}</div>
+                                {% if rule %}
+                                    <div class="pr-meta mt-2">
+                                        Regle en cours:
+                                        {% if rule.validFrom %}de {{ rule.validFrom|date('d/m/Y H:i') }}{% else %}sans debut{% endif %}
+                                        {% if rule.validTo %} a {{ rule.validTo|date('d/m/Y H:i') }}{% else %} sans fin{% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="pr-meta mt-2">Aucune regle active. Bareme par difficulte applique.</div>
+                                {% endif %}
+                            </div>
+
+                            <form method="post" action="{{ path('task_score_rule_save', {id: task.id}) }}" class="row g-2 align-items-end" style="min-width: 320px;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('task_point_rule_' ~ task.id) }}">
+                                <input type="hidden" name="q" value="{{ currentSearch }}">
+                                <input type="hidden" name="sort" value="{{ currentSort }}">
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label mb-1">Points</label>
+                                    <input type="number" min="1" name="points" value="{{ rule ? rule.points : resolvedPoints[task.id]|default(10) }}" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label mb-1">Debut</label>
+                                    <input type="datetime-local" name="validFrom" value="{{ rule and rule.validFrom ? rule.validFrom|date('Y-m-d\\TH:i') : '' }}" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label mb-1">Fin</label>
+                                    <input type="datetime-local" name="validTo" value="{{ rule and rule.validTo ? rule.validTo|date('Y-m-d\\TH:i') : '' }}" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-12 d-grid">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bx bx-save"></i>
+                                        Enregistrer la regle
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

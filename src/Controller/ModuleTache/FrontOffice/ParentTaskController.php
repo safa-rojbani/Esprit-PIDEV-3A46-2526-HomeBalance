@@ -9,12 +9,21 @@ use App\Entity\User;
 use App\Entity\Family;
 use App\Enum\FamilyRole;
 use App\Enum\TaskAssignmentStatus;
+use App\Form\TaskCompletionType;
 use App\Form\TaskType;
+use App\Message\AnalyzeTaskProofImageMessage;
+use App\Message\TaskCompleted;
+use App\Repository\TaskAssignmentRepository;
 use App\Repository\TaskRepository;
+use App\Service\TaskPointResolver;
+use App\Service\TaskPenaltyService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ActiveFamilyResolver;
 
@@ -24,6 +33,9 @@ class ParentTaskController extends AbstractController
     #[Route('/', name: 'parent_task_index')]
     public function index(
         TaskRepository $taskRepository,
+        TaskPointResolver $taskPointResolver,
+        Request $request,
+        PaginatorInterface $paginator,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
@@ -31,10 +43,26 @@ class ParentTaskController extends AbstractController
 
         $adminTasks = $taskRepository->findActiveGlobalAdminTasks();
         $familyTasks = $taskRepository->findFamilyTasks($family);
+        $adminTaskPoints = $taskPointResolver->resolvePointsForTasks($adminTasks);
+        $familyTaskPoints = $taskPointResolver->resolvePointsForTasks($familyTasks);
+        $adminTasks = $paginator->paginate(
+            $adminTasks,
+            max(1, $request->query->getInt('adminPage', 1)),
+            8,
+            ['pageParameterName' => 'adminPage']
+        );
+        $familyTasks = $paginator->paginate(
+            $familyTasks,
+            max(1, $request->query->getInt('familyPage', 1)),
+            8,
+            ['pageParameterName' => 'familyPage']
+        );
 
         return $this->render('ModuleTache/frontoffice/parent/index.html.twig', [
             'adminTasks' => $adminTasks,
             'familyTasks' => $familyTasks,
+            'adminTaskPoints' => $adminTaskPoints,
+            'familyTaskPoints' => $familyTaskPoints,
         ]);
     }
 
@@ -162,6 +190,8 @@ class ParentTaskController extends AbstractController
     public function selfTasks(
         Request $request,
         EntityManagerInterface $em,
+        TaskPointResolver $taskPointResolver,
+        PaginatorInterface $paginator,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
@@ -276,11 +306,49 @@ class ParentTaskController extends AbstractController
         }
 
         $this->sortSelfTasks($freeTasks, $currentSort);
+        $tasksForPoints = $freeTasks;
+        foreach ($assignedTasks as $assignedTask) {
+            $taskEntity = $assignedTask->getTask();
+            if (!$taskEntity instanceof Task) {
+                continue;
+            }
+            $taskId = $taskEntity->getId();
+            if ($taskId === null) {
+                continue;
+            }
+
+            $alreadyPresent = false;
+            foreach ($tasksForPoints as $existingTask) {
+                if ($existingTask->getId() === $taskId) {
+                    $alreadyPresent = true;
+                    break;
+                }
+            }
+
+            if (!$alreadyPresent) {
+                $tasksForPoints[] = $taskEntity;
+            }
+        }
+
+        $taskPoints = $taskPointResolver->resolvePointsForTasks($tasksForPoints);
+        $assignedTasks = $paginator->paginate(
+            $assignedTasks,
+            max(1, $request->query->getInt('assignedPage', 1)),
+            6,
+            ['pageParameterName' => 'assignedPage']
+        );
+        $freeTasks = $paginator->paginate(
+            $freeTasks,
+            max(1, $request->query->getInt('freePage', 1)),
+            8,
+            ['pageParameterName' => 'freePage']
+        );
 
         return $this->render('ModuleTache/frontoffice/parent/self_tasks.html.twig', [
             'assignedTasks' => $assignedTasks,
             'freeTasks' => $freeTasks,
             'acceptedByOther' => $acceptedByOther,
+            'taskPoints' => $taskPoints,
             'taskStates' => $taskStates,
             'stateCounts' => $stateCounts,
             'currentFilter' => $currentFilter,
@@ -288,19 +356,18 @@ class ParentTaskController extends AbstractController
         ]);
     }
 
-    #[Route('/self/{id}/complete', name: 'parent_self_task_complete', methods: ['POST'])]
+    #[Route('/self/{id}/complete', name: 'parent_self_task_complete', methods: ['GET', 'POST'])]
     public function completeSelfTask(
         Task $task,
         Request $request,
         EntityManagerInterface $em,
+        MessageBusInterface $messageBus,
+        TaskAssignmentRepository $taskAssignmentRepository,
+        TaskPenaltyService $taskPenaltyService,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
         $this->ensureParent($parent);
-
-        if (!$this->isCsrfTokenValid('parent_self_complete_'.$task->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
-        }
 
         if ($task->getFamily()?->getId() !== $family->getId() || !$task->isActive()) {
             throw $this->createAccessDeniedException();
@@ -330,20 +397,66 @@ class ParentTaskController extends AbstractController
             $completion = new TaskCompletion();
             $completion->setTask($task);
             $completion->setUser($parent);
-            $em->persist($completion);
         }
 
-        // Parent completes directly: no proof upload and no pending review step.
-        $completion->setProof('parent-no-proof');
-        $completion->setCompletedAt(new \DateTimeImmutable());
-        $completion->setIsValidated(true);
-        $completion->setValidatedBy($parent);
-        $completion->setValidatedAt(new \DateTimeImmutable());
-        $completion->setParentComment(null);
+        $form = $this->createForm(TaskCompletionType::class, $completion);
+        $form->handleRequest($request);
 
-        $em->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $file */
+            $file = $form->get('proof')->getData();
+            $filename = uniqid().'.'.$file->guessExtension();
 
-        return $this->redirectToRoute('parent_self_task_index', $this->buildSelfTaskRedirectParams($request));
+            $file->move(
+                $this->getParameter('kernel.project_dir').'/public/uploads/proofs',
+                $filename
+            );
+
+            $completion->setProof($filename);
+            $completion->setCompletedAt(new \DateTimeImmutable());
+            $completion->setIsValidated(null);
+            $completion->setValidatedBy(null);
+            $completion->setValidatedAt(null);
+            $completion->setParentComment(null);
+
+            $memberAssignment = $taskAssignmentRepository->findLatestForTaskAndUser($task, $parent);
+            if ($memberAssignment instanceof TaskAssignment) {
+                $memberAssignment->setStatus(TaskAssignmentStatus::COMPLETED);
+            }
+
+            $latePenalty = 0;
+            if ($memberAssignment instanceof TaskAssignment) {
+                $latePenalty = $taskPenaltyService->applyLatePenalty($memberAssignment, $completion);
+            }
+
+            $em->persist($completion);
+            $em->flush();
+            if ($completion->getId() !== null) {
+                $messageBus->dispatch(new AnalyzeTaskProofImageMessage($completion->getId()));
+            }
+            if ($latePenalty < 0) {
+                $familyId = $family->getId();
+                if ($familyId !== null) {
+                    $messageBus->dispatch(new TaskCompleted([
+                        'familyId' => $familyId,
+                    ]));
+                }
+                $this->addFlash('warning', sprintf('Penalite retard appliquee: %d pts.', $latePenalty));
+            }
+
+            $this->addFlash('info', 'Analyse IA en cours. Validation automatique ou revue parent selon le score.');
+
+            return $this->redirectToRoute('parent_self_task_index', $this->buildSelfTaskRedirectParams($request));
+        }
+
+        [$currentFilter, $currentSort] = $this->resolveSelfTaskViewOptions($request);
+
+        return $this->render('ModuleTache/frontoffice/parent/complete.html.twig', [
+            'form' => $form->createView(),
+            'task' => $task,
+            'currentFilter' => $currentFilter,
+            'currentSort' => $currentSort,
+        ]);
     }
 
     #[Route('/self/assignment/{id}/accept', name: 'parent_self_task_accept')]

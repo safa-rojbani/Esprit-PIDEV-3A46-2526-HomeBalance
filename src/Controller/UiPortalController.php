@@ -36,6 +36,7 @@ use App\Entity\FamilyMembership;
 use App\Entity\Badge;
 use App\Entity\FamilyBadge;
 use App\Entity\AccountNotification;
+use App\Repository\AccountNotificationRepository;
 use App\Entity\AuditTrail;
 use Doctrine\ORM\EntityRepository;
 
@@ -170,7 +171,8 @@ final class UiPortalController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         AuditTrailService $auditTrailService,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        AccountNotificationRepository $accountNotificationRepository
     ): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
@@ -217,6 +219,7 @@ final class UiPortalController extends AbstractController
             'notificationMatrix' => $notifications,
             'notificationDelivery' => $delivery,
             'notificationRows' => $this->notificationRows(),
+            'recentInAppNotifications' => $accountNotificationRepository->findRecentForUser($user, 20, 'app'),
         ]);
     }
 

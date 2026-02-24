@@ -14,7 +14,7 @@
             <h1 class="tm-title h3">Valider la tache</h1>
             <p class="tm-subtitle">Ajoutez une photo de preuve avant envoi au parent.</p>
         </div>
-        <a href="{{ path('child_task_index') }}" class="btn btn-outline-secondary">
+        <a href="{{ path('child_task_index', {filter: currentFilter, sort: currentSort}) }}" class="btn btn-outline-secondary">
             <i class="bx bx-arrow-back"></i>
             Retour
         </a>
@@ -25,15 +25,21 @@
             <div class="mb-3">
                 <div class="tm-task-name">{{ task.title }}</div>
             </div>
+            <div class="alert alert-info py-2">
+                L'image sera analysee par IA. Selon le score, la tache peut etre validee automatiquement ou envoyee au parent pour revue.
+            </div>
 
-            {{ form_start(form, { attr: { enctype: 'multipart/form-data' } }) }}
+            {{ form_start(form, {
+                action: path('child_task_complete', {id: task.id, filter: currentFilter, sort: currentSort}),
+                attr: { enctype: 'multipart/form-data' }
+            }) }}
                 {{ form_row(form.proof) }}
                 <div class="mt-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="bx bx-camera"></i>
                         Envoyer la preuve
                     </button>
-                    <a href="{{ path('child_task_index') }}" class="btn btn-label-secondary">Annuler</a>
+                    <a href="{{ path('child_task_index', {filter: currentFilter, sort: currentSort}) }}" class="btn btn-label-secondary">Annuler</a>
                 </div>
             {{ form_end(form) }}
         </div>
