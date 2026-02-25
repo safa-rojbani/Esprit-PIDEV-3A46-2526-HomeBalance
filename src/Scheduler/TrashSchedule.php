@@ -21,6 +21,8 @@ final class TrashSchedule implements ScheduleProviderInterface
             ->add(RecurringMessage::trigger(
                 new CronExpressionTrigger(
                     CronExpression::factory('0 0 * * *')
+
+
                 ),
                 new PurgeTrashMessage()
             ))

@@ -6,12 +6,16 @@ use App\Entity\Document;
 use App\Entity\Family;
 use App\Entity\Gallery;
 use App\Entity\User;
+use App\Enum\DocumentActivityEvent;
 use App\Enum\EtatDocument;
 use App\Form\ModuleDocuments\FrontOffice\DocumentType;
 use App\Repository\DocumentRepository;
 use App\Repository\GalleryRepository;
 use App\Service\ActiveFamilyResolver;
+use App\Service\DocumentActivityTracker;
+use App\Service\PortalNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -23,17 +27,40 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DocumentController extends AbstractController
 {
     #[Route(name: 'app_document_index', methods: ['GET'])]
-    public function index(DocumentRepository $documentRepository, ActiveFamilyResolver $familyResolver): Response
+    public function index(
+        Request $request,
+        DocumentRepository $documentRepository,
+        ActiveFamilyResolver $familyResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
+        $query = $documentRepository->createQueryBuilder('d')
+            ->andWhere('d.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('d.createdAt', 'DESC')
+            ->getQuery();
+
+        $documents = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
 
         return $this->render('ModuleDocuments/FrontOffice/document/index.html.twig', [
-            'documents' => $documentRepository->findBy(['family' => $family]),
+            'documents' => $documents,
         ]);
     }
 
     #[Route('/new/{galleryId}', name: 'app_document_new', methods: ['GET', 'POST'], requirements: ['galleryId' => '\d+'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, int $galleryId, ActiveFamilyResolver $familyResolver): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        int $galleryId,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService,
+        DocumentActivityTracker $documentActivityTracker
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
         $user = $this->getUser();
@@ -73,6 +100,27 @@ final class DocumentController extends AbstractController
                 $entityManager->persist($document);
                 $entityManager->flush();
 
+                $portalNotificationService->notifyFamily($family, $user, 'document_uploaded', [
+                    'documentId' => $document->getId(),
+                    'documentName' => $document->getFileName(),
+                    'galleryId' => $gallery->getId(),
+                    'galleryName' => $gallery->getName(),
+                    'route' => 'app_gallery_show',
+                    'routeParams' => ['id' => $gallery->getId()],
+                ]);
+                $documentActivityTracker->track(
+                    $family,
+                    $user,
+                    $document,
+                    DocumentActivityEvent::DOCUMENT_UPLOADED,
+                    null,
+                    [
+                        'source' => 'form',
+                        'galleryId' => $gallery->getId(),
+                    ]
+                );
+                $entityManager->flush();
+
                 return $this->redirectToRoute('app_gallery_show', ['id' => $galleryId]);
             }
         }
@@ -85,7 +133,14 @@ final class DocumentController extends AbstractController
     }
 
     #[Route('/{id}/{galleryId}', name: 'app_document_show', methods: ['GET'], requirements: ['id' => '\d+', 'galleryId' => '\d+'], defaults: ['galleryId' => null])]
-    public function show(Document $document, ?int $galleryId = null, ActiveFamilyResolver $familyResolver): Response
+    public function show(
+        Request $request,
+        Document $document,
+        ?int $galleryId = null,
+        ActiveFamilyResolver $familyResolver,
+        DocumentActivityTracker $documentActivityTracker,
+        EntityManagerInterface $entityManager
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
@@ -94,9 +149,39 @@ final class DocumentController extends AbstractController
             $galleryId = $document->getGallery()->getId();
         }
 
+        $actor = $this->getUser();
+        $documentActivityTracker->track(
+            $family,
+            $actor instanceof User ? $actor : null,
+            $document,
+            DocumentActivityEvent::DOCUMENT_VIEWED,
+            null,
+            [
+                'route' => 'app_document_show',
+            ]
+        );
+        $entityManager->flush();
+
+        $shareResult = null;
+        $user = $this->getUser();
+        if ($user instanceof User && $user->getId() !== null && $document->getId() !== null) {
+            $sessionKey = sprintf('document_share_result_%s_%d', $user->getId(), $document->getId());
+            $session = $request->getSession();
+
+            if ($session->has($sessionKey)) {
+                $stored = $session->get($sessionKey);
+                $session->remove($sessionKey);
+
+                if (is_array($stored)) {
+                    $shareResult = $stored;
+                }
+            }
+        }
+
         return $this->render('ModuleDocuments/FrontOffice/document/show.html.twig', [
             'document' => $document,
             'galleryId' => $galleryId,
+            'share_result' => $shareResult,
         ]);
     }
 
@@ -106,7 +191,8 @@ final class DocumentController extends AbstractController
         Document $document,
         EntityManagerInterface $entityManager,
         ?int $galleryId = null,
-        ActiveFamilyResolver $familyResolver
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
     ): Response {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
@@ -124,6 +210,7 @@ final class DocumentController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $actor = $this->resolveActor();
             /** @var UploadedFile|null $file */
             $file = $document->getFile();
             if ($file) {
@@ -132,6 +219,22 @@ final class DocumentController extends AbstractController
 
             $document->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
+
+            $targetRoute = 'app_document_index';
+            $targetRouteParams = [];
+            if ($document->getGallery() !== null && $document->getGallery()->getId() !== null) {
+                $targetRoute = 'app_gallery_show';
+                $targetRouteParams = ['id' => $document->getGallery()->getId()];
+            }
+
+            $portalNotificationService->notifyFamily($family, $actor, 'document_updated', [
+                'documentId' => $document->getId(),
+                'documentName' => $document->getFileName(),
+                'galleryId' => $document->getGallery()?->getId(),
+                'galleryName' => $document->getGallery()?->getName(),
+                'route' => $targetRoute,
+                'routeParams' => $targetRouteParams,
+            ]);
 
             if ($galleryId !== null) {
                 return $this->redirectToRoute('app_gallery_show', ['id' => $galleryId]);
@@ -148,16 +251,33 @@ final class DocumentController extends AbstractController
     }
 
     #[Route('/{id}/delete/{galleryId}', name: 'app_document_delete', methods: ['POST'], requirements: ['id' => '\d+', 'galleryId' => '\d+'], defaults: ['galleryId' => null])]
-    public function delete(Request $request, Document $document, EntityManagerInterface $entityManager, ?int $galleryId = null, ActiveFamilyResolver $familyResolver): Response
+    public function delete(
+        Request $request,
+        Document $document,
+        EntityManagerInterface $entityManager,
+        ?int $galleryId = null,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
 
         if ($this->isCsrfTokenValid('delete' . $document->getId(), (string) $request->request->get('_token'))) {
+            $actor = $this->resolveActor();
             $document->setEtat(EtatDocument::CORBEILLE);
             $document->setDeletedAt(new \DateTimeImmutable());
             $document->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
+
+            $portalNotificationService->notifyFamily($family, $actor, 'document_deleted_to_trash', [
+                'documentId' => $document->getId(),
+                'documentName' => $document->getFileName(),
+                'galleryId' => $document->getGallery()?->getId(),
+                'galleryName' => $document->getGallery()?->getName(),
+                'route' => 'app_document_trash',
+                'routeParams' => [],
+            ]);
         }
 
         if ($galleryId !== null) {
@@ -168,7 +288,13 @@ final class DocumentController extends AbstractController
     }
 
     #[Route('/document/{id}/hide', name: 'app_document_hide', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function hide(Request $request, Document $document, EntityManagerInterface $entityManager, ActiveFamilyResolver $familyResolver): Response
+    public function hide(
+        Request $request,
+        Document $document,
+        EntityManagerInterface $entityManager,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
@@ -177,9 +303,19 @@ final class DocumentController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $actor = $this->resolveActor();
         $document->setEtat(EtatDocument::HIDDEN);
         $document->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
+
+        $portalNotificationService->notifyFamily($family, $actor, 'document_hidden', [
+            'documentId' => $document->getId(),
+            'documentName' => $document->getFileName(),
+            'galleryId' => $document->getGallery()?->getId(),
+            'galleryName' => $document->getGallery()?->getName(),
+            'route' => 'app_gallery_hidden',
+            'routeParams' => [],
+        ]);
 
         return $this->redirectToRoute('app_gallery_show', [
             'id' => $document->getGallery()->getId(),
@@ -187,14 +323,27 @@ final class DocumentController extends AbstractController
     }
 
     #[Route('/documents/trash', name: 'app_document_trash', methods: ['GET'])]
-    public function trash(DocumentRepository $repo, ActiveFamilyResolver $familyResolver): Response
+    public function trash(
+        Request $request,
+        DocumentRepository $repo,
+        ActiveFamilyResolver $familyResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
+        $query = $repo->createQueryBuilder('d')
+            ->andWhere('d.etat = :etat')
+            ->andWhere('d.family = :family')
+            ->setParameter('etat', EtatDocument::CORBEILLE->value)
+            ->setParameter('family', $family)
+            ->orderBy('d.deletedAt', 'DESC')
+            ->getQuery();
 
-        $documents = $repo->findBy([
-            'etat' => EtatDocument::CORBEILLE,
-            'family' => $family,
-        ]);
+        $documents = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
 
         return $this->render('ModuleDocuments/FrontOffice/document/trash.html.twig', [
             'documents' => $documents,
@@ -206,17 +355,21 @@ final class DocumentController extends AbstractController
         Request $request,
         DocumentRepository $repo,
         EntityManagerInterface $em,
-        ActiveFamilyResolver $familyResolver
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
     ): Response {
         if (!$this->isCsrfTokenValid('restore_all', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException();
         }
 
+        $actor = $this->resolveActor();
         $family = $this->resolveFamily($familyResolver);
         $documents = $repo->findBy([
             'etat' => EtatDocument::CORBEILLE,
             'family' => $family,
         ]);
+
+        $restoredCount = \count($documents);
 
         foreach ($documents as $document) {
             $document->setEtat(EtatDocument::ACTIF);
@@ -226,12 +379,27 @@ final class DocumentController extends AbstractController
 
         $em->flush();
 
+        if ($restoredCount > 0) {
+            $portalNotificationService->notifyFamily($family, $actor, 'documents_restored_from_trash', [
+                'count' => $restoredCount,
+                'route' => 'app_document_trash',
+                'routeParams' => [],
+            ]);
+        }
+
         return $this->redirectToRoute('app_document_trash');
     }
 
     #[Route('/documents/{id}/restore', name: 'app_document_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function restore(Request $request, Document $document, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function restore(
+        Request $request,
+        Document $document,
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
+    ): Response
     {
+        $actor = $this->resolveActor();
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
 
@@ -246,6 +414,20 @@ final class DocumentController extends AbstractController
         $document->setUpdatedAt(new \DateTimeImmutable());
         $em->flush();
 
+        $portalNotificationService->notifyFamily(
+            $family,
+            $actor,
+            $wasHidden ? 'document_restored_from_hidden' : 'document_restored_from_trash',
+            [
+                'documentId' => $document->getId(),
+                'documentName' => $document->getFileName(),
+                'galleryId' => $document->getGallery()?->getId(),
+                'galleryName' => $document->getGallery()?->getName(),
+                'route' => $wasHidden ? 'app_gallery_hidden' : 'app_document_trash',
+                'routeParams' => [],
+            ]
+        );
+
         if ($wasHidden) {
             $this->addFlash('success', 'Document restored successfully.');
             return $this->redirectToRoute('app_gallery_hidden');
@@ -255,8 +437,15 @@ final class DocumentController extends AbstractController
     }
 
     #[Route('/documents/{id}/delete-permanently', name: 'app_document_delete_permanently', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deletePermanently(Request $request, Document $document, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function deletePermanently(
+        Request $request,
+        Document $document,
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
+    ): Response
     {
+        $actor = $this->resolveActor();
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
 
@@ -269,21 +458,39 @@ final class DocumentController extends AbstractController
         $document->setUpdatedAt(new \DateTimeImmutable());
         $em->flush();
 
+        $portalNotificationService->notifyFamily($family, $actor, 'document_deleted_permanently', [
+            'documentId' => $document->getId(),
+            'documentName' => $document->getFileName(),
+            'galleryId' => $document->getGallery()?->getId(),
+            'galleryName' => $document->getGallery()?->getName(),
+            'route' => 'app_document_trash',
+            'routeParams' => [],
+        ]);
+
         return $this->redirectToRoute('app_document_trash');
     }
 
     #[Route('/documents/trash/delete-all-permanently', name: 'app_document_delete_all_permanently', methods: ['POST'])]
-    public function deleteAllPermanently(Request $request, DocumentRepository $repo, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): Response
+    public function deleteAllPermanently(
+        Request $request,
+        DocumentRepository $repo,
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
+    ): Response
     {
         if (!$this->isCsrfTokenValid('delete_all_permanently', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException();
         }
 
+        $actor = $this->resolveActor();
         $family = $this->resolveFamily($familyResolver);
         $documents = $repo->findBy([
             'etat' => EtatDocument::CORBEILLE,
             'family' => $family,
         ]);
+
+        $deletedCount = \count($documents);
 
         $now = new \DateTimeImmutable();
         foreach ($documents as $doc) {
@@ -294,6 +501,14 @@ final class DocumentController extends AbstractController
 
         $em->flush();
 
+        if ($deletedCount > 0) {
+            $portalNotificationService->notifyFamily($family, $actor, 'documents_deleted_permanently', [
+                'count' => $deletedCount,
+                'route' => 'app_document_trash',
+                'routeParams' => [],
+            ]);
+        }
+
         return $this->redirectToRoute('app_document_trash');
     }
 
@@ -303,8 +518,10 @@ final class DocumentController extends AbstractController
         Document $document,
         GalleryRepository $galleryRepository,
         EntityManagerInterface $em,
-        ActiveFamilyResolver $familyResolver
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService
     ): Response {
+        $actor = $this->resolveActor();
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
 
@@ -327,9 +544,20 @@ final class DocumentController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $sourceGalleryName = $document->getGallery()?->getName();
         $document->setGallery($targetGallery);
         $document->setUpdatedAt(new \DateTimeImmutable());
         $em->flush();
+
+        $portalNotificationService->notifyFamily($family, $actor, 'document_transferred', [
+            'documentId' => $document->getId(),
+            'documentName' => $document->getFileName(),
+            'fromGalleryName' => $sourceGalleryName,
+            'toGalleryId' => $targetGallery->getId(),
+            'toGalleryName' => $targetGallery->getName(),
+            'route' => 'app_gallery_show',
+            'routeParams' => ['id' => $targetGallery->getId()],
+        ]);
 
         $this->addFlash('success', 'Document transferred.');
 
@@ -373,6 +601,16 @@ final class DocumentController extends AbstractController
         }
 
         return $family;
+    }
+
+    private function resolveActor(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
     }
 
     private function assertSameFamily(Family $family, ?Family $targetFamily): void

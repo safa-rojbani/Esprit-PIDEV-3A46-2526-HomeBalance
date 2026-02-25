@@ -7,7 +7,7 @@
     </a>
   </div>
 
-  <div class="navbar-nav-right d-flex align-items-center justify-content-end w-100" id="navbar-collapse">
+  <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
     <div class="navbar-nav align-items-center me-auto">
       <form class="nav-item d-flex align-items-center" method="get" action="{{ path('portal_search') }}">
         <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
@@ -21,7 +21,119 @@
       </form>
     </div>
 
-    <ul class="navbar-nav flex-row align-items-center ms-auto">
+
+
+    <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+      {% set portal_notification_unread_count = app.request.attributes.get('portal_notification_unread_count')|default(0) %}
+      {% set portal_notifications = app.request.attributes.get('portal_notifications')|default([]) %}
+      <li class="nav-item dropdown me-2">
+        <button
+          type="button"
+          id="portalNotificationsToggle"
+          class="nav-link dropdown-toggle hide-arrow position-relative p-2 border-0 bg-transparent"
+          data-bs-toggle="dropdown"
+          data-bs-auto-close="outside"
+          aria-expanded="false"
+          aria-label="Notifications">
+          <i class="icon-base bx bx-bell icon-md"></i>
+          <span
+            class="js-portal-notification-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ portal_notification_unread_count > 0 ? '' : 'd-none' }}"
+            data-count="{{ portal_notification_unread_count }}">
+            {{ portal_notification_unread_count > 99 ? '99+' : portal_notification_unread_count }}
+          </span>
+        </button>
+        <ul id="portalNotificationsMenu" class="dropdown-menu dropdown-menu-end p-0 overflow-hidden" aria-labelledby="portalNotificationsToggle" style="width: min(92vw, 380px);">
+          <li class="dropdown-header border-bottom py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="fw-semibold">Notifications</span>
+              <span
+                class="js-portal-notification-count badge rounded-pill bg-danger {{ portal_notification_unread_count > 0 ? '' : 'd-none' }}"
+                data-count="{{ portal_notification_unread_count }}">
+                {{ portal_notification_unread_count > 99 ? '99+' : portal_notification_unread_count }}
+              </span>
+            </div>
+          </li>
+          <li>
+            <div style="max-height: 420px; overflow-y: auto;">
+              {% if portal_notifications is empty %}
+                <div class="px-3 py-4 text-muted small">Vous n'avez aucune notification.</div>
+              {% else %}
+                {% for notification in portal_notifications %}
+                  {% set payload = notification.payload ?? {} %}
+                  {% set actor_first_name = notification.actor ? notification.actor.firstName : '' %}
+                  {% set actor_last_name = notification.actor ? notification.actor.lastName : '' %}
+                  {% set actor_name = (actor_first_name ~ ' ' ~ actor_last_name)|trim %}
+                  {% set actor_label = actor_name != '' ? actor_name : 'Un membre' %}
+                  {% set notification_message = actor_label ~ ' a effectue une action.' %}
+                  {% if notification.type == 'gallery_created' %}
+                    {% set notification_message = actor_label ~ ' a cree la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'gallery_updated' %}
+                    {% set notification_message = actor_label ~ ' a modifie la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'gallery_deleted' %}
+                    {% set notification_message = actor_label ~ ' a supprime la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'gallery_hidden' %}
+                    {% set notification_message = actor_label ~ ' a masque la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'gallery_restored' %}
+                    {% set notification_message = actor_label ~ ' a restaure la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'document_uploaded' %}
+                    {% set notification_message = actor_label ~ ' a ajoute le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'document_updated' %}
+                    {% set notification_message = actor_label ~ ' a modifie le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'document_deleted_to_trash' %}
+                    {% set notification_message = actor_label ~ ' a envoye le document ' ~ (payload.documentName|default('sans nom')) ~ ' dans la corbeille.' %}
+                  {% elseif notification.type == 'document_hidden' %}
+                    {% set notification_message = actor_label ~ ' a masque le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'document_restored_from_hidden' %}
+                    {% set notification_message = actor_label ~ ' a restaure le document ' ~ (payload.documentName|default('sans nom')) ~ ' depuis les elements masques.' %}
+                  {% elseif notification.type == 'document_restored_from_trash' %}
+                    {% set notification_message = actor_label ~ ' a restaure le document ' ~ (payload.documentName|default('sans nom')) ~ ' depuis la corbeille.' %}
+                  {% elseif notification.type == 'document_deleted_permanently' %}
+                    {% set notification_message = actor_label ~ ' a supprime definitivement le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+                  {% elseif notification.type == 'documents_restored_from_trash' %}
+                    {% set notification_message = actor_label ~ ' a restaure ' ~ (payload.count|default(0)) ~ ' documents depuis la corbeille.' %}
+                  {% elseif notification.type == 'documents_deleted_permanently' %}
+                    {% set notification_message = actor_label ~ ' a supprime definitivement ' ~ (payload.count|default(0)) ~ ' documents.' %}
+                  {% elseif notification.type == 'document_transferred' %}
+                    {% set notification_message = actor_label ~ ' a deplace le document ' ~ (payload.documentName|default('sans nom')) ~ ' vers la galerie ' ~ (payload.toGalleryName|default('sans nom')) ~ '.' %}
+                  {% endif %}
+                  {% set notification_redirect = app.request.requestUri %}
+                  {% if payload.route is defined and payload.route %}
+                    {% set notification_redirect = path(payload.route, payload.routeParams|default({})) %}
+                  {% endif %}
+
+                  {% if not notification.isRead %}
+                    <form method="post" action="{{ path('portal_notifications_read', { id: notification.id }) }}" class="m-0">
+                      <input type="hidden" name="_token" value="{{ csrf_token('portal_notification_read_' ~ notification.id) }}">
+                      <input type="hidden" name="_redirect" value="{{ notification_redirect }}">
+                      <button type="submit" class="w-100 p-0 border-0 bg-transparent text-start">
+                        <div class="px-3 py-3 border-bottom" style="background-color: rgba(105,108,255,0.12); cursor: pointer;">
+                          <div class="d-flex align-items-start justify-content-between gap-2">
+                            <p class="mb-1 small">{{ notification_message }}</p>
+                          </div>
+                          <small class="text-muted">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</small>
+                        </div>
+                      </button>
+                    </form>
+                  {% else %}
+                    <div class="px-3 py-3 border-bottom">
+                      {% if payload.route is defined and payload.route %}
+                        <a href="{{ notification_redirect }}" class="d-block text-reset text-decoration-none">
+                          <p class="mb-1 small">{{ notification_message }}</p>
+                          <small class="text-muted">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</small>
+                        </a>
+                      {% else %}
+                        <p class="mb-1 small">{{ notification_message }}</p>
+                        <small class="text-muted">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</small>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </div>
+          </li>
+        </ul>
+      </li>
+
       {% if is_granted('ROLE_ADMIN') %}
         <li class="nav-item me-3 d-none d-md-inline-flex">
           <a class="btn btn-outline-primary d-flex align-items-center gap-2" href="{{ path('portal_admin_users') }}">
@@ -30,24 +142,44 @@
           </a>
         </li>
       {% endif %}
-      <li class="nav-item navbar-dropdown dropdown-user dropdown">
-        <a class="nav-link dropdown-toggle hide-arrow p-0" href="#accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <div class="avatar avatar-online" style="width: 3.25rem; height: 3.25rem;">
-            {% set navbarAvatarPath = app.user ? app.user.avatarPath : null %}
-            {% set navbarAvatarFallback = 'https://api.dicebear.com/9.x/adventurer/svg?seed=' ~ (app.user ? app.user.id : 'homebalance') %}
-            {% set navbarAvatarHasUsablePath = navbarAvatarPath and ((navbarAvatarPath starts with 'http://') or (navbarAvatarPath starts with 'https://') or ('/' in navbarAvatarPath)) %}
-            {% set navbarAvatarSrc = navbarAvatarHasUsablePath
-              ? ((navbarAvatarPath starts with 'http://') or (navbarAvatarPath starts with 'https://') ? navbarAvatarPath : asset(navbarAvatarPath))
-              : navbarAvatarFallback
-            %}
-            <img
-              src="{{ navbarAvatarSrc }}"
-              alt="User avatar"
-              class="w-px-52 h-px-52 rounded-circle object-fit-cover"
-              onerror="this.onerror=null;this.src='{{ navbarAvatarFallback }}';" />
-          </div>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end">
+<li class="nav-item navbar-dropdown dropdown-user dropdown">
+  <a class="nav-link dropdown-toggle hide-arrow p-0"
+     href="#accountMenu"
+     role="button"
+     data-bs-toggle="dropdown"
+     aria-expanded="false">
+
+    <div class="avatar avatar-online" style="width: 3.25rem; height: 3.25rem;">
+      {% set navbarAvatarPath = app.user ? app.user.avatarPath : null %}
+      {% set navbarAvatarFallback = 'https://api.dicebear.com/9.x/adventurer/svg?seed=' ~ (app.user ? app.user.id : 'homebalance') %}
+      {% set navbarAvatarHasUsablePath = navbarAvatarPath
+        and (
+          (navbarAvatarPath starts with 'http://')
+          or (navbarAvatarPath starts with 'https://')
+          or ('/' in navbarAvatarPath)
+        )
+      %}
+      {% set navbarAvatarSrc = navbarAvatarHasUsablePath
+        ? (
+            (navbarAvatarPath starts with 'http://')
+            or (navbarAvatarPath starts with 'https://')
+              ? navbarAvatarPath
+              : asset(navbarAvatarPath)
+          )
+        : navbarAvatarFallback
+      %}
+
+      <img
+        src="{{ navbarAvatarSrc }}"
+        alt="User avatar"
+        class="w-px-52 h-px-52 rounded-circle object-fit-cover"
+        onerror="this.onerror=null;this.src='{{ navbarAvatarFallback }}';" />
+    </div>
+
+  </a>
+
+  <ul class="dropdown-menu dropdown-menu-end">
+
           <li>
             <a class="dropdown-item" href="{{ path('portal_account') }}">
               <div class="d-flex align-items-center">

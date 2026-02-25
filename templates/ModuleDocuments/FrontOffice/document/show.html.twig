@@ -1,13 +1,15 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Document{% endblock %}
 
 {% block content %}
 {% set resolvedGalleryId = galleryId ?? (document.gallery ? document.gallery.id : null) %}
+{% set shareCardOpen = false %}
 <style>
   .hb-view{max-width:820px;margin:0 auto;}
 
-  .hb-outbar{display:flex;justify-content:flex-start;margin-bottom:12px;}
+  .hb-outbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .hb-outbar-left{display:flex;gap:10px;align-items:center;}
   .hb-backout{
     padding:.55rem .9rem;border-radius:14px;
     border:1px solid rgba(67,89,113,.12);
@@ -17,6 +19,12 @@
     transition:.16s ease;
   }
   .hb-backout:hover{transform: translateY(-2px);box-shadow: 0 18px 40px rgba(67,89,113,.14);}
+  .hb-sharetop{
+    padding:.55rem .9rem;border-radius:14px;border:1px solid rgba(105,108,255,.35);
+    background: rgba(105,108,255,.12);color:#4c50d8;font-weight:900;cursor:pointer;
+    transition:.16s ease;
+  }
+  .hb-sharetop:hover{transform: translateY(-2px);box-shadow: 0 18px 40px rgba(67,89,113,.14);}
 
   .hb-viewer{
     position:relative;border-radius:22px;overflow:hidden;
@@ -52,7 +60,7 @@
     height:100%;
     display:block;
     background:#0f1115;
-    object-fit:contain; /* important: Ù…Ø§ ÙŠÙ‚ØµÙ‘Ø´ Ø§Ù„ÙÙŠØ¯ÙŠÙˆ */
+    object-fit:contain; /* keep full video visible without cropping */
   }
 
   .hb-sheet{
@@ -120,15 +128,39 @@
     text-align:center;
   }
   .hb-fallback a{color:#fff;text-decoration:underline;}
+
+  .hb-share-card .form-label{font-weight:700;}
+  .hb-share-result{
+    border:1px solid rgba(67,89,113,.15);
+    background:#f8f9ff;
+    border-radius:14px;
+    padding:12px;
+  }
+  .hb-share-link{
+    word-break:break-all;
+    font-size:.92rem;
+  }
+  .hb-share-steps{
+    padding-left: 1rem;
+    margin: 0 0 12px;
+    color:#566a7f;
+    font-size:.92rem;
+  }
 </style>
 
 <div class="hb-view">
   <div class="hb-outbar">
-    {% if resolvedGalleryId %}
-      <a href="{{ path('app_gallery_show', {'id': resolvedGalleryId}) }}" class="hb-backout">Retour</a>
-    {% else %}
-      <a href="{{ path('app_document_index') }}" class="hb-backout">Retour</a>
-    {% endif %}
+    <div class="hb-outbar-left">
+      {% if resolvedGalleryId %}
+        <a href="{{ path('app_gallery_show', {'id': resolvedGalleryId}) }}" class="hb-backout">Retour</a>
+      {% else %}
+        <a href="{{ path('app_document_index') }}" class="hb-backout">Retour</a>
+      {% endif %}
+      <button type="button" class="hb-sharetop" onclick="hbToggleShareCard(true)">Partager</button>
+      <button type="button" class="hb-sharetop" onclick="hbToggleSummaryCard(true)">Resumer AI</button>
+      <button type="button" class="hb-sharetop" onclick="hbToggleClassifyCard(true)">Classifier AI</button>
+      <button type="button" class="hb-sharetop" onclick="hbToggleExtractCard(true)">Extraire AI</button>
+    </div>
   </div>
 
   <div class="hb-viewer">
@@ -144,6 +176,10 @@
            onmouseleave="this.classList.remove('show');">
 
         <a href="{{ asset(document.filePath) }}" target="_blank">Ouvrir</a>
+        <button type="button" onclick="hbToggleShareCard(true)">Partager</button>
+        <button type="button" onclick="hbToggleSummaryCard(true)">Resumer AI</button>
+        <button type="button" onclick="hbToggleClassifyCard(true)">Classifier AI</button>
+        <button type="button" onclick="hbToggleExtractCard(true)">Extraire AI</button>
         <a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': resolvedGalleryId}) }}">Modifier</a>
 
         <form method="post"
@@ -160,7 +196,7 @@
       {% set ft = document.fileType|default('') %}
 
       {% if ft starts with 'image/' %}
-        <img src="{{ fp }}" alt="{{ document.fileName }}">
+        <img src="{{ document.filePath|imagine_filter('document_show') }}" alt="{{ document.fileName }}">
 
       {% elseif ft starts with 'video/' %}
         <video controls playsinline preload="metadata">
@@ -223,6 +259,144 @@
   </div>
 </div>
 
+{% set shareRouteParams = {'id': document.id} %}
+{% if resolvedGalleryId %}
+  {% set shareRouteParams = shareRouteParams|merge({'galleryId': resolvedGalleryId}) %}
+{% endif %}
+
+<section class="card mt-4 hb-share-card {{ shareCardOpen ? '' : 'd-none' }}" id="hbShareCard">
+  <div class="card-body">
+    <h5 class="mb-1">Partager ce document</h5>
+    <ol class="hb-share-steps">
+      <li>Choisissez la date d expiration.</li>
+      <li>Choisissez le canal (WhatsApp ou Email).</li>
+      <li>Cliquez sur envoyer.</li>
+    </ol>
+
+    <form method="post" action="{{ path('app_document_share_create', shareRouteParams) }}" class="row g-3" id="hbShareForm" data-turbo="false">
+      <input type="hidden" name="_token" value="{{ csrf_token('share_document' ~ document.id) }}">
+
+      <div class="col-md-4">
+        <label for="shareExpiresAt" class="form-label">Expire le (date/heure)</label>
+        <input id="shareExpiresAt" type="datetime-local" name="share_expires_at" class="form-control" required>
+      </div>
+
+      <div class="col-md-4">
+        <label for="shareChannel" class="form-label">Canal de partage</label>
+        <select id="shareChannel" name="share_channel" class="form-select">
+          <option value="whatsapp" selected>WhatsApp</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+
+      <div class="col-md-4 d-grid">
+        <label class="form-label">&nbsp;</label>
+        <button type="submit" class="btn btn-primary" id="hbShareSubmitBtn">Envoyer via WhatsApp</button>
+      </div>
+
+      <div class="col-md-8 d-none" id="shareEmailWrap">
+        <label for="shareEmail" class="form-label">Email</label>
+        <input id="shareEmail" type="email" name="share_email" class="form-control" placeholder="exemple@domaine.com">
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="card mt-4 d-none" id="hbSummaryCard"
+         data-summarize-url="{{ path('app_document_summarize', {id: document.id}) }}">
+  <div class="card-body">
+    <h5 class="mb-1">Resume intelligent (Hugging Face)</h5>
+    <p class="text-muted mb-3" id="hbSummaryStatus">Cliquez sur "Generer le resume" pour lancer l'analyse.</p>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label for="hbSummaryMinLength" class="form-label mb-1">Longueur min</label>
+        <input type="number" id="hbSummaryMinLength" class="form-control" min="5" max="300" value="40">
+      </div>
+      <div class="col-md-3">
+        <label for="hbSummaryMaxLength" class="form-label mb-1">Longueur max</label>
+        <input type="number" id="hbSummaryMaxLength" class="form-control" min="30" max="400" value="140">
+      </div>
+      <div class="col-md-6 d-grid">
+        <button type="button" id="hbSummaryBtn" class="btn btn-primary">Generer le resume</button>
+      </div>
+    </div>
+
+    <div class="mt-3" id="hbSummaryResult"></div>
+  </div>
+</section>
+
+<section class="card mt-4 d-none" id="hbClassifyCard"
+         data-classify-url="{{ path('app_document_classify', {id: document.id}) }}">
+  <div class="card-body">
+    <h5 class="mb-1">Classification intelligente (Zero-shot)</h5>
+    <p class="text-muted mb-3" id="hbClassifyStatus">Donnez vos categories puis cliquez sur "Classer".</p>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-md-9">
+        <label for="hbClassifyLabels" class="form-label mb-1">Categories (separees par virgule)</label>
+        <input
+          type="text"
+          id="hbClassifyLabels"
+          class="form-control"
+          value="Administratif, Facture, Banque, Scolaire, Sante, Contrat, Assurance, Autre">
+      </div>
+      <div class="col-md-3 d-grid">
+        <button type="button" id="hbClassifyBtn" class="btn btn-primary">Classer</button>
+      </div>
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="hbClassifyMultiLabel">
+          <label class="form-check-label" for="hbClassifyMultiLabel">
+            Multi-label (plusieurs categories possibles)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3" id="hbClassifyResult"></div>
+  </div>
+</section>
+
+<section class="card mt-4 d-none" id="hbExtractCard"
+         data-extract-url="{{ path('app_document_extract_key_data', {id: document.id}) }}">
+  <div class="card-body">
+    <h5 class="mb-1">Extraction des donnees importantes</h5>
+    <p class="text-muted mb-3" id="hbExtractStatus">Cliquez sur "Extraire les donnees" pour analyser le document (sans sauvegarde en base).</p>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-md-12 d-grid">
+        <button type="button" id="hbExtractBtn" class="btn btn-primary">Extraire les donnees</button>
+      </div>
+    </div>
+
+    <div class="mt-3" id="hbExtractResult"></div>
+  </div>
+</section>
+
+<section class="card mt-4" id="hbConvertCard"
+         data-formats-url="{{ path('app_document_convert_formats', {id: document.id}) }}"
+         data-convert-url="{{ path('app_document_convert', {id: document.id}) }}">
+  <div class="card-body">
+    <h5 class="mb-1">Conversion CloudConvert</h5>
+    <p class="text-muted mb-3" id="hbConvertStatus">Chargement des formats disponibles...</p>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-md-8">
+        <label for="hbConvertSelect" class="form-label mb-1">Format de sortie</label>
+        <select id="hbConvertSelect" class="form-select" disabled>
+          <option value="">Selectionnez un format</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button type="button" id="hbConvertBtn" class="btn btn-primary" disabled>Convertir</button>
+      </div>
+    </div>
+
+    <div class="mt-3" id="hbConvertResult"></div>
+  </div>
+</section>
+
 <script>
   function hbToggleDocMenu(btn){
     const viewer = btn.closest('.hb-viewer');
@@ -239,22 +413,581 @@
     document.querySelectorAll('.hb-menu.show').forEach(m => m.classList.remove('show'));
   });
 
-   // fallback PDF si le navigateur refuse l'embed
-  document.addEventListener('DOMContentLoaded', () => {
+  function hbToggleShareCard(forceOpen) {
+    const card = document.getElementById('hbShareCard');
+    if (!card) return;
+
+    if (forceOpen === true) {
+      card.classList.remove('d-none');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    card.classList.toggle('d-none');
+  }
+
+  function hbToggleSummaryCard(forceOpen) {
+    const card = document.getElementById('hbSummaryCard');
+    if (!card) return;
+
+    if (forceOpen === true) {
+      card.classList.remove('d-none');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    card.classList.toggle('d-none');
+  }
+
+  function hbToggleClassifyCard(forceOpen) {
+    const card = document.getElementById('hbClassifyCard');
+    if (!card) return;
+
+    if (forceOpen === true) {
+      card.classList.remove('d-none');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    card.classList.toggle('d-none');
+  }
+
+  function hbToggleExtractCard(forceOpen) {
+    const card = document.getElementById('hbExtractCard');
+    if (!card) return;
+
+    if (forceOpen === true) {
+      card.classList.remove('d-none');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    card.classList.toggle('d-none');
+  }
+
+  function hbInitShareDatetime() {
+    const dateInput = document.getElementById('shareExpiresAt');
+    if (!dateInput) return;
+    if (!dateInput.value) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 30);
+      dateInput.value = now.toISOString().slice(0, 16);
+    }
+  }
+
+  function hbToggleShareChannel() {
+    const channel = document.getElementById('shareChannel');
+    const form = document.getElementById('hbShareForm');
+    const emailWrap = document.getElementById('shareEmailWrap');
+    const emailInput = document.getElementById('shareEmail');
+    const submitBtn = document.getElementById('hbShareSubmitBtn');
+    if (!channel || !emailWrap || !emailInput) return;
+
+    const useEmail = channel.value === 'email';
+    emailWrap.classList.toggle('d-none', !useEmail);
+    emailInput.required = useEmail;
+    if (submitBtn) {
+      if (channel.value === 'email') submitBtn.textContent = 'Envoyer par email';
+      else submitBtn.textContent = 'Envoyer via WhatsApp';
+    }
+    if (form) {
+      if (channel.value === 'whatsapp') {
+        form.setAttribute('target', '_blank');
+      } else {
+        form.removeAttribute('target');
+      }
+    }
+    if (!useEmail) {
+      emailInput.value = '';
+    }
+  }
+
+  function hbInitShareSubmitAlert() {
+    const form = document.getElementById('hbShareForm');
+    const channel = document.getElementById('shareChannel');
+    if (!form || !channel) return;
+    if (form.dataset.hbShareAlertBound === '1') return;
+    form.dataset.hbShareAlertBound = '1';
+    const pendingKey = 'hb_whatsapp_share_pending_{{ document.id }}';
+
+    const onReturnFromWhatsapp = function () {
+      if (sessionStorage.getItem(pendingKey) !== '1') return;
+      sessionStorage.removeItem(pendingKey);
+      window.location.reload();
+    };
+
+    window.addEventListener('focus', onReturnFromWhatsapp);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        onReturnFromWhatsapp();
+      }
+    });
+
+    form.addEventListener('submit', function () {
+      if (channel.value !== 'whatsapp') return;
+      sessionStorage.setItem(pendingKey, '1');
+    });
+  }
+
+  function hbParseJsonResponse(res, raw){
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      throw new Error(`Reponse serveur non JSON (HTTP ${res.status}).`);
+    }
+  }
+
+  function hbEscapeHtml(value){
+    return String(value ?? '').replace(/[&<>"]/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+    }[char]));
+  }
+
+  function hbFormatIsoDate(value){
+    if (!value) return '-';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleString('fr-FR');
+  }
+
+  function hbFormatExtractValue(value){
+    if (value === null || value === undefined || value === '') return '-';
+    if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
+    if (typeof value === 'number') return String(value);
+    if (Array.isArray(value)) {
+      if (value.length === 0) return '-';
+      return hbEscapeHtml(value.join(', '));
+    }
+    if (typeof value === 'object') {
+      return `<pre class="mb-0">${hbEscapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+    }
+    return hbEscapeHtml(String(value));
+  }
+
+  function hbHasExtractValue(value){
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed !== '' && trimmed !== '-';
+    }
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+  }
+
+  function hbFormatFieldLabel(key){
+    const map = {
+      fournisseur_nom: 'Fournisseur',
+      numero_facture: 'Numero facture',
+      date_facture: 'Date facture',
+      date_echeance: 'Date echeance',
+      devise: 'Devise',
+      montant_ht: 'Montant HT',
+      tva_taux: 'TVA (%)',
+      tva_montant: 'Montant TVA',
+      montant_ttc: 'Montant TTC',
+      net_a_payer: 'Net a payer',
+      partie_1: 'Partie 1',
+      partie_2: 'Partie 2',
+      reference_contrat: 'Reference contrat',
+      date_debut: 'Date debut',
+      date_fin: 'Date fin',
+      renouvellement_auto: 'Renouvellement auto',
+      preavis_jours: 'Preavis (jours)',
+      clause_resiliation: 'Clause resiliation',
+      clause_penalite: 'Clause penalite',
+      date_principale: 'Date principale',
+      montant_principal: 'Montant principal',
+      mots_cles: 'Mots cles',
+    };
+
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return map[key];
+    }
+
+    return String(key || '').replaceAll('_', ' ');
+  }
+
+  async function hbFetchJson(url, options = {}){
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      ...options
+    });
+    const raw = await res.text();
+    const json = hbParseJsonResponse(res, raw);
+    return { res, json };
+  }
+
+  async function hbInitDocumentConversion(){
+    const card = document.getElementById('hbConvertCard');
+    const select = document.getElementById('hbConvertSelect');
+    const btn = document.getElementById('hbConvertBtn');
+    const status = document.getElementById('hbConvertStatus');
+    const resultBox = document.getElementById('hbConvertResult');
+    if (!card || !select || !btn || !status || !resultBox) return;
+
+    const formatsUrl = card.dataset.formatsUrl;
+    const convertUrl = card.dataset.convertUrl;
+    if (!formatsUrl || !convertUrl) return;
+
+    try {
+      const { res, json } = await hbFetchJson(formatsUrl);
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || 'Impossible de recuperer les formats.');
+      }
+
+      const outputs = Array.isArray(json.output_formats) ? json.output_formats : [];
+      if (outputs.length === 0) {
+        status.textContent = `Aucune conversion disponible pour .${json.input_format || '?'}.`;
+        return;
+      }
+
+      select.innerHTML = '<option value="">Selectionnez un format</option>';
+      outputs.forEach((format) => {
+        const value = String(format || '').trim().toLowerCase();
+        if (!value) return;
+
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value.toUpperCase();
+        select.appendChild(option);
+      });
+
+      status.textContent = `Format source detecte: .${String(json.input_format || '').toUpperCase()}`;
+      select.disabled = false;
+      btn.disabled = false;
+    } catch (error) {
+      status.classList.add('text-danger');
+      status.textContent = error.message || 'Erreur lors du chargement des formats.';
+      return;
+    }
+
+    btn.addEventListener('click', async () => {
+      const outputFormat = String(select.value || '').trim().toLowerCase();
+      if (!outputFormat) {
+        resultBox.innerHTML = '<p class="text-danger mb-0">Selectionnez un format de sortie.</p>';
+        return;
+      }
+
+      resultBox.innerHTML = '<p class="text-muted mb-0">Conversion en cours...</p>';
+      btn.disabled = true;
+
+      try {
+        const body = new FormData();
+        body.append('output_format', outputFormat);
+
+        const { res, json } = await hbFetchJson(convertUrl, {
+          method: 'POST',
+          body
+        });
+
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error || 'Conversion echouee.');
+        }
+
+        const downloadUrl = json.result?.download_url;
+        const filename = json.result?.filename || `converted.${outputFormat}`;
+        const expiresAt = json.result?.expires_at;
+
+        if (!downloadUrl) {
+          throw new Error('Lien de telechargement manquant.');
+        }
+
+        resultBox.innerHTML = `
+          <div class="alert alert-success mb-0">
+            <div><strong>Conversion terminee.</strong></div>
+            <div class="mt-1">Fichier: ${hbEscapeHtml(filename)}</div>
+            ${expiresAt ? `<div class="small text-muted mt-1">Lien valide jusqu'a ${hbEscapeHtml(expiresAt)} (UTC)</div>` : ''}
+            <div class="mt-2">
+              <a href="${hbEscapeHtml(downloadUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
+                Telecharger
+              </a>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        resultBox.innerHTML = `<p class="text-danger mb-0">${hbEscapeHtml(error.message || 'Erreur de conversion.')}</p>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function hbInitDocumentSummary() {
+    const card = document.getElementById('hbSummaryCard');
+    const btn = document.getElementById('hbSummaryBtn');
+    const status = document.getElementById('hbSummaryStatus');
+    const resultBox = document.getElementById('hbSummaryResult');
+    const minInput = document.getElementById('hbSummaryMinLength');
+    const maxInput = document.getElementById('hbSummaryMaxLength');
+    if (!card || !btn || !status || !resultBox || !minInput || !maxInput) return;
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    const summarizeUrl = card.dataset.summarizeUrl;
+    if (!summarizeUrl) return;
+
+    btn.addEventListener('click', async () => {
+      const minLength = Number(minInput.value || 40);
+      const maxLength = Number(maxInput.value || 140);
+
+      resultBox.innerHTML = '';
+      status.classList.remove('text-danger');
+      status.textContent = 'Generation du resume en cours...';
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          min_length: minLength,
+          max_length: maxLength
+        };
+        const { res, json } = await hbFetchJson(summarizeUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error || 'Echec de la summarisation.');
+        }
+
+        const summaryText = String(json.summary || '').trim();
+        const meta = json.meta || {};
+
+        status.textContent = 'Resume genere avec succes.';
+        resultBox.innerHTML = `
+          <div class="alert alert-success mb-0">
+            <div class="mb-2"><strong>Resume:</strong></div>
+            <div style="white-space: pre-wrap;">${hbEscapeHtml(summaryText || 'Aucun resume retourne.')}</div>
+            <hr>
+            <div class="small text-muted">
+              Modele: ${hbEscapeHtml(meta.model || '-')} |
+              Source texte: ${hbEscapeHtml(meta.text_source || '-')} |
+              Conversion: ${meta.was_converted ? 'oui' : 'non'} |
+              Input chars: ${hbEscapeHtml(meta.input_length ?? '-')}${meta.input_truncated ? ' (tronque)' : ''}
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        status.classList.add('text-danger');
+        status.textContent = 'Erreur de resume.';
+        resultBox.innerHTML = `<p class="text-danger mb-0">${hbEscapeHtml(error.message || 'Erreur inconnue.')}</p>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function hbInitDocumentClassification() {
+    const card = document.getElementById('hbClassifyCard');
+    const btn = document.getElementById('hbClassifyBtn');
+    const status = document.getElementById('hbClassifyStatus');
+    const resultBox = document.getElementById('hbClassifyResult');
+    const labelsInput = document.getElementById('hbClassifyLabels');
+    const multiLabelInput = document.getElementById('hbClassifyMultiLabel');
+    if (!card || !btn || !status || !resultBox || !labelsInput || !multiLabelInput) return;
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    const classifyUrl = card.dataset.classifyUrl;
+    if (!classifyUrl) return;
+
+    const parseLabels = () => String(labelsInput.value || '')
+      .split(/[,\n;]+/)
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+    btn.addEventListener('click', async () => {
+      const labels = parseLabels();
+      const multiLabel = Boolean(multiLabelInput.checked);
+
+      resultBox.innerHTML = '';
+      status.classList.remove('text-danger');
+      status.textContent = 'Classification en cours...';
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          labels,
+          multi_label: multiLabel
+        };
+        const { res, json } = await hbFetchJson(classifyUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error || 'Echec de la classification.');
+        }
+
+        const topLabel = String(json.classification?.top_label || '-');
+        const topScore = Number(json.classification?.top_score || 0);
+        const labelsResult = Array.isArray(json.classification?.labels) ? json.classification.labels : [];
+        const meta = json.meta || {};
+
+        const lines = labelsResult.map((row, index) => {
+          const rank = index + 1;
+          const label = hbEscapeHtml(row.label || '-');
+          const score = (Number(row.score || 0) * 100).toFixed(2);
+          return `<div>${rank}. ${label} - ${score}%</div>`;
+        }).join('');
+
+        status.textContent = 'Classification terminee.';
+        resultBox.innerHTML = `
+          <div class="alert alert-success mb-0">
+            <div><strong>Categorie principale:</strong> ${hbEscapeHtml(topLabel)} (${(topScore * 100).toFixed(2)}%)</div>
+            <hr>
+            <div><strong>Toutes les categories:</strong></div>
+            <div class="mt-1">${lines || 'Aucun resultat.'}</div>
+            <hr>
+            <div class="small text-muted">
+              Modele: ${hbEscapeHtml(meta.model || '-')} |
+              Source texte: ${hbEscapeHtml(meta.text_source || '-')} |
+              Conversion: ${meta.was_converted ? 'oui' : 'non'} |
+              Input chars: ${hbEscapeHtml(meta.input_length ?? '-')}${meta.input_truncated ? ' (tronque)' : ''}
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        status.classList.add('text-danger');
+        status.textContent = 'Erreur de classification.';
+        resultBox.innerHTML = `<p class="text-danger mb-0">${hbEscapeHtml(error.message || 'Erreur inconnue.')}</p>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function hbInitDocumentExtraction() {
+    const card = document.getElementById('hbExtractCard');
+    const btn = document.getElementById('hbExtractBtn');
+    const status = document.getElementById('hbExtractStatus');
+    const resultBox = document.getElementById('hbExtractResult');
+    if (!card || !btn || !status || !resultBox) return;
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    const extractUrl = card.dataset.extractUrl;
+    if (!extractUrl) return;
+
+    btn.addEventListener('click', async () => {
+      resultBox.innerHTML = '';
+      status.classList.remove('text-danger');
+      status.textContent = 'Extraction en cours...';
+      btn.disabled = true;
+
+      try {
+        const { res, json } = await hbFetchJson(extractUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
+
+        if (!res.ok || !json.ok) {
+          throw new Error(json.error || 'Echec de l extraction des donnees.');
+        }
+
+        const detection = json.detection || {};
+        const extraction = json.extraction || {};
+        const fields = extraction.fields && typeof extraction.fields === 'object' ? extraction.fields : {};
+        const meta = json.meta || {};
+        const entries = Object.entries(fields).filter(([, value]) => hbHasExtractValue(value));
+
+        const rows = entries.map(([key, value]) => `
+          <tr>
+            <th scope="row" class="w-25">${hbEscapeHtml(hbFormatFieldLabel(String(key)))}</th>
+            <td>${hbFormatExtractValue(value)}</td>
+          </tr>
+        `).join('');
+
+        status.textContent = 'Extraction terminee.';
+        resultBox.innerHTML = `
+          <div class="alert alert-success mb-0">
+            <div><strong>Type detecte:</strong> ${hbEscapeHtml(detection.document_type || extraction.document_type || 'autre')}</div>
+            <div class="small text-muted mt-1">
+              Methode: ${hbEscapeHtml(detection.method || '-')}
+              ${detection.confidence !== null && detection.confidence !== undefined ? `| Confiance: ${(Number(detection.confidence) * 100).toFixed(2)}%` : ''}
+            </div>
+            <hr>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <tbody>
+                  ${rows || '<tr><td colspan="2" class="text-muted">Aucune donnee extraite.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+            <hr>
+            <div class="small text-muted">
+              Source texte: ${hbEscapeHtml(meta.text_source || '-')} |
+              Conversion: ${meta.was_converted ? 'oui' : 'non'} |
+              Taille texte: ${hbEscapeHtml(meta.input_chars ?? '-')} caracteres
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        status.classList.add('text-danger');
+        status.textContent = 'Erreur d extraction.';
+        resultBox.innerHTML = `<p class="text-danger mb-0">${hbEscapeHtml(error.message || 'Erreur inconnue.')}</p>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  function hbInitDocumentShowPage() {
+    hbInitShareDatetime();
+    hbToggleShareChannel();
+    const channelInput = document.getElementById('shareChannel');
+    if (channelInput) {
+      channelInput.addEventListener('change', hbToggleShareChannel);
+    }
+    hbInitShareSubmitAlert();
+
+    hbInitDocumentSummary();
+    hbInitDocumentClassification();
+    hbInitDocumentExtraction();
+    hbInitDocumentConversion();
+
     const iframe = document.querySelector('.hb-media iframe[title="Apercu PDF"]');
     const fb = document.getElementById('hbPdfFallback');
     if(!iframe || !fb) return;
 
+    if (iframe.dataset.hbPdfInit === '1') {
+      return;
+    }
+    iframe.dataset.hbPdfInit = '1';
+
     let loaded = false;
-    iframe.addEventListener('load', () => { loaded = true; });
+    iframe.addEventListener('load', () => {
+      loaded = true;
+      iframe.style.display = 'block';
+      fb.style.display = 'none';
+    }, { once: true });
 
     setTimeout(() => {
       if(!loaded){
         iframe.style.display = 'none';
         fb.style.display = 'block';
       }
-    }, 1200);
-  });
+    }, 6000);
+  }
+
+  // fallback PDF + interactions share (DOMContentLoaded and Turbo navigation)
+  document.addEventListener('DOMContentLoaded', hbInitDocumentShowPage);
+  document.addEventListener('turbo:load', hbInitDocumentShowPage);
 </script>
 
 

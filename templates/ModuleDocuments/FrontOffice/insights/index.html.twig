@@ -1,0 +1,231 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Smart Insights{% endblock %}
+
+{% block content %}
+<style>
+  .hb-insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .hb-insights-title h4{margin:0}
+  .hb-insights-title p{margin:2px 0 0;color:#6c7a89}
+  .hb-insights-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+  .hb-kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  @media(min-width:992px){.hb-kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+  .hb-kpi{background:#fff;border:1px solid rgba(67,89,113,.12);border-radius:16px;padding:14px 14px 12px}
+  .hb-kpi-label{font-size:.84rem;color:#6b7686}
+  .hb-kpi-value{font-size:1.45rem;font-weight:800;color:#2f3b48;line-height:1.2}
+  .hb-kpi-note{font-size:.78rem;color:#8592a3}
+
+  .hb-panel{background:#fff;border:1px solid rgba(67,89,113,.12);border-radius:16px;padding:14px}
+  .hb-panel h6{margin:0 0 10px;font-weight:800}
+  .hb-muted{color:#7f8b9a;font-size:.92rem}
+  .hb-grid-2{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+  @media(min-width:1200px){.hb-grid-2{grid-template-columns:1.2fr .8fr}}
+
+  .hb-list{display:flex;flex-direction:column;gap:8px}
+  .hb-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(67,89,113,.1);border-radius:12px;background:#fbfcff}
+  .hb-item-name{font-weight:700;color:#2f3b48;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hb-item-num{font-weight:800;color:#4f61ff}
+
+  .hb-heatmap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px}
+  @media(min-width:768px){.hb-heatmap{grid-template-columns:repeat(24,minmax(0,1fr));}}
+  .hb-hour{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .hb-bar-wrap{height:92px;width:100%;display:flex;align-items:flex-end}
+  .hb-bar{width:100%;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,#6c7bff,#52d2c7);min-height:4px}
+  .hb-hour-label{font-size:.73rem;color:#8391a4}
+  .hb-hour-count{font-size:.73rem;color:#4f5e70;font-weight:700}
+
+  .hb-alert{border-radius:12px;padding:10px 12px}
+  .hb-alert-warning{background:#fff7e6;border:1px solid #ffd48a}
+  .hb-alert-info{background:#edf6ff;border:1px solid #b7dcff}
+  .hb-empty{border:1px dashed rgba(67,89,113,.22);border-radius:12px;padding:14px;text-align:center;color:#7f8b9a}
+</style>
+
+<div id="hbInsightsApp"
+     data-overview-url="{{ path('app_document_insights_overview') }}"
+     data-top-url="{{ path('app_document_insights_top_documents') }}"
+     data-heatmap-url="{{ path('app_document_insights_activity_heatmap') }}"
+     data-alerts-url="{{ path('app_document_insights_alerts') }}">
+
+  <div class="hb-insights-head">
+    <div class="hb-insights-title">
+      <h4 class="fw-bold">Smart Insights</h4>
+      <p>Analyse comportementale des documents (temps reel)</p>
+    </div>
+    <div class="hb-insights-tools">
+      <select id="hbInsightsRange" class="form-select">
+        <option value="7d">7 jours</option>
+        <option value="30d" selected>30 jours</option>
+        <option value="90d">90 jours</option>
+      </select>
+      <button id="hbInsightsRefresh" type="button" class="btn btn-primary">
+        <i class="bx bx-refresh me-1"></i>Actualiser
+      </button>
+    </div>
+  </div>
+
+  <div class="hb-kpi-grid" id="hbKpiGrid">
+    <div class="hb-kpi"><div class="hb-kpi-label">Evenements</div><div class="hb-kpi-value">-</div><div class="hb-kpi-note">Toutes actions</div></div>
+    <div class="hb-kpi"><div class="hb-kpi-label">Partages</div><div class="hb-kpi-value">-</div><div class="hb-kpi-note">Email + WhatsApp</div></div>
+    <div class="hb-kpi"><div class="hb-kpi-label">Vues</div><div class="hb-kpi-value">-</div><div class="hb-kpi-note">Ouvertures document</div></div>
+    <div class="hb-kpi"><div class="hb-kpi-label">Blocages</div><div class="hb-kpi-value">-</div><div class="hb-kpi-note">Anti-spam / validation</div></div>
+  </div>
+
+  <div class="hb-grid-2">
+    <section class="hb-panel">
+      <h6>Activite par heure</h6>
+      <p class="hb-muted mb-2">Distribution des actions documents sur la journee.</p>
+      <div id="hbHeatmap" class="hb-heatmap"></div>
+    </section>
+
+    <section class="hb-panel">
+      <h6>Top documents partages</h6>
+      <p class="hb-muted mb-2">Documents les plus envoyes sur la periode.</p>
+      <div id="hbTopDocs" class="hb-list"></div>
+    </section>
+  </div>
+
+  <section class="hb-panel mt-3">
+    <h6>Alertes intelligentes</h6>
+    <p class="hb-muted mb-2">Detection simple des pics de partage et abus.</p>
+    <div id="hbAlerts" class="hb-list"></div>
+  </section>
+</div>
+
+<script>
+  (function () {
+    function hbNum(v) {
+      return Number(v || 0).toLocaleString('fr-FR');
+    }
+
+    async function hbFetchJson(url) {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      const json = await res.json().catch(() => ({}));
+      return { res, json };
+    }
+
+    function hbRenderKpis(container, overview) {
+      if (!container) return;
+      const cards = container.querySelectorAll('.hb-kpi');
+      if (cards.length < 4) return;
+
+      cards[0].querySelector('.hb-kpi-value').textContent = hbNum(overview.totalEvents);
+      cards[1].querySelector('.hb-kpi-value').textContent = hbNum(overview.sharesTotal);
+      cards[2].querySelector('.hb-kpi-value').textContent = hbNum(overview.views);
+      cards[3].querySelector('.hb-kpi-value').textContent = hbNum(overview.shareBlocks);
+    }
+
+    function hbRenderTopDocs(container, items) {
+      if (!container) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<div class="hb-empty">Aucun partage sur cette periode.</div>';
+        return;
+      }
+
+      container.innerHTML = items.map((item, index) => `
+        <div class="hb-item">
+          <div class="hb-item-name">${index + 1}. ${String(item.documentName || 'Document')}</div>
+          <div class="hb-item-num">${hbNum(item.shareCount)}</div>
+        </div>
+      `).join('');
+    }
+
+    function hbRenderHeatmap(container, items) {
+      if (!container) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<div class="hb-empty">Aucune activite disponible.</div>';
+        return;
+      }
+
+      let max = 0;
+      items.forEach((it) => { max = Math.max(max, Number(it.count || 0)); });
+      if (max <= 0) max = 1;
+
+      container.innerHTML = items.map((it) => {
+        const count = Number(it.count || 0);
+        const h = Math.max(4, Math.round((count / max) * 92));
+        return `
+          <div class="hb-hour">
+            <div class="hb-bar-wrap"><div class="hb-bar" style="height:${h}px"></div></div>
+            <div class="hb-hour-count">${hbNum(count)}</div>
+            <div class="hb-hour-label">${String(it.hour).padStart(2, '0')}h</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function hbRenderAlerts(container, alerts) {
+      if (!container) return;
+      if (!Array.isArray(alerts) || alerts.length === 0) {
+        container.innerHTML = '<div class="hb-empty">Aucune alerte sur la periode recente.</div>';
+        return;
+      }
+
+      container.innerHTML = alerts.map((a) => {
+        const cls = a.severity === 'warning' ? 'hb-alert-warning' : 'hb-alert-info';
+        return `<div class="hb-alert ${cls}">${a.message || 'Alerte'}</div>`;
+      }).join('');
+    }
+
+    async function hbLoadInsights(app) {
+      const range = app.querySelector('#hbInsightsRange')?.value || '30d';
+      const kpiGrid = app.querySelector('#hbKpiGrid');
+      const topDocs = app.querySelector('#hbTopDocs');
+      const heatmap = app.querySelector('#hbHeatmap');
+      const alerts = app.querySelector('#hbAlerts');
+      const refreshBtn = app.querySelector('#hbInsightsRefresh');
+
+      if (refreshBtn) refreshBtn.disabled = true;
+      try {
+        const [overviewRes, topRes, heatRes, alertRes] = await Promise.all([
+          hbFetchJson(`${app.dataset.overviewUrl}?range=${encodeURIComponent(range)}`),
+          hbFetchJson(`${app.dataset.topUrl}?range=${encodeURIComponent(range)}&limit=5`),
+          hbFetchJson(`${app.dataset.heatmapUrl}?range=${encodeURIComponent(range)}`),
+          hbFetchJson(app.dataset.alertsUrl),
+        ]);
+
+        if (!overviewRes.res.ok || !overviewRes.json.ok) {
+          throw new Error(overviewRes.json.error || 'Chargement overview impossible');
+        }
+
+        hbRenderKpis(kpiGrid, overviewRes.json.overview || {});
+        hbRenderTopDocs(topDocs, topRes.json.items || []);
+        hbRenderHeatmap(heatmap, heatRes.json.items || []);
+        hbRenderAlerts(alerts, alertRes.json.alerts || []);
+      } catch (e) {
+        const message = String(e && e.message ? e.message : 'Erreur chargement insights');
+        if (topDocs) topDocs.innerHTML = `<div class="hb-empty">${message}</div>`;
+        if (heatmap) heatmap.innerHTML = `<div class="hb-empty">${message}</div>`;
+        if (alerts) alerts.innerHTML = `<div class="hb-empty">${message}</div>`;
+      } finally {
+        if (refreshBtn) refreshBtn.disabled = false;
+      }
+    }
+
+    function hbInitInsightsPage() {
+      const app = document.getElementById('hbInsightsApp');
+      if (!app || app.dataset.hbBound === '1') return;
+      app.dataset.hbBound = '1';
+
+      const range = app.querySelector('#hbInsightsRange');
+      const refreshBtn = app.querySelector('#hbInsightsRefresh');
+
+      if (range) {
+        range.addEventListener('change', () => hbLoadInsights(app));
+      }
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => hbLoadInsights(app));
+      }
+
+      hbLoadInsights(app);
+    }
+
+    document.addEventListener('DOMContentLoaded', hbInitInsightsPage);
+    document.addEventListener('turbo:load', hbInitInsightsPage);
+  })();
+</script>
+{% endblock %}
+

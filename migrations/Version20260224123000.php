@@ -24,6 +24,8 @@ final class Version20260224123000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $schemaManager = $this->connection->createSchemaManager();
+        $userIdCollation = $this->resolveUserIdCollation();
+        $userIdCharset = $this->resolveCharsetFromCollation($userIdCollation);
 
         if (!$schemaManager->tablesExist(['admin_biometric_profile'])) {
             $this->addSql('CREATE TABLE admin_biometric_profile (id VARCHAR(36) NOT NULL, user_id VARCHAR(36) NOT NULL, provider VARCHAR(32) NOT NULL, reference_face_token_encrypted VARCHAR(512) NOT NULL, enabled TINYINT(1) NOT NULL, consent_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', UNIQUE INDEX uniq_admin_biometric_user (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -39,21 +41,37 @@ final class Version20260224123000 extends AbstractMigration
         }
 
         // Recovery path when tables exist from a previously failed migration.
-        $this->addSql('ALTER TABLE admin_biometric_profile CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-        $this->addSql('ALTER TABLE admin_biometric_profile MODIFY id VARCHAR(36) NOT NULL');
-        $this->addSql('ALTER TABLE admin_biometric_profile MODIFY user_id VARCHAR(36) NOT NULL');
+        $this->addSql(sprintf(
+            'ALTER TABLE admin_biometric_profile CONVERT TO CHARACTER SET %s COLLATE %s',
+            $userIdCharset,
+            $userIdCollation
+        ));
+        $this->addSql(sprintf('ALTER TABLE admin_biometric_profile MODIFY id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
+        $this->addSql(sprintf('ALTER TABLE admin_biometric_profile MODIFY user_id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
 
-        $this->addSql('ALTER TABLE biometric_verification_attempt CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-        $this->addSql('ALTER TABLE biometric_verification_attempt MODIFY actor_user_id VARCHAR(36) NOT NULL');
-        $this->addSql('ALTER TABLE biometric_verification_attempt MODIFY target_user_id VARCHAR(36) DEFAULT NULL');
+        $this->addSql(sprintf(
+            'ALTER TABLE biometric_verification_attempt CONVERT TO CHARACTER SET %s COLLATE %s',
+            $userIdCharset,
+            $userIdCollation
+        ));
+        $this->addSql(sprintf('ALTER TABLE biometric_verification_attempt MODIFY actor_user_id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
+        $this->addSql(sprintf('ALTER TABLE biometric_verification_attempt MODIFY target_user_id VARCHAR(36) COLLATE %s DEFAULT NULL', $userIdCollation));
 
-        $this->addSql('ALTER TABLE admin_ai_session CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-        $this->addSql('ALTER TABLE admin_ai_session MODIFY id VARCHAR(36) NOT NULL');
-        $this->addSql('ALTER TABLE admin_ai_session MODIFY actor_user_id VARCHAR(36) NOT NULL');
+        $this->addSql(sprintf(
+            'ALTER TABLE admin_ai_session CONVERT TO CHARACTER SET %s COLLATE %s',
+            $userIdCharset,
+            $userIdCollation
+        ));
+        $this->addSql(sprintf('ALTER TABLE admin_ai_session MODIFY id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
+        $this->addSql(sprintf('ALTER TABLE admin_ai_session MODIFY actor_user_id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
 
-        $this->addSql('ALTER TABLE admin_ai_execution_log CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-        $this->addSql('ALTER TABLE admin_ai_execution_log MODIFY session_id VARCHAR(36) NOT NULL');
-        $this->addSql('ALTER TABLE admin_ai_execution_log MODIFY actor_user_id VARCHAR(36) NOT NULL');
+        $this->addSql(sprintf(
+            'ALTER TABLE admin_ai_execution_log CONVERT TO CHARACTER SET %s COLLATE %s',
+            $userIdCharset,
+            $userIdCollation
+        ));
+        $this->addSql(sprintf('ALTER TABLE admin_ai_execution_log MODIFY session_id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
+        $this->addSql(sprintf('ALTER TABLE admin_ai_execution_log MODIFY actor_user_id VARCHAR(36) COLLATE %s NOT NULL', $userIdCollation));
 
         $bioForeignKeys = array_map(
             static fn ($fk) => $fk->getName(),
@@ -135,5 +153,33 @@ final class Version20260224123000 extends AbstractMigration
             }
             $this->addSql('DROP TABLE admin_biometric_profile');
         }
+    }
+
+    private function resolveUserIdCollation(): string
+    {
+        $collation = $this->connection->fetchOne(
+            "SELECT COLLATION_NAME
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = 'user'
+               AND COLUMN_NAME = 'id'
+             LIMIT 1"
+        );
+
+        if (!is_string($collation) || trim($collation) === '') {
+            return 'utf8mb4_unicode_ci';
+        }
+
+        return trim($collation);
+    }
+
+    private function resolveCharsetFromCollation(string $collation): string
+    {
+        $charset = strstr($collation, '_', true);
+        if (!is_string($charset) || $charset === '') {
+            return 'utf8mb4';
+        }
+
+        return $charset;
     }
 }

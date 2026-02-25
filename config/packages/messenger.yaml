@@ -15,7 +15,7 @@ framework:
           max_retries: 2
           multiplier: 2
 
-      # ✅ transport dédié au scheduler
+      # transport dédié au scheduler
       scheduler_default: 'schedule://default'
 
       failed: 'doctrine://default?queue_name=failed'
@@ -26,12 +26,15 @@ framework:
       messenger.bus.default: []
 
     routing:
-      # ✅ notre message de purge va dans scheduler_default
+      # scheduler
       App\Message\PurgeTrashMessage: scheduler_default
       App\Message\ApplyTaskPenaltiesMessage: scheduler_default
       App\Message\RunWeeklyInsightsJobMessage: scheduler_default
 
+      # IA / images
       App\Message\AnalyzeTaskProofImageMessage: ai_async
+
+      # notifications & messaging
       App\Message\SendAccountNotification: async
       App\Message\TaskCompleted: async
       Symfony\Component\Mailer\Messenger\SendEmailMessage: async
@@ -43,3 +46,6 @@ when@dev:
     messenger:
       transports:
         async: 'sync://'
+        ai_async: 'sync://'
+        scheduler_default: 'sync://'
+        failed: 'sync://'
