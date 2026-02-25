@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Family;
 use App\Entity\Score;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -42,6 +44,44 @@ class ScoreRepository extends ServiceEntityRepository
             ->setParameter('family', $family)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findOneForUserAndFamily(User $user, Family $family): ?Score
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.user = :user')
+            ->andWhere('s.family = :family')
+            ->setParameter('user', $user)
+            ->setParameter('family', $family)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @return array<string, Score>
+     */
+    public function findIndexedByUserForFamily(Family $family): array
+    {
+        $scores = $this->createQueryBuilder('s')
+            ->addSelect('u')
+            ->join('s.user', 'u')
+            ->andWhere('s.family = :family')
+            ->setParameter('family', $family)
+            ->getQuery()
+            ->getResult();
+
+        $indexed = [];
+        foreach ($scores as $score) {
+            $userId = $score->getUser()?->getId();
+            if ($userId === null) {
+                continue;
+            }
+
+            $indexed[$userId] = $score;
+        }
+
+        return $indexed;
     }
 
     //    /**

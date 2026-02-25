@@ -1,0 +1,477 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Scores de la famille{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include 'ModuleTache/partials/_theme.html.twig' %}
+    <style>
+        .score-module .sc-shell {
+            border: 1px solid rgba(67, 89, 113, 0.12);
+            border-radius: 1rem;
+            background: linear-gradient(145deg, #ffffff, #f8f9ff);
+            box-shadow: 0 12px 28px rgba(67, 89, 113, 0.08);
+        }
+        .score-module .sc-stat {
+            padding: 1rem;
+            border: 1px solid rgba(67, 89, 113, 0.12);
+            border-radius: 0.85rem;
+            background: #fff;
+            height: 100%;
+        }
+        .score-module .sc-stat-label {
+            color: #8592a3;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+        }
+        .score-module .sc-stat-value {
+            margin-top: 0.35rem;
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #233446;
+        }
+        .score-module .sc-rank {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            background: rgba(105, 108, 255, 0.14);
+            color: #4b4fd8;
+        }
+        .score-module .sc-rank.top {
+            background: rgba(255, 171, 0, 0.2);
+            color: #8a6400;
+        }
+        .score-module .sc-history-item {
+            border: 1px solid rgba(67, 89, 113, 0.12);
+            border-radius: 0.85rem;
+            padding: 0.85rem 0.95rem;
+            background: #fff;
+        }
+        .score-module .sc-history-list {
+            max-height: 460px;
+            overflow: auto;
+        }
+        .score-module .sc-points {
+            font-weight: 800;
+            color: #1f7a25;
+        }
+        .score-module .sc-points.negative {
+            color: #b42318;
+        }
+        .score-module .sc-stat-value.negative {
+            color: #b42318;
+        }
+        .score-module .sc-ai-card {
+            border: 1px solid rgba(67, 89, 113, 0.14);
+            border-radius: 1rem;
+            background: linear-gradient(145deg, #fbfbff, #f3f6ff);
+        }
+        .score-module .sc-ai-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(105, 108, 255, 0.12);
+            color: #4b4fd8;
+        }
+        .score-module .sc-ai-chip.warn {
+            background: rgba(255, 171, 0, 0.2);
+            color: #8a6400;
+        }
+        .score-module .sc-ai-chip.danger {
+            background: rgba(220, 53, 69, 0.16);
+            color: #9f1239;
+        }
+        .score-module .sc-ai-list {
+            margin: 0;
+            padding-left: 1rem;
+        }
+        .score-module .sc-ai-list li {
+            margin-bottom: 0.35rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="task-module score-module">
+    <div class="tm-page-head">
+        <div>
+            <h1 class="tm-title h3">Score et classement</h1>
+            <p class="tm-subtitle">Suivez les points de chaque membre et l'historique des taches validees.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if app.user.familyRole and app.user.familyRole.value == 'PARENT' %}
+                <form method="post" action="{{ path('task_score_ai_refresh') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('task_score_ai_refresh') }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bx bx-bot"></i>
+                        Regenerer IA
+                    </button>
+                </form>
+                <a href="{{ path('task_score_rules') }}" class="btn btn-outline-primary">
+                    <i class="bx bx-slider-alt"></i>
+                    Regles des points
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% set insight = weeklyInsightPayload %}
+    <div class="card tm-card sc-ai-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-start">
+            <div>
+                <h5 class="mb-1">IA resume hebdo & engagement</h5>
+                {% if weeklyInsight %}
+                    <div class="tm-meta">
+                        Semaine du {{ weeklyInsight.weekStart|date('d/m/Y') }} au {{ weeklyInsight.weekEnd|date('d/m/Y') }}
+                        <span class="sc-ai-chip ms-2 {{ weeklyInsight.status == 'FALLBACK' ? 'warn' : '' }}">
+                            {{ (weeklyInsight.provider ?? 'local')|upper }} / {{ weeklyInsight.status }}
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="tm-meta">Aucun resume IA disponible pour le moment.</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if insight %}
+                <div class="row g-4">
+                    <div class="col-12 col-xl-5">
+                        <h6 class="mb-2">Qui a le plus progresse ?</h6>
+                        {% set improved = insight.mostImproved ?? {} %}
+                        <div class="sc-history-item mb-3">
+                            <div class="fw-semibold">{{ improved.memberName|default('Aucun membre') }}</div>
+                            <div class="tm-meta mb-1">{{ improved.insight|default('Pas assez de donnees cette semaine.') }}</div>
+                            <span class="sc-points {{ (improved.deltaPoints|default(0)) < 0 ? 'negative' : '' }}">
+                                {{ (improved.deltaPoints|default(0)) > 0 ? '+' : '' }}{{ improved.deltaPoints|default(0) }} pts
+                            </span>
+                        </div>
+
+                        <h6 class="mb-2">Momentum famille</h6>
+                        <p class="mb-3">{{ insight.familyMomentum|default('Aucune tendance disponible.') }}</p>
+
+                        <h6 class="mb-2">Recommandations IA</h6>
+                        {% if insight.recommendations is defined and insight.recommendations is not empty %}
+                            <ul class="sc-ai-list">
+                                {% for reco in insight.recommendations %}
+                                    <li>{{ reco }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="tm-empty">Pas de recommandations pour cette semaine.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-xl-7">
+                        <h6 class="mb-2">Taches qui bloquent</h6>
+                        {% if insight.blockingTasks is defined and insight.blockingTasks is not empty %}
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                {% for block in insight.blockingTasks %}
+                                    <div class="sc-history-item">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <div>
+                                                <div class="fw-semibold">{{ block.taskTitle|default('Tache') }}</div>
+                                                <div class="tm-meta">{{ block.why|default('Blocage detecte.') }}</div>
+                                            </div>
+                                            {% set sev = block.severity|default('medium') %}
+                                            <span class="sc-ai-chip {{ sev == 'high' ? 'danger' : (sev == 'medium' ? 'warn' : '') }}">
+                                                {{ sev|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="tm-empty mb-3">Aucune tache bloquante detectee cette semaine.</div>
+                        {% endif %}
+
+                        <h6 class="mb-2">IA engagement enfant</h6>
+                        {% if insight.engagement is defined and insight.engagement is not empty %}
+                            <div class="d-flex flex-column gap-2">
+                                {% for row in insight.engagement %}
+                                    {% set status = row.status|default('watch') %}
+                                    <div class="sc-history-item">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <div>
+                                                <div class="fw-semibold">{{ row.memberName|default('Enfant') }}</div>
+                                                <div class="tm-meta mb-1">{{ row.signal|default('Signal engagement non disponible.') }}</div>
+                                                {% if row.challenges is defined and row.challenges is not empty %}
+                                                    <ul class="sc-ai-list mb-0">
+                                                        {% for challenge in row.challenges %}
+                                                            <li>{{ challenge }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                            <span class="sc-ai-chip {{ status == 'low' ? 'danger' : (status == 'watch' ? 'warn' : '') }}">
+                                                {{ status|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="tm-empty">Aucune donnee engagement enfant pour cette semaine.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="tm-empty">
+                    Lancez une generation IA pour obtenir le resume hebdomadaire et les challenges personnalises.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="sc-shell p-3 p-lg-4 mb-4">
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="sc-stat">
+                    <div class="sc-stat-label">Mon score</div>
+                    <div class="sc-stat-value">{{ currentUserRow ? currentUserRow.points : 0 }} pts</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="sc-stat">
+                    <div class="sc-stat-label">Total famille</div>
+                    <div class="sc-stat-value">{{ familyTotal }} pts</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="sc-stat">
+                    <div class="sc-stat-label">Mon rang</div>
+                    <div class="sc-stat-value">#{{ currentUserRow ? currentUserRow.rank : '-' }}</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="sc-stat">
+                    <div class="sc-stat-label">Dernier mouvement</div>
+                    <div class="sc-stat-value fs-5 {{ recentAward and recentAward.points < 0 ? 'negative' : '' }}">
+                        {% if recentAward %}
+                            {{ recentAward.points > 0 ? '+' : '' }}{{ recentAward.points }} pts
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                    <div class="tm-meta mt-1">
+                        {% if recentAward %}
+                            {{ recentAward.task.title }} • {{ recentAward.createdAt|date('d/m/Y H:i') }}
+                        {% else %}
+                            Aucun gain enregistre
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card tm-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Evolution du classement</h5>
+        </div>
+        <div class="card-body" style="height: 320px;">
+            {% if leaderboardChartLabels is empty %}
+                <div class="tm-empty h-100 d-flex align-items-center justify-content-center">
+                    Aucun point disponible pour afficher le classement.
+                </div>
+            {% else %}
+                <canvas id="score-evolution-chart" aria-label="Evolution du classement"></canvas>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-5">
+            <div class="card tm-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Classement famille</h5>
+                    <span class="tm-badge info">{{ leaderboard|length }} membres</span>
+                </div>
+                <div class="card-body">
+                    {% if leaderboard is empty %}
+                        <div class="tm-empty">Aucun membre dans cette famille.</div>
+                    {% else %}
+                        <div class="d-flex flex-column gap-2">
+                            {% for row in leaderboard %}
+                                {% set isTop = row.rank == 1 %}
+                                <div class="sc-history-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="sc-rank {{ isTop ? 'top' : '' }}">{{ row.rank }}</span>
+                                        <div>
+                                            <div class="fw-semibold">{{ row.displayName }}</div>
+                                            <div class="tm-meta">
+                                                {% if row.lastUpdated %}
+                                                    Maj: {{ row.lastUpdated|date('d/m/Y H:i') }}
+                                                {% else %}
+                                                    Aucun gain pour le moment
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="sc-points {{ row.points < 0 ? 'negative' : '' }}">{{ row.points > 0 ? '+' : '' }}{{ row.points }} pts</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-7">
+            <div class="card tm-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Historique des points</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1" for="score-q">Recherche</label>
+                            <input id="score-q" type="text" name="q" value="{{ currentSearch }}" class="form-control form-control-sm" placeholder="Titre de tache">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1" for="score-member">Membre</label>
+                            <select id="score-member" name="member" class="form-select form-select-sm">
+                                <option value="all" {{ currentMemberId == 'all' ? 'selected' : '' }}>Tous</option>
+                                {% for member in members %}
+                                    {% set memberName = (member.firstName ~ ' ' ~ member.lastName)|trim %}
+                                    <option value="{{ member.id }}" {{ currentMemberId == member.id ? 'selected' : '' }}>
+                                        {{ memberName != '' ? memberName : member.email }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label mb-1" for="score-sort">Trier</label>
+                            <select id="score-sort" name="sort" class="form-select form-select-sm">
+                                <option value="newest" {{ currentSort == 'newest' ? 'selected' : '' }}>Recent</option>
+                                <option value="oldest" {{ currentSort == 'oldest' ? 'selected' : '' }}>Ancien</option>
+                                <option value="points_desc" {{ currentSort == 'points_desc' ? 'selected' : '' }}>Points +</option>
+                                <option value="points_asc" {{ currentSort == 'points_asc' ? 'selected' : '' }}>Points -</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label mb-1" for="score-source">Source</label>
+                            <select id="score-source" name="source" class="form-select form-select-sm">
+                                <option value="all" {{ currentSource == 'all' ? 'selected' : '' }}>Toutes</option>
+                                <option value="ai" {{ currentSource == 'ai' ? 'selected' : '' }}>IA</option>
+                                <option value="manual" {{ currentSource == 'manual' ? 'selected' : '' }}>Parent</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2 d-grid gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary">Appliquer</button>
+                            <a href="{{ path('task_score_index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if historyEntries is empty %}
+                        <div class="tm-empty">Aucun evenement de score pour ce filtre.</div>
+                    {% else %}
+                        <div class="d-flex flex-column gap-2 sc-history-list">
+                            {% for entry in historyEntries %}
+                                {% set memberName = (entry.score.user.firstName ~ ' ' ~ entry.score.user.lastName)|trim %}
+                                <div class="sc-history-item">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <div class="fw-semibold">
+                                                {{ entry.task.title }}
+                                                {% if entry.awardedByAi %}
+                                                    <span class="tm-badge info ms-1">IA</span>
+                                                {% else %}
+                                                    <span class="tm-badge warning ms-1">Parent</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="tm-meta">{{ memberName != '' ? memberName : entry.score.user.email }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="sc-points {{ entry.points < 0 ? 'negative' : '' }}">{{ entry.points > 0 ? '+' : '' }}{{ entry.points }} pts</div>
+                                            <div class="tm-meta">{{ entry.createdAt|date('d/m/Y H:i') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            {{ knp_pagination_render(historyEntries) }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const canvas = document.getElementById('score-evolution-chart');
+            if (!canvas) {
+                return;
+            }
+
+            const labels = {{ leaderboardChartLabels|json_encode|raw }};
+            const data = {{ leaderboardChartData|json_encode|raw }};
+
+            if (!Array.isArray(labels) || labels.length === 0 || !Array.isArray(data)) {
+                return;
+            }
+
+            try {
+                const chartModule = await import('{{ asset('vendor/chart.js/chart.js.index.js') }}');
+                const Chart = chartModule.Chart || chartModule.default;
+                const registerables = chartModule.registerables || [];
+
+                if (!Chart) {
+                    return;
+                }
+
+                if (Array.isArray(registerables) && registerables.length > 0 && typeof Chart.register === 'function') {
+                    Chart.register(...registerables);
+                }
+
+                new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Points',
+                            data: data,
+                            backgroundColor: 'rgba(105, 108, 255, 0.72)',
+                            borderColor: 'rgba(105, 108, 255, 1)',
+                            borderWidth: 1,
+                            borderRadius: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Chart rendering failed:', e);
+            }
+        });
+    </script>
+{% endblock %}

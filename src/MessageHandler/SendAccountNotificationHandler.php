@@ -3,6 +3,8 @@
 namespace App\MessageHandler;
 
 use App\Entity\AccountNotification;
+use App\Entity\User;
+use App\Enum\FamilyRole;
 use App\Message\SendAccountNotification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -65,7 +67,7 @@ final class SendAccountNotificationHandler
         }
 
         try {
-            $email = $this->buildEmail($user->getEmail(), $user->getFirstName() ?? $user->getUserIdentifier(), $key, $payload);
+            $email = $this->buildEmail($user, $user->getEmail(), $user->getFirstName() ?? $user->getUserIdentifier(), $key, $payload);
             $this->mailer->send($email);
 
             $notification->setStatus('SENT');
@@ -85,7 +87,7 @@ final class SendAccountNotificationHandler
     /**
      * @param array<string, mixed> $payload
      */
-    private function buildEmail(string $to, string $name, string $key, array $payload): TemplatedEmail
+    private function buildEmail(User $user, string $to, string $name, string $key, array $payload): TemplatedEmail
     {
         $from = (string) $this->parameterBag->get('app.notification_from');
         $context = [
@@ -118,6 +120,16 @@ final class SendAccountNotificationHandler
             $subject = 'HomeBalance family update';
             $template = 'emails/family_action.html.twig';
             $context['cta'] = $this->urlGenerator->generate('portal_family_settings', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        } elseif (str_starts_with($key, 'task_')) {
+            $subject = 'HomeBalance task update';
+            $template = 'emails/task_action.html.twig';
+
+            $taskRoute = 'child_task_index';
+            if ($user->getFamilyRole() === FamilyRole::PARENT) {
+                $taskRoute = 'parent_self_task_index';
+            }
+
+            $context['cta'] = $this->urlGenerator->generate($taskRoute, [], UrlGeneratorInterface::ABSOLUTE_URL);
         } elseif ($key === 'password_reset') {
             $subject = 'HomeBalance account update';
             $template = 'emails/account_action.html.twig';

@@ -27,6 +27,13 @@ class ScoreHistory
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?TaskCompletion $completion = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $awardedByAi = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +83,30 @@ class ScoreHistory
     public function setTask(?Task $task): static
     {
         $this->task = $task;
+
+        return $this;
+    }
+
+    public function getCompletion(): ?TaskCompletion
+    {
+        return $this->completion;
+    }
+
+    public function setCompletion(?TaskCompletion $completion): static
+    {
+        $this->completion = $completion;
+
+        return $this;
+    }
+
+    public function isAwardedByAi(): bool
+    {
+        return $this->awardedByAi;
+    }
+
+    public function setAwardedByAi(bool $awardedByAi): static
+    {
+        $this->awardedByAi = $awardedByAi;
 
         return $this;
     }

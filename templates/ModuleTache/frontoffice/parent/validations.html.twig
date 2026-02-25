@@ -40,6 +40,23 @@
                                     <img src="{{ asset('uploads/proofs/' ~ c.proof) }}" class="tm-proof" alt="Preuve">
                                 {% endif %}
 
+                                {% set ai = c.aiEvaluation %}
+                                <div class="mt-3 p-2 rounded border bg-light">
+                                    <div class="fw-semibold mb-1">Suggestion IA</div>
+                                    {% if ai %}
+                                        <div class="tm-meta">
+                                            Provider: {{ ai.provider|upper }}{% if ai.model %} ({{ ai.model }}){% endif %}<br>
+                                            Statut: {{ ai.status ? ai.status.value : 'N/A' }}
+                                            {% if ai.decision %} / Decision: {{ ai.decision.value }}{% endif %}<br>
+                                            Score: {{ ai.tidyScore is not null ? ai.tidyScore : '-' }} / 100
+                                            {% if ai.confidence is not null %} - Confiance: {{ (ai.confidence * 100)|round(0) }}%{% endif %}<br>
+                                            {% if ai.reasonShort %}Raison: {{ ai.reasonShort }}{% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="tm-meta">Aucune analyse encore disponible.</div>
+                                    {% endif %}
+                                </div>
+
                                 <div class="mt-3 tm-actions">
                                     <a href="{{ path('parent_validation_accept', {id: c.id}) }}" class="btn btn-sm btn-success">
                                         <i class="bx bx-check"></i>

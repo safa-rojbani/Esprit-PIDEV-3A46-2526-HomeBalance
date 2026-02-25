@@ -6,6 +6,8 @@ use App\Entity\User;
 use App\Entity\Family;
 use App\Enum\FamilyRole;
 use App\Repository\TaskRepository;
+use App\Service\TaskPointResolver;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +21,8 @@ class FamilyTaskController extends AbstractController
     public function list(
         Request $request,
         TaskRepository $taskRepository,
+        TaskPointResolver $taskPointResolver,
+        PaginatorInterface $paginator,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$user, $family] = $this->resolveUserAndFamily($familyResolver);
@@ -32,9 +36,17 @@ class FamilyTaskController extends AbstractController
         }
 
         $tasks = $taskRepository->findActiveFamilyTasksFiltered($family, $search, $sort);
+        $taskPoints = $taskPointResolver->resolvePointsForTasks($tasks);
+        $tasks = $paginator->paginate(
+            $tasks,
+            max(1, $request->query->getInt('page', 1)),
+            10,
+            ['pageParameterName' => 'page']
+        );
 
         return $this->render('ModuleTache/frontoffice/family/tasks.html.twig', [
             'tasks' => $tasks,
+            'taskPoints' => $taskPoints,
             'currentSearch' => $search,
             'currentSort' => $sort,
         ]);

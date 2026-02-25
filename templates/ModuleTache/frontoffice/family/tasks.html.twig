@@ -59,7 +59,7 @@
                 </div>
             {% else %}
                 <div class="px-3 pt-3 small text-muted">
-                    {{ tasks|length }} tache(s) trouvee(s)
+                    {{ tasks.getTotalItemCount|default(tasks|length) }} tache(s) trouvee(s)
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
@@ -69,6 +69,7 @@
                                 <th>Description</th>
                                 <th>Difficulte</th>
                                 <th>Recurrence</th>
+                                <th>Points</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,10 +79,14 @@
                                 <td>{{ task.description }}</td>
                                 <td><span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span></td>
                                 <td><span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span></td>
+                                <td><span class="tm-badge success">{{ taskPoints[task.id]|default(0) }} pts</span></td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                </div>
+                <div class="px-3 py-3 border-top">
+                    {{ knp_pagination_render(tasks) }}
                 </div>
             {% endif %}
         </div>

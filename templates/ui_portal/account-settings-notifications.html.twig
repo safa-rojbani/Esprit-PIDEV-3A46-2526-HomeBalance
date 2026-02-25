@@ -64,4 +64,58 @@
       </div>
     </div>
   </form>
+
+  <div class="card mt-4">
+    <div class="card-body pb-2">
+      <h5 class="mb-1">Notifications in-app</h5>
+      <span class="card-subtitle">Historique recent visible directement dans l'interface.</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Detail</th>
+            <th class="text-end">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recentInAppNotifications is empty %}
+            <tr>
+              <td colspan="3" class="text-center text-muted py-4">Aucune notification in-app pour le moment.</td>
+            </tr>
+          {% else %}
+            {% for n in recentInAppNotifications %}
+              {% set payload = n.payload ?? {} %}
+              <tr>
+                <td class="text-nowrap">
+                  {% if n.key == 'task_penalty_applied' %}
+                    <span class="badge bg-label-danger">Penalite membre</span>
+                  {% elseif n.key == 'task_penalty_parent_alert' %}
+                    <span class="badge bg-label-warning">Alerte parent</span>
+                  {% else %}
+                    <span class="badge bg-label-secondary">{{ n.key|replace({'_': ' '})|title }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if payload.taskTitle is defined %}
+                    <div class="fw-semibold">{{ payload.taskTitle }}</div>
+                  {% endif %}
+                  <div class="small text-muted">
+                    {% if payload.reasonLabel is defined %}{{ payload.reasonLabel }}{% endif %}
+                    {% if payload.points is defined %} · {{ payload.points > 0 ? '+' : '' }}{{ payload.points }} pts{% endif %}
+                    {% if payload.memberName is defined and n.key == 'task_penalty_parent_alert' %} · {{ payload.memberName }}{% endif %}
+                    {% if payload.dueDate is defined and payload.dueDate %} · Deadline: {{ payload.dueDate }}{% endif %}
+                  </div>
+                </td>
+                <td class="text-end text-nowrap text-muted">
+                  {{ n.createdAt ? n.createdAt|date('d/m/Y H:i') : '-' }}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 {% endblock %}

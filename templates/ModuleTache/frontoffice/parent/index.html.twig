@@ -14,10 +14,20 @@
             <h1 class="tm-title h3">Espace parent</h1>
             <p class="tm-subtitle">Ajoutez des taches globales et gerez les taches de votre famille.</p>
         </div>
-        <a href="{{ path('parent_task_new') }}" class="btn btn-primary">
-            <i class="bx bx-plus"></i>
-            Nouvelle tache personnalisee
-        </a>
+        <div class="tm-actions">
+            <a href="{{ path('task_score_index') }}" class="btn btn-outline-primary">
+                <i class="bx bx-trophy"></i>
+                Scores
+            </a>
+            <a href="{{ path('task_score_rules') }}" class="btn btn-outline-primary">
+                <i class="bx bx-slider-alt"></i>
+                Regles points
+            </a>
+            <a href="{{ path('parent_task_new') }}" class="btn btn-primary">
+                <i class="bx bx-plus"></i>
+                Nouvelle tache personnalisee
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -37,6 +47,7 @@
                                         <div class="tm-task-name">{{ task.title }}</div>
                                         <div class="tm-meta">{{ task.description }}</div>
                                         <div class="mt-2 d-flex gap-2">
+                                            <span class="tm-badge success">{{ adminTaskPoints[task.id]|default(0) }} pts</span>
                                             <span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span>
                                             <span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span>
                                         </div>
@@ -48,6 +59,9 @@
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="mt-3">
+                            {{ knp_pagination_render(adminTasks) }}
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -68,6 +82,11 @@
                                     <div>
                                         <div class="tm-task-name">{{ task.title }}</div>
                                         <div class="tm-meta">{{ task.description }}</div>
+                                        <div class="mt-2 d-flex gap-2">
+                                            <span class="tm-badge success">{{ familyTaskPoints[task.id]|default(0) }} pts</span>
+                                            <span class="tm-badge info">{{ task.difficulty ? task.difficulty.value : '-' }}</span>
+                                            <span class="tm-badge info">{{ task.recurrence ? task.recurrence.value : '-' }}</span>
+                                        </div>
                                     </div>
                                     <div class="tm-actions">
                                         <a href="{{ path('parent_task_edit', {id: task.id}) }}" class="btn btn-sm btn-outline-primary">
@@ -88,6 +107,9 @@
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="mt-3">
+                            {{ knp_pagination_render(familyTasks) }}
+                        </div>
                     {% endif %}
                 </div>
             </div>

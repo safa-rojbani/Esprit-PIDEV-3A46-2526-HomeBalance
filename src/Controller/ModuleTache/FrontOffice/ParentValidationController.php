@@ -8,11 +8,14 @@ use App\Entity\User;
 use App\Enum\FamilyRole;
 use App\Form\ParentRefusalType;
 use App\Service\ActiveFamilyResolver;
+use App\Service\TaskScoringService;
+use App\Message\TaskCompleted;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[Route('/portal/tasks/parent/validations')]
 class ParentValidationController extends AbstractController
@@ -27,6 +30,8 @@ class ParentValidationController extends AbstractController
             ->select('tc')
             ->from(TaskCompletion::class, 'tc')
             ->join('tc.task', 't')
+            ->leftJoin('tc.aiEvaluation', 'aie')
+            ->addSelect('aie')
             ->where('tc.isValidated IS NULL')
             ->andWhere('t.family = :family')
             ->setParameter('family', $family)
@@ -43,7 +48,9 @@ class ParentValidationController extends AbstractController
     public function accept(
         TaskCompletion $completion,
         EntityManagerInterface $em,
-        ActiveFamilyResolver $familyResolver
+        ActiveFamilyResolver $familyResolver,
+        TaskScoringService $taskScoringService,
+        MessageBusInterface $messageBus
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
         $this->ensureParent($parent);
@@ -59,7 +66,19 @@ class ParentValidationController extends AbstractController
         $completion->setValidatedBy($parent);
         $completion->setValidatedAt(new \DateTimeImmutable());
 
+        $awardedPoints = $taskScoringService->awardPointsForValidatedCompletion($completion);
         $em->flush();
+
+        if ($awardedPoints > 0) {
+            $messageBus->dispatch(new TaskCompleted([
+                'familyId' => $family->getId(),
+            ]));
+            $this->addFlash('success', sprintf(
+                '%s a gagne %d points.',
+                $completion->getUser()?->getFirstName() ?? 'Le membre',
+                $awardedPoints
+            ));
+        }
 
         return $this->redirectToRoute('parent_validation_index');
     }

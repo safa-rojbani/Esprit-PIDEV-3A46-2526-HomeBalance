@@ -2,7 +2,9 @@
 
 namespace App\Scheduler;
 
+use App\Message\ApplyTaskPenaltiesMessage;
 use App\Message\PurgeTrashMessage;
+use App\Message\RunWeeklyInsightsJobMessage;
 use Cron\CronExpression;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -21,6 +23,18 @@ final class TrashSchedule implements ScheduleProviderInterface
                     CronExpression::factory('0 0 * * *')
                 ),
                 new PurgeTrashMessage()
+            ))
+            ->add(RecurringMessage::trigger(
+                new CronExpressionTrigger(
+                    CronExpression::factory('10 0 * * *')
+                ),
+                new ApplyTaskPenaltiesMessage()
+            ))
+            ->add(RecurringMessage::trigger(
+                new CronExpressionTrigger(
+                    CronExpression::factory('0 22 * * 0')
+                ),
+                new RunWeeklyInsightsJobMessage()
             ));
     }
 }

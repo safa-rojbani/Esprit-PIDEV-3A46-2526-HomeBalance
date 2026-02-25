@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Task;
 use App\Entity\TaskCompletion;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +16,19 @@ class TaskCompletionRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskCompletion::class);
+    }
+
+    public function findLatestForTaskAndUser(Task $task, User $user): ?TaskCompletion
+    {
+        return $this->createQueryBuilder('tc')
+            ->andWhere('tc.task = :task')
+            ->andWhere('tc.user = :user')
+            ->setParameter('task', $task)
+            ->setParameter('user', $user)
+            ->orderBy('tc.completedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     //    /**

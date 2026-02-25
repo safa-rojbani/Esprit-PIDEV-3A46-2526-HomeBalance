@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Badge;
+use App\Entity\Family;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -110,6 +111,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('badge', $badge)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function findFamilyMembers(Family $family): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('u.FirstName', 'ASC')
+            ->addOrderBy('u.LastName', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
