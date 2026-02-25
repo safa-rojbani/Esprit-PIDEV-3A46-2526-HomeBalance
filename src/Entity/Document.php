@@ -145,12 +145,16 @@ class Document
 
     public function getFilePath(): ?string
     {
-        return $this->filePath;
+        if ($this->filePath === null) {
+            return null;
+        }
+
+        return ltrim($this->filePath, '/');
     }
 
     public function setFilePath(string $filePath): static
     {
-        $this->filePath = $filePath;
+        $this->filePath = ltrim($filePath, '/');
 
         return $this;
     }

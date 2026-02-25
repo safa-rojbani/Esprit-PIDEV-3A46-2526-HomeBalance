@@ -4,6 +4,7 @@ namespace App\Controller\ModuleDocuments\FrontOffice\API;
 
 use App\Entity\Document;
 use App\Entity\Gallery;
+use App\Enum\DocumentActivityEvent;
 use App\Enum\EtatDocument;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,11 +14,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ActiveFamilyResolver;
 use App\Entity\User;
+use App\Service\DocumentActivityTracker;
+use App\Service\PortalNotificationService;
 
 final class CameraUploadController extends AbstractController
 {
     #[Route('/portal/documents/api/galleries/{id}/camera-upload', name: 'api_camera_upload', methods: ['POST'])]
-    public function __invoke(Gallery $gallery, Request $request, EntityManagerInterface $em, ActiveFamilyResolver $familyResolver): JsonResponse
+    public function __invoke(
+        Gallery $gallery,
+        Request $request,
+        EntityManagerInterface $em,
+        ActiveFamilyResolver $familyResolver,
+        PortalNotificationService $portalNotificationService,
+        DocumentActivityTracker $documentActivityTracker
+    ): JsonResponse
     {
         try {
             $user = $this->getUser();
@@ -82,7 +92,7 @@ final class CameraUploadController extends AbstractController
 
             $doc = new Document();
             $doc->setFileName($name);
-            $doc->setFilePath('/uploads/documents/' . $name);
+            $doc->setFilePath('uploads/documents/' . $name);
             $doc->setFileType($mime ?: ($isImage ? 'image/jpeg' : 'video/webm'));
             $doc->setFilesize($size ? (string) $size : null);
             $doc->setUploadedAt($now);
@@ -95,6 +105,28 @@ final class CameraUploadController extends AbstractController
             $doc->setUploadedBY($user);
 
             $em->persist($doc);
+            $em->flush();
+
+            $portalNotificationService->notifyFamily($family, $user, 'document_uploaded', [
+                'documentId' => $doc->getId(),
+                'documentName' => $doc->getFileName(),
+                'galleryId' => $gallery->getId(),
+                'galleryName' => $gallery->getName(),
+                'source' => 'camera',
+                'route' => 'app_gallery_show',
+                'routeParams' => ['id' => $gallery->getId()],
+            ]);
+            $documentActivityTracker->track(
+                $family,
+                $user,
+                $doc,
+                DocumentActivityEvent::DOCUMENT_UPLOADED,
+                null,
+                [
+                    'source' => 'camera',
+                    'galleryId' => $gallery->getId(),
+                ]
+            );
             $em->flush();
 
             return $this->json([

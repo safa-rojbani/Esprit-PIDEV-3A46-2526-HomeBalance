@@ -6,6 +6,11 @@
 parameters:
     app.notification_from: 'no-reply@homebalance.local'
     app.audit_retention_days: 180
+    app.public_base_url: '%env(APP_URL)%'
+    app.cloudconvert.base_uri: 'https://api.cloudconvert.com/v2'
+    app.cloudconvert.sync_base_uri: 'https://sync.api.cloudconvert.com/v2'
+    app.abstract_email_validation.base_uri: 'https://emailvalidation.abstractapi.com/v1/'
+    app.huggingface.base_uri: 'https://router.huggingface.co/hf-inference/models'
 
 services:
     # default configuration for services in *this* file
@@ -25,5 +30,38 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Service\AvatarStorage:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\CloudConvertClient:
+        arguments:
+            $apiKey: '%env(CLOUDCONVERT_API_KEY)%'
+            $baseUri: '%app.cloudconvert.base_uri%'
+            $syncBaseUri: '%app.cloudconvert.sync_base_uri%'
+
+    App\Service\AbstractEmailValidationClient:
+        arguments:
+            $apiKey: '%env(string:ABSTRACT_EMAIL_VALIDATION_API_KEY)%'
+            $baseUri: '%app.abstract_email_validation.base_uri%'
+
+    App\Service\HuggingFaceSummarizerClient:
+        arguments:
+            $apiKey: '%env(string:HUGGINGFACE_API_KEY)%'
+            $model: '%env(default::HUGGINGFACE_SUMMARY_MODEL)%'
+            $baseUri: '%app.huggingface.base_uri%'
+
+    App\Service\HuggingFaceZeroShotClassifierClient:
+        arguments:
+            $apiKey: '%env(string:HUGGINGFACE_API_KEY)%'
+            $model: '%env(default::HUGGINGFACE_ZERO_SHOT_MODEL)%'
+            $baseUri: '%app.huggingface.base_uri%'
+
+    App\Service\HuggingFaceImageOcrClient:
+        arguments:
+            $apiKey: '%env(string:HUGGINGFACE_API_KEY)%'
+            $model: '%env(default::HUGGINGFACE_OCR_MODEL)%'
+            $baseUri: '%app.huggingface.base_uri%'
+
+    App\Service\DocumentTextExtractor:
         arguments:
             $projectDir: '%kernel.project_dir%'

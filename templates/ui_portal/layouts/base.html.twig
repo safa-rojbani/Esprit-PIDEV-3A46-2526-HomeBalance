@@ -79,12 +79,22 @@
           ? [
             {'label': 'Default galleries', 'route': 'app_default_gallery_index'}
           ]
-          : [
-            {'label': 'Galeries', 'route': 'app_gallery_index'},
-            {'label': 'Documents', 'route': 'app_document_index'},
-            {'label': 'Galeries masquees', 'route': 'app_gallery_hidden'},
-            {'label': 'Corbeille', 'route': 'app_document_trash'}
-          ]
+          : (
+            family_role_value == 'PARENT'
+              ? [
+                {'label': 'Galeries', 'route': 'app_gallery_index'},
+                {'label': 'Documents', 'route': 'app_document_index'},
+                {'label': 'Smart Insights', 'route': 'app_document_insights'},
+                {'label': 'Galeries masquees', 'route': 'app_gallery_hidden'},
+                {'label': 'Corbeille', 'route': 'app_document_trash'}
+              ]
+              : [
+                {'label': 'Galeries', 'route': 'app_gallery_index'},
+                {'label': 'Documents', 'route': 'app_document_index'},
+                {'label': 'Galeries masquees', 'route': 'app_gallery_hidden'},
+                {'label': 'Corbeille', 'route': 'app_document_trash'}
+              ]
+          )
         %}
         {% set default_tasks_submenus = is_granted('ROLE_ADMIN')
           ? [
@@ -120,6 +130,7 @@
             {'label': 'Evenements', 'route': 'app_evenement_index'},
             {'label': 'Types evenements', 'route': 'app_type_evenement_index'},
             {'label': 'Rappels', 'route': 'app_rappel_history'},
+            {'label': 'Notifications', 'route': 'app_notifications'},
             {'label': 'Calendrier', 'route': 'app_calendar'}
           ]
         %}
@@ -159,7 +170,6 @@
 
       <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-
     <script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
     <script src="{{ asset('vendor/js/bootstrap.js') }}"></script>

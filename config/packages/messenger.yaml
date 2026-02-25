@@ -10,7 +10,7 @@ framework:
           multiplier: 2
 
       # ✅ transport dédié au scheduler
-      scheduler_default: 'doctrine://default?queue_name=scheduler'
+      scheduler_default: 'schedule://default'
 
       failed: 'doctrine://default?queue_name=failed'
 
@@ -21,8 +21,6 @@ framework:
 
     routing:
       # ✅ notre message de purge va dans scheduler_default
-      App\Message\PurgeTrashMessage: scheduler_default
-
       App\Message\SendAccountNotification: async
       App\Message\TaskCompleted: async
       Symfony\Component\Mailer\Messenger\SendEmailMessage: async

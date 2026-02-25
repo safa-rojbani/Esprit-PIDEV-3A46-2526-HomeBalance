@@ -79,7 +79,7 @@
   .hb-modal-actions{margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 
-{% set activeDocs = documents|filter(d => d.etat and d.etat.value == 'actif') %}
+{% set totalDocs = documents.getTotalItemCount %}
 {% set createdLabel = gallery.createdAt ? gallery.createdAt|date('d/m/Y') : '-' %}
 
 <div class="hb-page">
@@ -89,7 +89,7 @@
       <p class="hb-album-sub">{{ gallery.description ?: 'Aucune description pour le moment.' }}</p>
 
       <div class="hb-mini">
-        <span class="hb-chip"><i class="bx bx-file"></i>{{ activeDocs|length }} doc{{ activeDocs|length > 1 ? 's' : '' }}</span>
+        <span class="hb-chip"><i class="bx bx-file"></i>{{ totalDocs }} doc{{ totalDocs > 1 ? 's' : '' }}</span>
         <span class="hb-chip"><i class="bx bx-calendar"></i>{{ createdLabel }}</span>
       </div>
     </div>
@@ -132,11 +132,11 @@
     </div>
   </div>
 
-  {% if activeDocs|length == 0 %}
+  {% if totalDocs == 0 %}
     <div class="alert alert-info mb-0">Aucun document actif dans cette galerie.</div>
   {% else %}
     <div class="hb-doc-grid">
-      {% for document in activeDocs %}
+      {% for document in documents %}
         <div class="hb-doc hb-doc-item"
              data-name="{{ document.fileName|lower }}"
              data-type="{{ document.fileType|lower }}"
@@ -170,7 +170,7 @@
           <div class="hb-doc-card">
             <div class="hb-thumb">
               {% if document.fileType starts with 'image/' %}
-                <img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+                <img src="{{ document.filePath|imagine_filter('gallery_thumb') }}" alt="{{ document.fileName }}">
                 <span class="hb-doc-type"><i class="bx bx-image-alt me-1"></i>Image</span>
               {% elseif document.fileType == 'application/pdf' %}
                 <i class="bx bxs-file-pdf" style="font-size:44px;opacity:.55;"></i>
@@ -192,6 +192,10 @@
 
         </div>
       {% endfor %}
+    </div>
+
+    <div class="mt-3">
+      {{ knp_pagination_render(documents) }}
     </div>
   {% endif %}
 
@@ -325,5 +329,4 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') hbCloseTran
 })();
 </script>
 {% endblock %}
-
 
