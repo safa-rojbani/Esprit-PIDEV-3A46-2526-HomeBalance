@@ -10,6 +10,27 @@
       {{ form_row(form.lieu) }}
     </div>
     <div class="col-12">
+      <div class="mt-1">
+        <div id="eventLeafletMap" class="evt-map"></div>
+        <div class="form-text">Clique sur la carte pour choisir le lieu.</div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <button type="button"
+                id="btn-generate-description"
+                class="btn btn-outline-primary btn-sm">
+          <span id="btn-icon">✨</span>
+          <span id="btn-text">Generer une description avec l'IA</span>
+        </button>
+        <span id="ai-status-badge" class="badge bg-secondary d-none">
+          Verification IA...
+        </span>
+      </div>
+      <div id="ai-error-alert"
+           class="alert alert-danger py-1 px-2 d-none mb-2"
+           role="alert">
+      </div>
       {{ form_row(form.description) }}
     </div>
     <div class="col-md-6">
@@ -26,6 +47,375 @@
     </div>
   </div>
   <div class="mt-3">
+    {% if evenement is defined and evenement.images is defined and evenement.images|length > 0 %}
+      <div class="mb-2">
+        <strong>Images existantes</strong>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for image in evenement.images %}
+          {% if image.imageName %}
+            <div class="d-inline-flex flex-column align-items-start">
+              <img src="{{ asset('uploads/evenements/' ~ image.imageName) }}" class="img-fluid rounded border" style="max-height:120px;" alt="Image evenement">
+              <button class="btn btn-sm btn-outline-danger mt-1"
+                      type="submit"
+                      form="delete-image-{{ image.id }}"
+                      onclick="return confirm('Supprimer cette image ?');">
+                Supprimer
+              </button>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if form.imageFiles is defined %}
+      {{ form_row(form.imageFiles) }}
+      <div class="form-text">Ajoute de nouvelles images, les anciennes seront conservees.</div>
+    {% endif %}
+  </div>
+  <div class="mt-3">
     <button class="btn evt-btn-primary">{{ button_label|default('Enregistrer') }}</button>
   </div>
 {{ form_end(form) }}
+
+<div class="mt-4 d-none" id="eventMapFormWrapper" data-location="">
+  <strong>Carte</strong>
+  <div class="mt-2">
+    <iframe
+      id="eventMapFormFrame"
+      width="100%"
+      height="250"
+      style="border:0"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      src="">
+    </iframe>
+  </div>
+  <div class="small text-muted mt-2" id="eventDistanceForm"></div>
+</div>
+
+{% if evenement is defined and evenement.images is defined and evenement.images|length > 0 %}
+  {% for image in evenement.images %}
+    <form id="delete-image-{{ image.id }}"
+          method="post"
+          action="{{ path('app_evenement_image_delete', { id: evenement.id, imageId: image.id }) }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('delete_image' ~ image.id) }}">
+    </form>
+  {% endfor %}
+{% endif %}
+
+<script>
+  (function () {
+    function initEventMapForm() {
+      const lieuInput = document.querySelector('input[name$="[lieu]"], textarea[name$="[lieu]"]');
+      const mapWrapper = document.getElementById('eventMapFormWrapper');
+      const mapFrame = document.getElementById('eventMapFormFrame');
+      const distanceEl = document.getElementById('eventDistanceForm');
+      const mapEl = document.getElementById('eventLeafletMap');
+      if (!lieuInput || !mapWrapper || !mapFrame || !distanceEl) return;
+
+      let lastQuery = '';
+      let geoPromise = null;
+      let leafletMap = null;
+      let marker = null;
+
+      function getUserPosition() {
+        if (geoPromise) return geoPromise;
+        geoPromise = new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 8000
+          });
+        });
+        return geoPromise;
+      }
+
+      function haversineKm(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const toRad = (v) => (v * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
+
+      async function geocodeLocation(location) {
+        const url = `/portal/geo/search?q=${encodeURIComponent(location)}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) return null;
+        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      }
+
+      async function reverseGeocode(lat, lon) {
+        const url = `/portal/geo/reverse?lat=${lat}&lon=${lon}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        return data && data.display_name ? data.display_name : `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      }
+
+      function setMap(lat, lon) {
+        const delta = 0.02;
+        const bbox = [
+          (lon - delta).toFixed(6),
+          (lat - delta).toFixed(6),
+          (lon + delta).toFixed(6),
+          (lat + delta).toFixed(6)
+        ].join('%2C');
+        mapFrame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${lat},${lon}&layer=mapnik`;
+        mapWrapper.classList.remove('d-none');
+      }
+
+      function setLeafletMarker(lat, lon, zoom = 13) {
+        if (!leafletMap || !window.L) return;
+        if (!marker) {
+          marker = window.L.marker([lat, lon]).addTo(leafletMap);
+        } else {
+          marker.setLatLng([lat, lon]);
+        }
+        leafletMap.setView([lat, lon], zoom);
+      }
+
+      async function updateMapAndDistance(location) {
+        if (!location) {
+          mapFrame.src = '';
+          mapWrapper.classList.add('d-none');
+          distanceEl.textContent = '';
+          return;
+        }
+        distanceEl.textContent = 'Recherche de la position...';
+        try {
+          const coords = await geocodeLocation(location);
+          if (!coords) {
+            mapFrame.src = '';
+            mapWrapper.classList.add('d-none');
+            distanceEl.textContent = 'Lieu introuvable.';
+            return;
+          }
+          setMap(coords.lat, coords.lon);
+          setLeafletMarker(coords.lat, coords.lon);
+          try {
+            const pos = await getUserPosition();
+            const km = haversineKm(pos.coords.latitude, pos.coords.longitude, coords.lat, coords.lon);
+            distanceEl.textContent = `Distance depuis votre position: ${km.toFixed(2)} km`;
+          } catch (e) {
+            distanceEl.textContent = 'Autorisez la localisation pour calculer la distance.';
+          }
+        } catch (e) {
+          mapFrame.src = '';
+          mapWrapper.classList.add('d-none');
+          distanceEl.textContent = '';
+        }
+      }
+
+      let debounce;
+      function scheduleUpdate() {
+        const value = (lieuInput.value || '').trim();
+        if (value === lastQuery) return;
+        lastQuery = value;
+        clearTimeout(debounce);
+        debounce = setTimeout(() => updateMapAndDistance(value), 500);
+      }
+
+      lieuInput.addEventListener('input', scheduleUpdate);
+      if (lieuInput.value) {
+        updateMapAndDistance(lieuInput.value.trim());
+      }
+
+      if (mapEl && window.L) {
+        if (mapEl._leaflet_id) {
+          mapEl._leaflet_id = null;
+          mapEl.innerHTML = '';
+        }
+        leafletMap = window.L.map(mapEl).setView([36.8065, 10.1815], 6);
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(leafletMap);
+        leafletMap.on('click', async (e) => {
+          const { lat, lng } = e.latlng;
+          setLeafletMarker(lat, lng);
+          try {
+            const place = await reverseGeocode(lat, lng);
+            lieuInput.value = place;
+            lieuInput.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (err) {
+            lieuInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            lieuInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initEventMapForm);
+    document.addEventListener('turbo:load', initEventMapForm);
+    document.addEventListener('turbo:before-cache', () => {
+      const mapEl = document.getElementById('eventLeafletMap');
+      if (mapEl) {
+        mapEl._leaflet_id = null;
+        mapEl.innerHTML = '';
+      }
+    });
+  })();
+</script>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+<script>
+  (function () {
+    function initCkeditor() {
+      const descriptionField = document.querySelector('[id$="_description"]');
+      if (!descriptionField || descriptionField.dataset.ckeditorReady === '1') {
+        return;
+      }
+
+      if (!window.ClassicEditor) {
+        return;
+      }
+
+      descriptionField.dataset.ckeditorReady = '1';
+
+      if (!window.evtCkeditorInstances) {
+        window.evtCkeditorInstances = new Map();
+      }
+
+      window.ClassicEditor
+        .create(descriptionField, {
+          toolbar: [
+            'heading',
+            '|',
+            'bold',
+            'italic',
+            'link',
+            'bulletedList',
+            'numberedList',
+            '|',
+            'blockQuote',
+            'undo',
+            'redo'
+          ]
+        })
+        .then(function (editor) {
+          window.evtCkeditorInstances.set(descriptionField, editor);
+        })
+        .catch(function () {});
+    }
+
+    document.addEventListener('DOMContentLoaded', initCkeditor);
+    document.addEventListener('turbo:load', initCkeditor);
+  })();
+</script>
+<script>
+  (function () {
+    function initAiDescription() {
+      const btn = document.getElementById('btn-generate-description');
+      const btnText = document.getElementById('btn-text');
+      const btnIcon = document.getElementById('btn-icon');
+      const badge = document.getElementById('ai-status-badge');
+      const errorAlert = document.getElementById('ai-error-alert');
+
+      const titreField = document.querySelector('[id$="_titre"]');
+      const lieuField = document.querySelector('[id$="_lieu"]');
+      const descriptionField = document.querySelector('[id$="_description"]');
+      const typeField = document.querySelector('[id$="_typeEvenement"]');
+
+      if (!btn || !descriptionField) {
+        return;
+      }
+
+      if (btn.dataset.aiBound === '1') {
+        return;
+      }
+      btn.dataset.aiBound = '1';
+
+      fetch('/portal/api/ai/status')
+        .then(r => r.json())
+        .then(data => {
+          badge.classList.remove('d-none');
+          if (data.available) {
+            badge.className = 'badge bg-success';
+            badge.textContent = '✅ IA disponible';
+          } else {
+            badge.className = 'badge bg-danger';
+            badge.textContent = '❌ IA hors ligne';
+            btn.disabled = true;
+          }
+        })
+        .catch(() => {
+          badge.classList.remove('d-none');
+          badge.className = 'badge bg-warning text-dark';
+          badge.textContent = '⚠️ Statut IA inconnu';
+        });
+
+      btn.addEventListener('click', function () {
+        const titre = titreField ? titreField.value.trim() : '';
+        const lieu = lieuField ? lieuField.value.trim() : '';
+        const typeNom = typeField && typeField.selectedIndex >= 0
+          ? typeField.options[typeField.selectedIndex].text.trim()
+          : '';
+
+        if (!titre || titre.length < 3) {
+          errorAlert.textContent = 'Veuillez renseigner le titre avant de generer.';
+          errorAlert.classList.remove('d-none');
+          return;
+        }
+
+        errorAlert.classList.add('d-none');
+        btn.disabled = true;
+        btnIcon.textContent = '⏳';
+        btnText.textContent = 'Generation en cours...';
+
+        fetch('/portal/api/ai/generate-description', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titre, lieu, typeNom })
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              const editor = window.evtCkeditorInstances
+                ? window.evtCkeditorInstances.get(descriptionField)
+                : null;
+              const current = editor ? editor.getData().trim() : descriptionField.value.trim();
+              const next = current.length > 0
+                ? current + '<p></p>' + data.description
+                : data.description;
+              if (editor) {
+                editor.setData(next);
+              } else {
+                descriptionField.value = next.replace(/<[^>]*>/g, '');
+              }
+              btnIcon.textContent = '✅';
+              btnText.textContent = 'Description generee';
+              setTimeout(() => {
+                btnIcon.textContent = '✨';
+                btnText.textContent = "Regenerer la description";
+                btn.disabled = false;
+              }, 2000);
+            } else {
+              errorAlert.textContent = data.error || 'Erreur inconnue.';
+              errorAlert.classList.remove('d-none');
+              btnIcon.textContent = '✨';
+              btnText.textContent = "Generer une description avec l'IA";
+              btn.disabled = false;
+            }
+          })
+          .catch(() => {
+            errorAlert.textContent = 'Impossible de contacter le service IA.';
+            errorAlert.classList.remove('d-none');
+            btnIcon.textContent = '✨';
+            btnText.textContent = "Generer une description avec l'IA";
+            btn.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initAiDescription);
+    document.addEventListener('turbo:load', initAiDescription);
+  })();
+</script>

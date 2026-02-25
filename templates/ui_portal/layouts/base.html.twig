@@ -137,14 +137,29 @@
 
           <div class="content-wrapper">
             <div class="container-xxl flex-grow-1 container-p-y">
-              {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                  <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : label) }} alert-dismissible" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
+              <div class="toast-container position-fixed top-0 end-0 p-3" id="evtToastContainer" style="z-index: 1080;">
+                {% for label, messages in app.flashes %}
+                  {% for message in messages %}
+                    {% set toastClass = label == 'success'
+                      ? 'bg-success text-white'
+                      : (label == 'warning'
+                        ? 'bg-warning text-dark'
+                        : (label == 'error' ? 'bg-danger text-white' : 'bg-info text-white')) %}
+                    <div class="toast align-items-center {{ toastClass }} border-0 mb-2"
+                         role="alert"
+                         aria-live="assertive"
+                         aria-atomic="true"
+                         data-auto-show="1">
+                      <div class="d-flex">
+                        <div class="toast-body">
+                          {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                      </div>
+                    </div>
+                  {% endfor %}
                 {% endfor %}
-              {% endfor %}
+              </div>
 
               {% block content %}
                 {% block body %}{% endblock %}
@@ -180,6 +195,124 @@
 
         document.addEventListener('DOMContentLoaded', initDropdowns);
         document.addEventListener('turbo:load', initDropdowns);
+      })();
+    </script>
+
+    <script>
+      (function () {
+        function showToast(el, delay) {
+          if (!window.bootstrap || !window.bootstrap.Toast || !el) return;
+          const toast = window.bootstrap.Toast.getOrCreateInstance(el, {
+            delay: delay || 6000,
+            autohide: true
+          });
+          toast.show();
+        }
+
+        function initFlashToasts() {
+          document.querySelectorAll('.toast[data-auto-show="1"]').forEach(function (el) {
+            showToast(el);
+          });
+        }
+
+        const seenKey = 'evt_seen_rappel_toasts';
+        function getSeenIds() {
+          try {
+            const raw = localStorage.getItem(seenKey);
+            return raw ? new Set(JSON.parse(raw)) : new Set();
+          } catch (e) {
+            return new Set();
+          }
+        }
+
+        function saveSeenIds(set) {
+          try {
+            localStorage.setItem(seenKey, JSON.stringify(Array.from(set)));
+          } catch (e) {}
+        }
+
+        function createToastNode(message, variant) {
+          const container = document.getElementById('evtToastContainer');
+          if (!container) return null;
+          const toast = document.createElement('div');
+          toast.className = 'toast align-items-center border-0 mb-2 ' + (variant || 'bg-info text-white');
+          toast.setAttribute('role', 'alert');
+          toast.setAttribute('aria-live', 'assertive');
+          toast.setAttribute('aria-atomic', 'true');
+          toast.innerHTML = '' +
+            '<div class="d-flex">' +
+            '  <div class="toast-body">' + message + '</div>' +
+            '  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '</div>';
+          container.appendChild(toast);
+          return toast;
+        }
+
+        function updateNotificationDropdown(data) {
+          const listEl = document.getElementById('notifList');
+          const badgeEl = document.getElementById('notifBadge');
+          const countEl = document.getElementById('notifCountLabel');
+          if (!listEl || !badgeEl || !countEl) return;
+
+          const items = Array.isArray(data) ? data : [];
+          const count = items.length;
+          badgeEl.textContent = String(count);
+          countEl.textContent = String(count);
+          badgeEl.classList.toggle('d-none', count === 0);
+
+          if (count === 0) {
+            listEl.innerHTML = '<div class="dropdown-item text-muted py-3">Aucune notification pour le moment.</div>';
+            return;
+          }
+
+          listEl.innerHTML = items.map((item) => {
+            const title = item.eventTitle || 'Evenement';
+            const message = item.message || 'Nouveau rappel';
+            const time = item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : '';
+            return '' +
+              '<a class="dropdown-item d-flex align-items-start py-2" href="/portal/evenements/' + item.eventId + '">' +
+              '  <div class="flex-grow-1">' +
+              '    <div class="small text-muted">' + title + '</div>' +
+              '    <div class="fw-semibold">' + message + '</div>' +
+              '    <div class="small text-muted">' + time + '</div>' +
+              '  </div>' +
+              '</a>';
+          }).join('');
+        }
+
+        async function pollRappelToasts() {
+          try {
+            const res = await fetch('/portal/evenements/notifications/pending', {
+              headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            updateNotificationDropdown(data);
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            const seen = getSeenIds();
+            for (const item of data) {
+              if (!item || !item.id || seen.has(item.id)) {
+                continue;
+              }
+              const toast = createToastNode(item.message || 'Nouveau rappel', 'bg-primary text-white');
+              showToast(toast, 8000);
+              seen.add(item.id);
+            }
+            saveSeenIds(seen);
+          } catch (e) {
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          initFlashToasts();
+          pollRappelToasts();
+          setInterval(pollRappelToasts, 30000);
+        });
+        document.addEventListener('turbo:load', function () {
+          initFlashToasts();
+          pollRappelToasts();
+        });
       })();
     </script>
 

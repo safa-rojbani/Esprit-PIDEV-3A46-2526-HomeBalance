@@ -1,0 +1,17 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Reponse RSVP{% endblock %}
+
+{% block body %}
+<div class="container-xxl py-4">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-2">Merci pour votre reponse</h3>
+      <p>
+        Vous avez repondu : <strong>{{ invitation.statut|replace({'_':' '})|title }}</strong>
+      </p>
+      <a href="{{ path('app_calendar') }}" class="btn btn-primary">Retour au calendrier</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

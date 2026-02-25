@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <body style="font-family: Arial, sans-serif; background:#f5f7fb; padding:24px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; border:1px solid #e5e7eb;">
+      <tr>
+        <td style="padding:24px;">
+          <h2 style="margin:0 0 8px;">Invitation a un evenement</h2>
+          <p style="margin:0 0 16px; color:#4b5563;">
+            Bonjour, vous etes invite(e) a l'evenement suivant :
+          </p>
+          <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:12px; border-radius:8px;">
+            <strong>{{ evenement.titre }}</strong><br>
+            Date : {{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '-' }}<br>
+            Lieu : {{ evenement.lieu ?: '-' }}<br>
+            Organisateur : {{ organisateur ? (organisateur.firstName ~ ' ' ~ organisateur.lastName) : 'HomeBalance' }}
+          </div>
+          <div style="margin:20px 0 8px;">
+            Merci de repondre :
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ url('rsvp_repondre', {token: invitation.token, statut: 'accepte'}) }}"
+               style="background:#16a34a; color:white; padding:10px 16px; border-radius:6px; text-decoration:none;">
+              Accepter
+            </a>
+            <a href="{{ url('rsvp_repondre', {token: invitation.token, statut: 'refuse'}) }}"
+               style="background:#dc2626; color:white; padding:10px 16px; border-radius:6px; text-decoration:none;">
+              Refuser
+            </a>
+            <a href="{{ url('rsvp_repondre', {token: invitation.token, statut: 'peut_etre'}) }}"
+               style="background:#f59e0b; color:white; padding:10px 16px; border-radius:6px; text-decoration:none;">
+              Peut-etre
+            </a>
+          </div>
+          <p style="margin:20px 0 0; color:#6b7280; font-size:12px;">
+            Cet email a ete envoye par HomeBalance.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

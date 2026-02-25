@@ -30,6 +30,24 @@
           </a>
         </li>
       {% endif %}
+      <li class="nav-item dropdown me-3">
+        <a class="nav-link dropdown-toggle hide-arrow position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="icon-base bx bx-bell icon-md"></i>
+          <span class="badge bg-danger rounded-pill badge-notifications position-absolute top-0 start-100 translate-middle d-none" id="notifBadge">0</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px;">
+          <li class="dropdown-menu-header border-bottom">
+            <div class="dropdown-header d-flex align-items-center py-3">
+              <h6 class="text-body mb-0 me-auto">Notifications</h6>
+              <span class="badge bg-label-primary" id="notifCountLabel">0</span>
+            </div>
+          </li>
+          <li class="dropdown-menu-list" id="notifList" style="max-height: 320px; overflow-y: auto;"></li>
+          <li class="dropdown-menu-footer border-top">
+            <a class="dropdown-item text-center py-2" href="{{ path('app_notifications') }}">Voir tout</a>
+          </li>
+        </ul>
+      </li>
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
         <a class="nav-link dropdown-toggle hide-arrow p-0" href="#accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="avatar avatar-online">

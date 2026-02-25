@@ -1,0 +1,30 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Import iCal{% endblock %}
+
+{% block body %}
+<div class="container-xxl py-4">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-2">Importer un fichier iCal (.ics)</h3>
+      <p class="text-muted">Selectionnez un fichier .ics pour creer automatiquement des evenements.</p>
+
+      {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+      {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+      {% endfor %}
+
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token('ical_import') }}">
+        <div class="mb-3">
+          <label class="form-label">Fichier iCal</label>
+          <input type="file" name="ics_file" class="form-control" accept=".ics" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Importer</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

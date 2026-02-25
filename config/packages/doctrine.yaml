@@ -1,7 +1,8 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-        server_version: '8.0'
+        # Use the serverVersion from DATABASE_URL (MariaDB) to avoid platform mismatch
+        # server_version: '8.3'
 
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)

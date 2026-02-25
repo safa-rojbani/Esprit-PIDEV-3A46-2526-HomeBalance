@@ -1,4 +1,7 @@
 {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+  {% for message in app.flashes('warning') %}
+    <div class="alert alert-warning">{{ message }}</div>
+  {% endfor %}
   {% if form.vars.errors|length > 0 %}
     <div class="alert alert-danger py-2 mb-3">
       {{ form_errors(form) }}
@@ -18,6 +21,17 @@
       {% if form.lieu.vars.errors|length > 0 %}
         <div class="text-danger small mt-1">{{ form_errors(form.lieu) }}</div>
       {% endif %}
+    </div>
+    <div class="col-12">
+      <div class="mt-1">
+        <div id="eventLeafletMap" class="evt-map"></div>
+        <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="eventMapPickBtn">
+            Utiliser ce lieu
+          </button>
+          <div class="form-text m-0" id="eventMapHint">Clique sur la carte pour choisir un point.</div>
+        </div>
+      </div>
     </div>
     <div class="col-12">
       {{ form_label(form.description) }}
@@ -55,7 +69,190 @@
       {% endif %}
     </div>
   </div>
+  {% for message in app.flashes('warning') %}
+    <div class="alert alert-warning mt-3">{{ message }}</div>
+  {% endfor %}
   <div class="mt-3">
     <button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
   </div>
 {{ form_end(form) }}
+
+<div class="mt-2">
+  <div class="small text-muted" id="eventDistanceForm"></div>
+</div>
+
+<script>
+  (function () {
+    function initEventMapForm() {
+      const lieuInput = document.querySelector('input[name$="[lieu]"], textarea[name$="[lieu]"]');
+    const distanceEl = document.getElementById('eventDistanceForm');
+    const mapEl = document.getElementById('eventLeafletMap');
+    if (!lieuInput || !mapEl || !distanceEl) return;
+
+      let lastQuery = '';
+      let geoPromise = null;
+    let leafletMap = null;
+    let marker = null;
+    let pickedCoords = null;
+
+      function getUserPosition() {
+        if (geoPromise) return geoPromise;
+        geoPromise = new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 8000
+          });
+        });
+        return geoPromise;
+      }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (v) => (v * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function formatDistance(distanceKm) {
+      if (distanceKm < 1) {
+        return `${Math.round(distanceKm * 1000)} m`;
+      }
+      return `${distanceKm.toFixed(distanceKm < 10 ? 2 : 1)} km`;
+    }
+
+    function distanceBadge(distanceKm) {
+      if (distanceKm < 5) return '<span class="badge bg-success">Proche</span>';
+      if (distanceKm <= 50) return '<span class="badge bg-warning text-dark">Moyenne distance</span>';
+      return '<span class="badge bg-danger">Loin</span>';
+    }
+
+    async function geocodeLocation(location) {
+      const url = `/portal/geo/search?q=${encodeURIComponent(location)}`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return null;
+      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    }
+
+    async function reverseGeocode(lat, lon) {
+      const url = `/portal/geo/reverse?lat=${lat}&lon=${lon}`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      return data && data.display_name ? data.display_name : `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    }
+
+    function setLeafletMarker(lat, lon, zoom = 13) {
+      if (!leafletMap || !window.L) return;
+      if (!marker) {
+        marker = window.L.marker([lat, lon]).addTo(leafletMap);
+      } else {
+        marker.setLatLng([lat, lon]);
+      }
+      leafletMap.setView([lat, lon], zoom);
+    }
+
+      async function updateMapAndDistance(location) {
+      if (!location) {
+        distanceEl.textContent = '';
+        return;
+      }
+      distanceEl.textContent = 'Recherche de la position...';
+      try {
+        const coords = await geocodeLocation(location);
+        if (!coords) {
+          distanceEl.textContent = 'Lieu introuvable.';
+          return;
+        }
+        setLeafletMarker(coords.lat, coords.lon);
+      try {
+        const pos = await getUserPosition();
+        const km = haversineKm(pos.coords.latitude, pos.coords.longitude, coords.lat, coords.lon);
+        distanceEl.innerHTML = `Distance: ${formatDistance(km)} ${distanceBadge(km)}`;
+      } catch (e) {
+        distanceEl.textContent = 'Autorisez la localisation pour calculer la distance.';
+      }
+        } catch (e) {
+          mapFrame.src = '';
+          mapWrapper.classList.add('d-none');
+          distanceEl.textContent = '';
+        }
+      }
+
+      let debounce;
+      function scheduleUpdate() {
+        const value = (lieuInput.value || '').trim();
+        if (value === lastQuery) return;
+        lastQuery = value;
+        clearTimeout(debounce);
+        debounce = setTimeout(() => updateMapAndDistance(value), 500);
+      }
+
+    lieuInput.addEventListener('input', scheduleUpdate);
+    if (lieuInput.value) {
+      updateMapAndDistance(lieuInput.value.trim());
+    }
+
+    if (mapEl && window.L) {
+      if (mapEl._leaflet_id) {
+        mapEl._leaflet_id = null;
+        mapEl.innerHTML = '';
+      }
+      leafletMap = window.L.map(mapEl, {
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        touchZoom: false
+      }).setView([36.8065, 10.1815], 6);
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(leafletMap);
+      setTimeout(() => leafletMap.invalidateSize(), 50);
+      leafletMap.on('click', async (e) => {
+        const { lat, lng } = e.latlng;
+        setLeafletMarker(lat, lng);
+        pickedCoords = { lat, lon: lng };
+        const hint = document.getElementById('eventMapHint');
+        if (hint) {
+          hint.textContent = 'Point selectionne. Clique sur "Utiliser ce lieu".';
+        }
+      });
+
+      const pickBtn = document.getElementById('eventMapPickBtn');
+      if (pickBtn) {
+        pickBtn.addEventListener('click', async () => {
+          if (!pickedCoords) return;
+          try {
+            const place = await reverseGeocode(pickedCoords.lat, pickedCoords.lon);
+            lieuInput.value = place;
+            lieuInput.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (err) {
+            lieuInput.value = `${pickedCoords.lat.toFixed(5)}, ${pickedCoords.lon.toFixed(5)}`;
+            lieuInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+      }
+    }
+  }
+
+    document.addEventListener('DOMContentLoaded', initEventMapForm);
+    document.addEventListener('turbo:load', initEventMapForm);
+    document.addEventListener('turbo:before-cache', () => {
+      const mapEl = document.getElementById('eventLeafletMap');
+      if (mapEl) {
+        mapEl._leaflet_id = null;
+        mapEl.innerHTML = '';
+      }
+    });
+  })();
+</script>
