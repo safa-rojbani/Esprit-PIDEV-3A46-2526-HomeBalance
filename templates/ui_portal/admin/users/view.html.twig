@@ -1,0 +1,164 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin · {{ user.username }}{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h4 class="mb-0">{{ user.firstName }} {{ user.lastName }}</h4>
+      <p class="text-muted mb-0">Joined {{ user.createdAt|date('M d, Y') }}</p>
+    </div>
+    <div class="d-flex gap-3 flex-wrap">
+      <a href="{{ path('portal_admin_users_edit', { id: user.id }) }}" class="btn btn-outline-secondary">Edit</a>
+      <form method="post" action="{{ path('portal_admin_users_toggle_status', { id: user.id }) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('toggle_status_' ~ user.id) }}" />
+        <button class="btn btn-outline-warning" type="submit">
+          {{ user.statusLabel == 'Active' ? 'Suspend' : 'Activate' }}
+        </button>
+      </form>
+      <form method="post" action="{{ path('portal_admin_users_reset_password', { id: user.id }) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('reset_password_' ~ user.id) }}" />
+        <button class="btn btn-outline-primary" type="submit">Send Reset Link</button>
+      </form>
+      {% if familyContext.current %}
+        <form method="post" action="{{ path('portal_admin_users_detach_family', { id: user.id }) }}">
+          <input type="hidden" name="_token" value="{{ csrf_token('detach_family_' ~ user.id) }}" />
+          <button class="btn btn-outline-danger" type="submit">Detach Family</button>
+        </form>
+      {% elseif familyContext.previous %}
+        <form method="post" action="{{ path('portal_admin_users_reinvite_family', { id: user.id }) }}">
+          <input type="hidden" name="_token" value="{{ csrf_token('reinvite_family_' ~ user.id) }}" />
+          <button class="btn btn-outline-info" type="submit">Send Family Invite</button>
+        </form>
+      {% endif %}
+      <form method="post" action="{{ path('portal_admin_users_delete', { id: user.id }) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}" />
+        <button class="btn btn-outline-danger" type="submit">Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-4 d-flex flex-column gap-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h5 class="card-title mb-0">Account Summary</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-3">
+              <span class="text-muted small d-block">Username</span>
+              <span class="fw-semibold">{{ user.username }}</span>
+            </li>
+            <li class="mb-3">
+              <span class="text-muted small d-block">Email</span>
+              <span class="fw-semibold">{{ user.email }}</span>
+            </li>
+            <li class="mb-3">
+              <span class="text-muted small d-block">System Role</span>
+              <span class="badge bg-label-primary">{{ user.systemRoleLabel }}</span>
+            </li>
+            <li class="mb-3">
+              <span class="text-muted small d-block">Family Role</span>
+              <span class="badge bg-label-info">{{ user.familyRoleLabel ?? '—' }}</span>
+            </li>
+            <li class="mb-3">
+              <span class="text-muted small d-block">Status</span>
+              <span class="badge {{ user.statusBadgeClass }}">{{ user.statusLabel }}</span>
+            </li>
+            <li>
+              <span class="text-muted small d-block">Last Login</span>
+              <span class="fw-semibold">{{ user.lastLogin ? user.lastLogin|date('Y-m-d H:i') : '—' }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header pb-0">
+          <h5 class="card-title mb-0">Family Context</h5>
+        </div>
+        <div class="card-body">
+          {% if familyContext.current %}
+            <ul class="list-unstyled mb-0">
+              <li class="mb-3">
+                <span class="text-muted small d-block">Household</span>
+                <span class="fw-semibold">{{ familyContext.current.name }}</span>
+              </li>
+              <li class="mb-3">
+                <span class="text-muted small d-block">Join Code</span>
+                <span class="fw-semibold">{{ familyContext.current.joinCode ?? 'Not set' }}</span>
+              </li>
+              <li class="mb-3">
+                <span class="text-muted small d-block">Code Expires</span>
+                <span class="fw-semibold">
+                  {{ familyContext.current.codeExpiresAt ? familyContext.current.codeExpiresAt|date('Y-m-d H:i') : '—' }}
+                </span>
+              </li>
+              <li>
+                <span class="text-muted small d-block">Joined At</span>
+                <span class="fw-semibold">
+                  {{ familyContext.current.joinedAt ? familyContext.current.joinedAt|date('Y-m-d H:i') : '—' }}
+                </span>
+              </li>
+            </ul>
+          {% elseif familyContext.previous %}
+            <p class="text-muted mb-3">No active family attached.</p>
+            <ul class="list-unstyled mb-0">
+              <li class="mb-3">
+                <span class="text-muted small d-block">Last Household</span>
+                <span class="fw-semibold">{{ familyContext.previous.name }}</span>
+              </li>
+              <li class="mb-3">
+                <span class="text-muted small d-block">Joined</span>
+                <span class="fw-semibold">
+                  {{ familyContext.previous.joinedAt ? familyContext.previous.joinedAt|date('Y-m-d H:i') : '—' }}
+                </span>
+              </li>
+              <li>
+                <span class="text-muted small d-block">Left</span>
+                <span class="fw-semibold">
+                  {{ familyContext.previous.leftAt ? familyContext.previous.leftAt|date('Y-m-d H:i') : '—' }}
+                </span>
+              </li>
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No family history available.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-8">
+      <div class="card h-100">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title mb-0">Recent Activity</h5>
+            <p class="text-muted mb-0">Audit trail entries for this user.</p>
+          </div>
+          <a href="{{ path('portal_admin_audit_trails_index') }}" class="btn btn-sm btn-outline-secondary">View Full History</a>
+        </div>
+        <div class="card-body">
+          {% if activity is empty %}
+            <p class="text-muted mb-0">No audit events yet.</p>
+          {% else %}
+            <ul class="timeline timeline-center mt-3">
+              {% for event in activity %}
+                <li class="timeline-item ps-4">
+                  <span class="timeline-point-{{ event.type }}"></span>
+                  <div class="timeline-event">
+                    <div class="timeline-header">
+                      <h6 class="mb-0">{{ event.title }}</h6>
+                      <small class="text-muted">{{ event.occurredAt|date('Y-m-d H:i') }}</small>
+                    </div>
+                    <p class="mb-0 text-muted">{{ event.description }}</p>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

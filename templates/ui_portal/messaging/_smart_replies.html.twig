@@ -1,0 +1,21 @@
+{#
+  _smart_replies.html.twig
+  Smart reply suggestions displayed above the message input
+#}
+<div class="smart-replies-container" data-messaging-target="smartReplies">
+    <div class="d-flex gap-2 align-items-center">
+        <span class="text-muted small">
+            <i class="bx bx-lightbulb me-1"></i>Suggestions:
+        </span>
+        <div class="d-flex gap-1 flex-wrap">
+            {% for suggestion in suggestions %}
+                <button type="button" 
+                        class="btn btn-sm btn-outline-primary rounded-pill smart-reply-pill"
+                        data-action="click->messaging#useSmartReply"
+                        data-suggestion="{{ suggestion }}">
+                    {{ suggestion }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>

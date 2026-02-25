@@ -1,0 +1,110 @@
+<!doctype html>
+<html
+  lang="en"
+  class="{{ html_classes|default('layout-menu-fixed layout-compact') }}"
+  data-assets-path="{{ asset('') }}"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>{% block title %}HomeBalance Portal{% endblock %}</title>
+
+    <meta name="description" content="" />
+    {% if app.user %}
+    <meta name="user-id" content="{{ app.user.id }}">
+    {% endif %}
+
+    <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon/favicon.svg') }}" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ asset('vendor/fonts/iconify-icons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('vendor/css/core.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
+    <link rel="stylesheet" href="{{ asset('vendor/css/pages/page-account-settings.css') }}" />
+
+    {% block extra_stylesheets %}{% endblock %}
+
+    <script src="{{ asset('vendor/js/helpers.js') }}"></script>
+    <script src="{{ asset('js/config.js') }}"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        {% include 'ui_portal/partials/sidebar.html.twig' with { active_menu: active_menu|default('account') } %}
+        <div class="layout-page">
+          {% include 'ui_portal/partials/navbar.html.twig' %}
+
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                  <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : label) }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endfor %}
+
+              {% block content %}{% endblock %}
+            </div>
+
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    {# Removed 'Upgrade to Pro' placeholder #}
+
+    <script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
+    <script src="{{ asset('vendor/js/bootstrap.js') }}"></script>
+    <script src="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+    <script src="{{ asset('vendor/js/menu.js') }}"></script>
+    <script src="{{ asset('js/main.js') }}"></script>
+
+    <script>
+      (function () {
+        function initDropdowns() {
+          if (!window.bootstrap || !window.bootstrap.Dropdown) {
+            return;
+          }
+          document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (el) {
+            window.bootstrap.Dropdown.getOrCreateInstance(el);
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', initDropdowns);
+        document.addEventListener('turbo:load', initDropdowns);
+      })();
+    </script>
+
+    <script>
+      setTimeout(function () {
+        document.querySelectorAll('.alert-dismissible').forEach(function (el) {
+          el.classList.remove('show');
+          setTimeout(function () { el.remove(); }, 150);
+        });
+      }, 5000);
+    </script>
+
+    {% block extra_javascripts %}{% endblock %}
+
+    {{ importmap('app') }}
+
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+  </body>
+</html>

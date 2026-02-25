@@ -1,0 +1,9 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+  <p>Hi {{ name }},</p>
+  <p>Welcome to HomeBalance! You’re ready to build your household experience.</p>
+  {% if cta %}
+    <p><a class="cta" href="{{ cta }}">Sign in</a></p>
+  {% endif %}
+{% endblock %}

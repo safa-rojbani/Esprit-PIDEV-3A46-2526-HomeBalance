@@ -1,0 +1,42 @@
+{% set tabs = [
+  {
+    'key': 'account',
+    'label': 'Account',
+    'icon': 'bx bx-user',
+    'route': 'portal_account'
+  },
+  {
+    'key': 'notifications',
+    'label': 'Notifications',
+    'icon': 'bx bx-bell',
+    'route': 'portal_account_notifications'
+  },
+  {
+    'key': 'preferences',
+    'label': 'Preferences',
+    'icon': 'bx bx-slider',
+    'route': 'portal_account_preferences'
+  },
+  {
+    'key': 'family',
+    'label': 'Family',
+    'icon': 'bx bx-group',
+    'route': 'portal_family_settings'
+  }
+] %}
+
+<div class="nav-align-top">
+  <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-md-0 gap-2">
+    {% for tab in tabs %}
+      <li class="nav-item">
+        <a
+          class="nav-link {{ active_tab == tab.key ? 'active' }}"
+          href="{{ path(tab.route) }}"
+          {% if active_tab == tab.key %}aria-current="page"{% endif %}>
+          <i class="icon-base {{ tab.icon }} icon-sm me-1_5"></i>
+          {{ tab.label }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>

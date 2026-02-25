@@ -1,0 +1,121 @@
+<nav
+  class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+  id="layout-navbar">
+  <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+    <a class="nav-item nav-link px-0 me-xl-6" href="#layout-menu" aria-label="Toggle navigation">
+      <i class="icon-base bx bx-menu icon-md"></i>
+    </a>
+  </div>
+
+  <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+    <div class="navbar-nav align-items-center me-auto">
+      <form class="nav-item d-flex align-items-center" method="get" action="{{ path('portal_search') }}">
+        <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
+        <input
+          type="text"
+          name="q"
+          class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
+          placeholder="Search your home..."
+          aria-label="Search"
+          value="{{ app.request.query.get('q') }}" />
+      </form>
+    </div>
+
+    <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+      <li class="nav-item me-2">
+        <a class="nav-link" href="#" id="theme-toggle" title="Toggle dark mode">
+          <i class="icon-base bx bx-moon icon-md" id="theme-icon"></i>
+        </a>
+      </li>
+      {% if is_granted('ROLE_ADMIN') %}
+        <li class="nav-item me-3 d-none d-md-inline-flex">
+          <a class="btn btn-outline-primary d-flex align-items-center gap-2" href="{{ path('portal_admin_users') }}">
+            <i class="icon-base bx bx-user-circle"></i>
+            <span>Admin users</span>
+          </a>
+        </li>
+      {% endif %}
+      <li class="nav-item navbar-dropdown dropdown-user dropdown">
+        <a class="nav-link dropdown-toggle hide-arrow p-0" href="#accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="avatar avatar-online">
+            <img src="{{ app.user and app.user.avatarPath ? asset(app.user.avatarPath) : asset('img/avatars/1.png') }}" alt="User avatar" class="w-px-40 h-auto rounded-circle" />
+          </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <a class="dropdown-item" href="{{ path('portal_account') }}">
+              <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="mb-0">{{ app.user ? (app.user.firstName ~ ' ' ~ app.user.lastName) : 'User' }}</h6>
+                  <small class="text-body-secondary">{{ app.user and is_granted('ROLE_ADMIN') ? 'Household admin' : 'Member' }}</small>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li><div class="dropdown-divider my-1"></div></li>
+          <li>
+            <a class="dropdown-item" href="{{ path('portal_account') }}">
+              <i class="icon-base bx bx-user icon-md me-3"></i><span>My space</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{{ path('portal_account_notifications') }}">
+              <i class="icon-base bx bx-cog icon-md me-3"></i><span>Notifications</span>
+            </a>
+          </li>
+          <li><div class="dropdown-divider my-1"></div></li>
+          <!-- UI-Only Status Selector -->
+          <li>
+            <div class="px-4 py-2">
+                <small class="text-muted d-block mb-2">Status</small>
+                <div class="btn-group w-100" role="group" aria-label="User Status">
+                    <input type="radio" class="btn-check" name="userStatus" id="statusOnline" autocomplete="off" checked>
+                    <label class="btn btn-outline-success btn-xs" for="statusOnline" title="Online"><i class="bx bx-check-circle"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusAway" autocomplete="off">
+                    <label class="btn btn-outline-warning btn-xs" for="statusAway" title="Away"><i class="bx bx-time"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusDND" autocomplete="off">
+                    <label class="btn btn-outline-danger btn-xs" for="statusDND" title="Do Not Disturb"><i class="bx bx-minus-circle"></i></label>
+
+                    <input type="radio" class="btn-check" name="userStatus" id="statusOffline" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-xs" for="statusOffline" title="Offline"><i class="bx bx-radio-circle"></i></label>
+                </div>
+            </div>
+          </li>
+          <li>
+             <div class="px-4 py-2">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="toggleSound" checked>
+                    <label class="form-check-label small" for="toggleSound">Sounds</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="toggleDesktop">
+                    <label class="form-check-label small" for="toggleDesktop">Desktop Notif</label>
+                </div>
+             </div>
+          </li>
+          <li><div class="dropdown-divider my-1"></div></li>
+          {% if is_granted('ROLE_ADMIN') %}
+            <li>
+              <a class="dropdown-item" href="{{ path('portal_admin_users') }}">
+                <i class="icon-base bx bx-shield icon-md me-3"></i><span>Admin: manage users</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{{ path('portal_admin_gamification_badges') }}">
+                <i class="icon-base bx bx-medal icon-md me-3"></i><span>Admin: gamification</span>
+              </a>
+            </li>
+            <li><div class="dropdown-divider my-1"></div></li>
+          {% endif %}
+          <li>
+            <a class="dropdown-item" href="{{ path('portal_auth_logout') }}">
+              <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Sign out</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
