@@ -1,0 +1,23 @@
+{#
+  _smart_replies.html.twig
+  AI-powered smart reply suggestions displayed above the message input
+#}
+<div class="smart-replies-container" data-messaging-target="smartReplies">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <span style="font-size:.72rem;font-weight:700;color:var(--msg-text-muted);
+                     display:flex;align-items:center;gap:5px;white-space:nowrap;">
+            <i class="bx bx-bulb" style="color:#f59e0b;font-size:.95rem;"></i>
+            Suggestions IA :
+        </span>
+        <div class="d-flex gap-2 flex-wrap">
+            {% for suggestion in suggestions %}
+                <button type="button"
+                        class="smart-reply-pill"
+                        data-action="click->messaging#useSmartReply"
+                        data-suggestion="{{ suggestion }}">
+                    {{ suggestion }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>

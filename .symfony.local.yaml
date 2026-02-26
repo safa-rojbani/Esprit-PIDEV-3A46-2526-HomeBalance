@@ -1,0 +1,9 @@
+workers:
+    mercure:
+        cmd: ["./mercure.exe", "run", "--config", "dev.Caddyfile"]
+        env:
+            SERVER_NAME: "localhost:3000"
+            MERCURE_PUBLISHER_JWT_KEY: "1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875"
+            MERCURE_SUBSCRIBER_JWT_KEY: "1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875"
+            MERCURE_PUBLISHER_JWT_ALG: "HS256"
+            MERCURE_SUBSCRIBER_JWT_ALG: "HS256"

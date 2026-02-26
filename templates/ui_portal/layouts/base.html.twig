@@ -31,7 +31,7 @@
     <script src="{{ asset('js/config.js') }}"></script>
   </head>
 
-  <body>
+  <body{% if app.user %} data-current-user-id="{{ app.user.id }}"{% endif %}>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
         {% set route = app.request.attributes.get('_route') %}
@@ -49,26 +49,27 @@
           : (route starts with 'app_gallery'
             or route starts with 'app_document'
             or route starts with 'app_default_gallery') ? 'module-documents'
-
-: (route starts with 'app_achat'
-  or route starts with 'app_revenu'
-  or route starts with 'app_historique_achat'
-  or route starts with 'app_categorie_achat'
-  or route starts with 'app_type_revenu'
-  or route starts with 'app_saving_goal'
-  or route starts with 'app_credit'
-  or route starts with 'app_monthly_report') ? 'module-charge'
-: (route starts with 'parent_task'
-  or route starts with 'parent_self_task'
-  or route starts with 'child_task'
-  or route starts with 'family_task'
-  or route starts with 'parent_validation'
-  or route starts with 'task_score'
-  or route starts with 'admin_task') ? 'module-tasks'
-: 'dashboard'
-) %}
-
-
+          : (route starts with 'app_achat'
+            or route starts with 'app_revenu'
+            or route starts with 'app_historique_achat'
+            or route starts with 'app_categorie_achat'
+            or route starts with 'app_type_revenu'
+            or route starts with 'app_saving_goal'
+            or route starts with 'app_credit'
+            or route starts with 'app_monthly_report') ? 'module-charge'
+          : (route starts with 'parent_task'
+            or route starts with 'parent_self_task'
+            or route starts with 'child_task'
+            or route starts with 'family_task'
+            or route starts with 'parent_validation'
+            or route starts with 'task_score'
+            or route starts with 'admin_task') ? 'module-tasks'
+          : (route starts with 'portal_messaging_'
+            or route starts with 'portal_messaging_message_') ? 'module-messaging'
+          : (route starts with 'portal_support_'
+            or route starts with 'portal_admin_support_') ? 'module-support'
+          : 'dashboard'
+        ) %}
 
         {% set default_charge_submenus = is_granted('ROLE_ADMIN')
           ? [

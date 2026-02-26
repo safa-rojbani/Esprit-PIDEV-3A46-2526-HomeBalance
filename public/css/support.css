@@ -1,0 +1,178 @@
+/* Support module & admin support – modernized UI */
+
+.support-page {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.support-hero {
+    margin-bottom: 1.75rem;
+}
+
+.support-hero-title {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.support-hero-subtitle {
+    font-size: 0.9rem;
+}
+
+.support-card,
+.support-ticket-card,
+.support-thread-card {
+    border-radius: 18px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+}
+
+.support-table thead th {
+    border-bottom-width: 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.support-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.support-status-pill {
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+}
+
+.support-priority-pill {
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+}
+
+.support-empty-state {
+    padding: 3rem 1.5rem;
+}
+
+.support-empty-state i {
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+.support-empty-state p {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.support-empty-state small {
+    color: #94a3b8;
+}
+
+/* User ticket conversation view */
+
+.support-ticket-card-header {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.support-conversation-wrapper {
+    background: radial-gradient(circle at top left, #eef2ff 0, #ffffff 45%);
+    border-radius: 18px;
+}
+
+.support-conversation-body {
+    max-height: 460px;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    background: #f8fafc;
+    border-radius: 16px;
+}
+
+.support-thread-message {
+    display: flex;
+    margin-bottom: 1rem;
+}
+
+.support-thread-message-user {
+    justify-content: flex-start;
+}
+
+.support-thread-message-agent {
+    justify-content: flex-end;
+}
+
+.support-thread-bubble {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.88rem;
+    box-shadow: 0 0.125rem 0.35rem rgba(15, 23, 42, 0.14);
+}
+
+.support-thread-bubble-user {
+    background: #ffffff;
+    border-bottom-left-radius: 0.3rem;
+}
+
+.support-thread-bubble-agent {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #ffffff;
+    border-bottom-right-radius: 0.3rem;
+}
+
+.support-thread-meta {
+    font-size: 0.7rem;
+    opacity: 0.75;
+}
+
+.support-reply-card textarea.form-control {
+    border-radius: 1rem;
+}
+
+/* Admin support ticket conversation (reuses the same visual language) */
+
+.chat-history {
+    height: 500px;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 1rem;
+}
+
+.message {
+    margin-bottom: 1.5rem;
+    max-width: 80%;
+}
+
+.message-content {
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.125rem 0.3rem rgba(15, 23, 42, 0.12);
+    font-size: 0.9rem;
+}
+
+.message-user {
+    margin-right: auto;
+}
+
+.message-user .message-content {
+    background-color: #ffffff;
+    border-bottom-left-radius: 0.3rem;
+}
+
+.message-admin {
+    margin-left: auto;
+}
+
+.message-admin .message-content {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #ffffff;
+    border-bottom-right-radius: 0.3rem;
+}
+
+.status-badge {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}
+

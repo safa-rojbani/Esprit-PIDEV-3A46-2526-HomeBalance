@@ -1,0 +1,52 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Support · New Ticket{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{{ path('portal_support_index') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bx bx-arrow-back me-1"></i> Back to tickets
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header d-flex align-items-center">
+          <i class="bx bx-support text-primary me-2 fs-4"></i>
+          <h5 class="mb-0">Create a Support Ticket</h5>
+        </div>
+        <div class="card-body">
+          {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+
+            <div class="mb-3">
+              {{ form_label(form.subject) }}
+              {{ form_widget(form.subject) }}
+              {{ form_errors(form.subject) }}
+            </div>
+
+            <div class="mb-3">
+              {{ form_label(form.priority) }}
+              {{ form_widget(form.priority) }}
+              {{ form_errors(form.priority) }}
+            </div>
+
+            <div class="mb-3">
+              {{ form_label(form.message) }}
+              {{ form_widget(form.message) }}
+              {{ form_errors(form.message) }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ path('portal_support_index') }}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bx bx-send me-1"></i> Submit Ticket
+              </button>
+            </div>
+
+          {{ form_end(form) }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

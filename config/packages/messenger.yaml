@@ -37,6 +37,11 @@ framework:
       # notifications & messaging
       App\Message\SendAccountNotification: async
       App\Message\TaskCompleted: async
+      # Messagerie module (AI + SMS) — async processing
+      App\Message\AI\GenerateSmartRepliesMessage: async
+      App\Message\AI\SummarizeConversationMessage: async
+      App\Message\SMS\SendSmsFallbackMessage: async
+      App\Message\SMS\RecalculateActivityPatternMessage: async
       Symfony\Component\Mailer\Messenger\SendEmailMessage: async
       Symfony\Component\Notifier\Message\ChatMessage: async
       Symfony\Component\Notifier\Message\SmsMessage: async

@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\MessageRepository;
@@ -14,7 +14,7 @@ class Message
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $content = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -34,6 +34,13 @@ class Message
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
 
+    /**
+     * Self-referencing: the message this is a reply to (nullable).
+     */
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'parent_message_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Message $parentMessage = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,7 +51,7 @@ class Message
         return $this->content;
     }
 
-    public function setContent(string $content): static
+    public function setContent(?string $content): static
     {
         $this->content = $content;
 
@@ -110,4 +117,18 @@ class Message
 
         return $this;
     }
+
+    public function getParentMessage(): ?Message
+    {
+        return $this->parentMessage;
+    }
+
+    public function setParentMessage(?Message $parentMessage): static
+    {
+        $this->parentMessage = $parentMessage;
+
+        return $this;
+    }
 }
+
+

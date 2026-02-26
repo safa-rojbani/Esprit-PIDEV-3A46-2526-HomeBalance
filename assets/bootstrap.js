@@ -14,6 +14,8 @@ import NotificationHeatmapController from './controllers/notification_heatmap_co
 import FocusQueueController from './controllers/focus_queue_controller.js';
 import TimelinePeekController from './controllers/timeline_peek_controller.js';
 import AccountNotificationStreamController from './controllers/account_notification_stream_controller.js';
+import MessagingController from './controllers/messaging_controller.js';
+import SupportTicketController from './controllers/support_ticket_controller.js';
 
 const app = startStimulusApp();
 app.register('symfony--ux-chartjs--chart', ChartjsController);
@@ -31,4 +33,6 @@ app.register('notification-heatmap', NotificationHeatmapController);
 app.register('focus-queue', FocusQueueController);
 app.register('timeline-peek', TimelinePeekController);
 app.register('account-notification-stream', AccountNotificationStreamController);
+app.register('messaging', MessagingController);
+app.register('support-ticket', SupportTicketController);
 
