@@ -18,4 +18,5 @@ Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 
 ApiPlatform\Symfony\Bundle\ApiPlatformBundle::class => ['all' => true],
 Symfony\UX\Chartjs\ChartjsBundle::class => ['all' => true],
 Liip\ImagineBundle\LiipImagineBundle::class => ['all' => true],
+Vich\UploaderBundle\VichUploaderBundle::class => ['all' => true],
 ];

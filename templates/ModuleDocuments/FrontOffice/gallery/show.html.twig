@@ -157,7 +157,7 @@
                       data-transfer-url="{{ path('app_document_transfer', {id: document.id}) }}"
                       data-transfer-token="{{ csrf_token('transfer' ~ document.id) }}"
                       onclick="hbOpenTransferFromBtn(this);">
-                <i class="bx bx-transfer-alt"></i>Transférer
+                <i class="bx bx-transfer-alt"></i>Transfrer
               </button>
 
               <form method="post" action="{{ path('app_document_hide', { id: document.id }) }}" onsubmit="return confirm('Masquer ce document ?');">
@@ -216,7 +216,7 @@
 
         <label class="hb-modal-label">Galerie cible</label>
         <select class="form-select" id="hbTargetGallerySelect" name="target_gallery_id" required>
-          <option value="">— Choisir une galerie —</option>
+          <option value=""> Choisir une galerie </option>
           {% for g in familyGalleries %}
             {% if g.etat and g.etat.value == 'actif' and g.id != gallery.id %}
               <option value="{{ g.id }}">{{ g.name }}</option>

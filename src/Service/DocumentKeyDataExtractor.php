@@ -91,7 +91,7 @@ final class DocumentKeyDataExtractor
     {
         return [
             'partie_1' => $this->findParty($text, ['entre', 'partie 1', 'societe 1']),
-            'partie_2' => $this->findParty($text, ['et', 'partie 2', 'societe 2']),
+            'partie_2' => $this->findParty($text, ['partie 2', 'societe 2']),
             'reference_contrat' => $this->findContractReference($text),
             'date_debut' => $this->findDateByLabel($text, ['date debut', 'effet', 'prise d effet']),
             'date_fin' => $this->findDateByLabel($text, ['date fin', 'expiration', 'terme']),
@@ -572,9 +572,26 @@ final class DocumentKeyDataExtractor
      */
     private function findParty(string $text, array $labels): ?string
     {
-        $lineValue = $this->findLineValueAfterLabels($text, $labels);
+        $lineValue = $this->findValueAfterLabelOrNextLine($text, $labels);
         if ($lineValue !== null) {
             return mb_substr($lineValue, 0, 150);
+        }
+
+        $wantSecond = false;
+        foreach ($labels as $label) {
+            $normalized = $this->normalizeForSearch($label);
+            if ($normalized === 'partie 2' || $normalized === 'societe 2' || $normalized === 'et') {
+                $wantSecond = true;
+                break;
+            }
+        }
+
+        $fromSentence = $this->findPartiesFromBetweenSentence($text);
+        if ($fromSentence !== null) {
+            $picked = $wantSecond ? ($fromSentence[1] ?? null) : ($fromSentence[0] ?? null);
+            if ($picked !== null) {
+                return mb_substr($picked, 0, 150);
+            }
         }
 
         return null;
@@ -660,6 +677,79 @@ final class DocumentKeyDataExtractor
         }
 
         return null;
+    }
+
+    /**
+     * @param list<string> $labels
+     */
+    private function findValueAfterLabelOrNextLine(string $text, array $labels): ?string
+    {
+        $lines = preg_split('/\n+/', $text) ?: [];
+        $lineCount = \count($lines);
+        foreach ($lines as $index => $line) {
+            $trimmedLine = trim((string) $line);
+            if ($trimmedLine === '') {
+                continue;
+            }
+
+            $normalizedLine = $this->normalizeForSearch($trimmedLine);
+            $matchedLabel = null;
+            foreach ($labels as $label) {
+                $normalizedLabel = $this->normalizeForSearch($label);
+                if (str_contains($normalizedLine, $normalizedLabel)) {
+                    $matchedLabel = $label;
+                    break;
+                }
+            }
+
+            if ($matchedLabel === null) {
+                continue;
+            }
+
+            $sameLine = $this->findLineValueAfterLabels($trimmedLine, [$matchedLabel]);
+            if ($sameLine !== null) {
+                return mb_substr($sameLine, 0, 180);
+            }
+
+            for ($offset = 1; $offset <= 2; ++$offset) {
+                $nextIndex = $index + $offset;
+                if ($nextIndex >= $lineCount) {
+                    break;
+                }
+                $nextLine = trim((string) ($lines[$nextIndex] ?? ''));
+                if ($nextLine === '') {
+                    continue;
+                }
+                $normalizedNext = $this->normalizeForSearch($nextLine);
+                if ($normalizedNext === '' || str_contains($normalizedNext, $this->normalizeForSearch($matchedLabel))) {
+                    continue;
+                }
+                return mb_substr($nextLine, 0, 180);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0?: string, 1?: string}|null
+     */
+    private function findPartiesFromBetweenSentence(string $text): ?array
+    {
+        if (preg_match('/\bentre\b\s+(.{3,140}?)\s+(?:et|&)\s+(.{3,140}?)(?:[\\.;\\n]|$)/iu', $text, $matches) !== 1) {
+            return null;
+        }
+
+        $first = trim((string) ($matches[1] ?? ''));
+        $second = trim((string) ($matches[2] ?? ''));
+        if ($first === '' && $second === '') {
+            return null;
+        }
+
+        return [
+            0 => $first !== '' ? $first : null,
+            1 => $second !== '' ? $second : null,
+        ];
     }
 
     private function isLikelySupplierName(string $candidate): bool

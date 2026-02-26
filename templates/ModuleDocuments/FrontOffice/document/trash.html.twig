@@ -319,7 +319,7 @@
 						{% if document.fileType starts with 'image/' %}
 							<span class="hb-type-badge">Image</span>
 							<div class="hb-preview-media">
-								<img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+								<img src="{{ document.filePath|imagine_filter('gallery_thumb') }}" alt="{{ document.fileName }}">
 							</div>
 						{% elseif document.fileType == 'application/pdf' %}
 							<span class="hb-type-badge">PDF</span>

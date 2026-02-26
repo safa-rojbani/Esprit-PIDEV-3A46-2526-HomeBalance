@@ -402,7 +402,10 @@ final class UiPortalController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'])]
-    public function dashboard(DashboardViewModelFactory $viewModelFactory): Response
+    public function dashboard(
+        DashboardViewModelFactory $viewModelFactory,
+        \App\Repository\EvenementRepository $evenementRepository
+    ): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
@@ -420,6 +423,47 @@ final class UiPortalController extends AbstractController
 
         $viewModel = $viewModelFactory->build($user);
 
+        $year = (int) (new \DateTimeImmutable())->format('Y');
+        $monthLabels = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthCounts = array_fill(0, 12, 0);
+        $typeLabels = [];
+        $typeCounts = [];
+
+        $family = $user->getFamily();
+        if ($family !== null) {
+            foreach ($evenementRepository->countByMonthForFamily($family, $year) as $row) {
+                $idx = (int) $row['month'] - 1;
+                if ($idx >= 0 && $idx < 12) {
+                    $monthCounts[$idx] = (int) $row['total'];
+                }
+            }
+            foreach ($evenementRepository->countByTypeForFamily($family) as $row) {
+                $typeLabels[] = (string) $row['label'];
+                $typeCounts[] = (int) $row['total'];
+            }
+        } else {
+            $visibleEvents = $evenementRepository->findVisibleForUser($user);
+            $typeTotals = [];
+            foreach ($visibleEvents as $event) {
+                $date = $event->getDateDebut();
+                if ($date) {
+                    $idx = (int) $date->format('n') - 1;
+                    if ($idx >= 0 && $idx < 12) {
+                        $monthCounts[$idx]++;
+                    }
+                }
+                $type = $event->getTypeEvenement();
+                if ($type) {
+                    $label = (string) $type->getNom();
+                    $typeTotals[$label] = ($typeTotals[$label] ?? 0) + 1;
+                }
+            }
+            foreach ($typeTotals as $label => $total) {
+                $typeLabels[] = $label;
+                $typeCounts[] = $total;
+            }
+        }
+
         return $this->render('ui_portal/dashboard.html.twig', [
             'active_menu' => 'dashboard',
             'user' => $user,
@@ -429,6 +473,11 @@ final class UiPortalController extends AbstractController
             'notificationRows' => $this->notificationRows(),
             'notificationChannels' => $notificationChannels,
             'engagement' => $viewModel['engagement'],
+            'statsYear' => $year,
+            'monthLabels' => $monthLabels,
+            'monthCounts' => $monthCounts,
+            'typeLabels' => $typeLabels,
+            'typeCounts' => $typeCounts,
         ]);
     }
 

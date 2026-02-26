@@ -10,7 +10,8 @@ final class AbstractEmailValidationClient
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly string $apiKey,
-        private readonly string $baseUri = 'https://emailvalidation.abstractapi.com/v1/'
+        private readonly string $baseUri = 'https://emailvalidation.abstractapi.com/v1/',
+        private readonly float $timeoutSeconds = 8.0
     ) {
     }
 
@@ -57,7 +58,8 @@ final class AbstractEmailValidationClient
                 'api_key' => $this->apiKey,
                 'email' => $email,
             ],
-            'timeout' => 8,
+            'timeout' => $this->timeoutSeconds,
+            'max_duration' => $this->timeoutSeconds + 1,
         ]);
 
         $payload = $this->decode($response);
@@ -73,21 +75,26 @@ final class AbstractEmailValidationClient
             ?? $this->readBooleanFlag($payload, ['email_deliverability', 'is_smtp_valid']);
         $suggestion = $this->readSuggestion($payload);
 
-        $isDeliverable = $deliverability === null || $deliverability === '' || $deliverability === 'DELIVERABLE';
-        $isValid = $isDeliverable
-            && $isValidFormat !== false
+        $isDeliverable = $deliverability === 'DELIVERABLE';
+        $isUndeliverable = $deliverability === 'UNDELIVERABLE';
+
+        $isValid = $isValidFormat !== false
             && $isDisposable !== true
-            && !($isMxValid === false && $isSmtpValid === false);
+            && $isUndeliverable !== true
+            && $isMxValid !== false
+            && $isSmtpValid !== false;
 
         $reason = 'valid';
         if ($isValidFormat === false) {
             $reason = 'invalid_format';
         } elseif ($isDisposable === true) {
             $reason = 'disposable_email';
-        } elseif (!$isDeliverable) {
+        } elseif ($isUndeliverable) {
             $reason = 'undeliverable';
-        } elseif ($isMxValid === false && $isSmtpValid === false) {
+        } elseif ($isMxValid === false || $isSmtpValid === false) {
             $reason = 'mx_smtp_failed';
+        } elseif (!$isDeliverable && $deliverability !== null) {
+            $reason = 'unknown_deliverability';
         }
 
         return [

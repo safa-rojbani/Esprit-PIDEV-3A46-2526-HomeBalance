@@ -82,6 +82,7 @@ services:
         arguments:
             $apiKey: '%env(string:ABSTRACT_EMAIL_VALIDATION_API_KEY)%'
             $baseUri: '%app.abstract_email_validation.base_uri%'
+            $timeoutSeconds: '%env(float:EMAIL_VALIDATION_TIMEOUT)%'
 
     App\Service\HuggingFaceSummarizerClient:
         arguments:

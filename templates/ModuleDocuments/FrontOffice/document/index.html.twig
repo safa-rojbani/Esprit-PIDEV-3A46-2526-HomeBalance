@@ -11,7 +11,7 @@
 		{% for document in documents %}
 			{% if document.fileType starts with 'image/' %}
 				<div class="gallery-item">
-					<img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+					<img src="{{ document.filePath|imagine_filter('gallery_thumb') }}" alt="{{ document.fileName }}">
 				</div>
 				<a href="{{ path('app_document_show', {'id': document.id, 'galleryId': document.gallery.id}) }}">afficher</a>
 				<a href="{{ path('app_document_edit', {'id': document.id, 'galleryId': document.gallery.id}) }}">modifier</a>

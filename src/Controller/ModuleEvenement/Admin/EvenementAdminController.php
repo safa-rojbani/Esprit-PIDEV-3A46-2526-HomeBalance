@@ -3,15 +3,19 @@
 namespace App\Controller\ModuleEvenement\Admin;
 
 use App\Entity\Evenement;
+use App\Entity\EvenementImage;
 use App\Form\EvenementAdminType;
 use App\Repository\EvenementRepository;
+use App\Repository\RappelRepository;
 use App\Repository\TypeEvenementRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\User;
+use Symfony\Component\Form\FormError;
 
 #[Route('/portal/admin/evenements')]
 class EvenementAdminController extends AbstractController
@@ -20,7 +24,8 @@ class EvenementAdminController extends AbstractController
     public function index(
         Request $request,
         EvenementRepository $evenementRepository,
-        TypeEvenementRepository $typeEvenementRepository
+        TypeEvenementRepository $typeEvenementRepository,
+        PaginatorInterface $paginator
     ): Response
     {
         $admin = $this->requireAdminUser();
@@ -36,16 +41,45 @@ class EvenementAdminController extends AbstractController
             ]);
         }
 
+        $qb = $evenementRepository->findAdminDefaultsQueryBuilder($admin, $selectedType, $search);
+        $evenements = $paginator->paginate(
+            $qb,
+            max(1, (int) $request->query->get('page', 1)),
+            10
+        );
+
+        $year = (int) (new \DateTimeImmutable())->format('Y');
+        $monthLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        $monthCounts = array_fill(0, 12, 0);
+        foreach ($evenementRepository->countByMonthForAdmin($admin, $year) as $row) {
+            $idx = (int) $row['month'] - 1;
+            if ($idx >= 0 && $idx < 12) {
+                $monthCounts[$idx] = (int) $row['total'];
+            }
+        }
+
+        $typeLabels = [];
+        $typeCounts = [];
+        foreach ($evenementRepository->countByTypeForAdmin($admin) as $row) {
+            $typeLabels[] = (string) $row['label'];
+            $typeCounts[] = (int) $row['total'];
+        }
+
         return $this->render('admin/evenement/index.html.twig', [
-            'evenements' => $evenementRepository->findAdminDefaultsWithFilters($admin, $selectedType, $search),
+            'evenements' => $evenements,
             'types' => $typeEvenementRepository->findBy(['family' => null], ['nom' => 'ASC']),
             'selectedType' => $selectedType,
             'search' => $search,
+            'monthLabels' => $monthLabels,
+            'monthCounts' => $monthCounts,
+            'typeLabels' => $typeLabels,
+            'typeCounts' => $typeCounts,
+            'statsYear' => $year,
         ]);
     }
 
     #[Route('/new', name: 'admin_evenement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, EvenementRepository $evenementRepository): Response
     {
         $admin = $this->requireAdminUser();
 
@@ -62,6 +96,37 @@ class EvenementAdminController extends AbstractController
             $evenement->setCreatedBy($admin);
             $evenement->setShareWithFamily(true);
 
+            $uploadedFiles = $form->get('imageFiles')->getData();
+            if (is_array($uploadedFiles)) {
+                foreach ($uploadedFiles as $uploadedFile) {
+                    if ($uploadedFile === null) {
+                        continue;
+                    }
+                    $image = new EvenementImage();
+                    $image->setImageFile($uploadedFile);
+                    $evenement->addImage($image);
+                }
+            }
+
+            $start = $evenement->getDateDebut();
+            $end = $evenement->getDateFin() ?? $start;
+            if ($end < $start) {
+                $form->get('dateFin')->addError(new FormError('La date de fin doit être après la date de début.'));
+                return $this->render('admin/evenement/new.html.twig', [
+                    'evenement' => $evenement,
+                    'form' => $form->createView(),
+                ]);
+            }
+            $conflicts = $evenementRepository->findConflictsForAdmin($admin, $start, $end);
+            if (count($conflicts) > 0) {
+                $message = $this->formatConflictMessage($conflicts);
+                $this->addFlash('warning', $message);
+                $form->addError(new FormError($message));
+                return $this->render('admin/evenement/new.html.twig', [
+                    'evenement' => $evenement,
+                    'form' => $form->createView(),
+                ]);
+            }
             $entityManager->persist($evenement);
             $entityManager->flush();
 
@@ -74,7 +139,7 @@ class EvenementAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_evenement_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}', name: 'admin_evenement_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     public function show(Evenement $evenement): Response
     {
         $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
@@ -84,8 +149,8 @@ class EvenementAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'admin_evenement_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}/edit', name: 'admin_evenement_edit', methods: ['GET', 'POST'], requirements: ['id' => '\\d+'])]
+    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, EvenementRepository $evenementRepository): Response
     {
         $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
 
@@ -93,7 +158,43 @@ class EvenementAdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $uploadedFiles = $form->get('imageFiles')->getData();
+            if (is_array($uploadedFiles)) {
+                foreach ($uploadedFiles as $uploadedFile) {
+                    if ($uploadedFile === null) {
+                        continue;
+                    }
+                    $image = new EvenementImage();
+                    $image->setImageFile($uploadedFile);
+                    $evenement->addImage($image);
+                }
+            }
+
             $evenement->setDateModification(new \DateTimeImmutable());
+            $start = $evenement->getDateDebut();
+            $end = $evenement->getDateFin() ?? $start;
+            if ($end < $start) {
+                $form->get('dateFin')->addError(new FormError('La date de fin doit être après la date de début.'));
+                return $this->render('admin/evenement/edit.html.twig', [
+                    'evenement' => $evenement,
+                    'form' => $form->createView(),
+                ]);
+            }
+            $conflicts = $evenementRepository->findConflictsForAdmin(
+                $this->requireAdminUser(),
+                $start,
+                $end,
+                $evenement->getId()
+            );
+            if (count($conflicts) > 0) {
+                $message = $this->formatConflictMessage($conflicts);
+                $this->addFlash('warning', $message);
+                $form->addError(new FormError($message));
+                return $this->render('admin/evenement/edit.html.twig', [
+                    'evenement' => $evenement,
+                    'form' => $form->createView(),
+                ]);
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('admin_evenement_index');
@@ -105,12 +206,16 @@ class EvenementAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'admin_evenement_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'admin_evenement_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
+    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, RappelRepository $rappelRepository): Response
     {
         $this->assertDefaultOwnedByAdmin($this->requireAdminUser(), $evenement);
 
         if ($this->isCsrfTokenValid('delete'.$evenement->getId(), $request->request->get('_token'))) {
+            $rappels = $rappelRepository->findBy(['evenement' => $evenement]);
+            foreach ($rappels as $rappel) {
+                $entityManager->remove($rappel);
+            }
             $entityManager->remove($evenement);
             $entityManager->flush();
         }
@@ -138,4 +243,17 @@ class EvenementAdminController extends AbstractController
             throw $this->createAccessDeniedException();
         }
     }
+
+    /**
+     * @param Evenement[] $conflicts
+     */
+    private function formatConflictMessage(array $conflicts): string
+    {
+        $first = $conflicts[0];
+        $date = $first->getDateDebut() ? $first->getDateDebut()->format('d/m/Y H:i') : '';
+        $extra = count($conflicts) > 1 ? (' (+'.(count($conflicts) - 1).' autre(s))') : '';
+
+        return sprintf('⚠ Conflit avec %s du %s%s', $first->getTitre(), $date, $extra);
+    }
+
 }

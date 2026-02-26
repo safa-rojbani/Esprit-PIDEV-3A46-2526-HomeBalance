@@ -9,7 +9,7 @@
 
 {% block body %}
 <div class="evt-shell">
-  {% set totalTypes = type_evenements|length %}
+  {% set totalTypes = type_evenements.getTotalItemCount is defined ? type_evenements.getTotalItemCount : type_evenements|length %}
   {% set coloredTypes = 0 %}
   {% for t in type_evenements %}
     {% if t.couleur %}
@@ -81,6 +81,9 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="mt-3">
+    {{ knp_pagination_render(type_evenements, 'pagination/evt_pagination.html.twig') }}
   </div>
 </div>
 {% endblock %}

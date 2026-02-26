@@ -4,12 +4,12 @@
 
 {% block stylesheets %}
   {{ parent() }}
-  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}?v=1">
 {% endblock %}
 
 {% block body %}
 <div class="evt-shell">
-  {% set totalEvents = evenements|length %}
+  {% set totalEvents = evenements.getTotalItemCount is defined ? evenements.getTotalItemCount : evenements|length %}
   {% set sharedEvents = 0 %}
   {% for e in evenements %}
     {% if e.shareWithFamily %}
@@ -44,6 +44,33 @@
     </div>
   </div>
 
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="card evt-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Événements par mois ({{ statsYear }})</h5>
+          </div>
+          <div style="height: 260px;">
+            <canvas id="eventsByMonthChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card evt-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Répartition par type</h5>
+          </div>
+          <div style="height: 260px;">
+            <canvas id="eventsByTypeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="evt-toolbar">
     <form id="eventFilters" class="evt-filter-form" method="get" action="{{ path('app_evenement_index') }}">
       <select class="form-select" name="type">
@@ -57,6 +84,8 @@
 
     <div class="d-flex gap-2 flex-wrap">
       <a href="{{ path('app_calendar') }}" class="btn evt-btn-ghost">Calendrier</a>
+      <a href="{{ path('portal_ical_import') }}" class="btn evt-btn-ghost">Importer .ics</a>
+      <a href="{{ path('portal_ical_export_all') }}" class="btn evt-btn-ghost">Exporter .ics</a>
       <a href="{{ path('app_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter un evenement</a>
     </div>
   </div>
@@ -110,10 +139,14 @@
       </table>
     </div>
   </div>
+  <div class="mt-3">
+    {{ knp_pagination_render(evenements, 'pagination/evt_pagination.html.twig') }}
+  </div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     (function () {
       const form = document.getElementById('eventFilters');
@@ -129,6 +162,69 @@
           debounce = setTimeout(submit, 300);
         });
       });
+    })();
+  </script>
+  <script>
+    (function () {
+      if (!window.Chart) return;
+      const monthLabels = {{ monthLabels|json_encode|raw }};
+      const monthCounts = {{ monthCounts|json_encode|raw }};
+      const typeLabels = {{ typeLabels|json_encode|raw }};
+      const typeCounts = {{ typeCounts|json_encode|raw }};
+
+      const barCtx = document.getElementById('eventsByMonthChart');
+      if (barCtx) {
+        new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: monthLabels,
+            datasets: [{
+              label: 'Événements',
+              data: monthCounts,
+              backgroundColor: '#1f4ed8'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      const pieCtx = document.getElementById('eventsByTypeChart');
+      if (pieCtx) {
+        new Chart(pieCtx, {
+          type: 'doughnut',
+          data: {
+            labels: typeLabels,
+            datasets: [{
+              data: typeCounts,
+              backgroundColor: [
+                '#1f4ed8',
+                '#0f766e',
+                '#f59e0b',
+                '#ef4444',
+                '#8b5cf6',
+                '#14b8a6',
+                '#64748b'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
     })();
   </script>
 {% endblock %}

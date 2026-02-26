@@ -1,94 +1,152 @@
 {% extends 'base_back.html.twig' %}
 
-{% block title %}Événements{% endblock %}
+{% block title %}Evenements{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/module-evenement-pro.css') }}?v=1">
+{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="d-flex align-items-center gap-3 flex-wrap">
-    <h4 class="fw-semibold m-0">Liste des événements</h4>
-    <form id="eventFiltersAdmin" class="d-flex gap-2 flex-wrap" method="get" action="{{ path('admin_evenement_index') }}">
-      <div>
-        <select class="form-select" name="type">
-          <option value="">Tous</option>
-          {% for t in types %}
-            <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
-              {{ t.nom }}
-            </option>
-          {% endfor %}
-        </select>
+<div class="evt-shell">
+  {% set totalEvents = evenements.getTotalItemCount is defined ? evenements.getTotalItemCount : evenements|length %}
+  {% set sharedEvents = 0 %}
+  {% for e in evenements %}
+    {% if e.shareWithFamily %}
+      {% set sharedEvents = sharedEvents + 1 %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="evt-pagehead">
+    <h3 class="evt-title">Evenements (admin)</h3>
+    <p class="evt-subtitle">Vue administrative des evenements.</p>
+  </div>
+
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Total</span>
+      <span class="value">{{ totalEvents }}</span>
+      <span class="meta">evenements</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Partages</span>
+      <span class="value">{{ sharedEvents }}</span>
+      <span class="meta">avec la famille</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Filtres</span>
+      <span class="value">{{ selectedType ? 1 : 0 }}</span>
+      <span class="meta">{{ selectedType ? 'type actif' : 'aucun type actif' }}</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Recherche</span>
+      <span class="value">{{ search ? 1 : 0 }}</span>
+      <span class="meta">{{ search ? 'texte applique' : 'pas de texte' }}</span>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="card evt-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Événements par mois ({{ statsYear }})</h5>
+          </div>
+          <div style="height: 260px;">
+            <canvas id="eventsByMonthChart"></canvas>
+          </div>
+        </div>
       </div>
-      <div>
-        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Recherche titre...">
+    </div>
+    <div class="col-lg-5">
+      <div class="card evt-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="mb-0">Répartition par type</h5>
+          </div>
+          <div style="height: 260px;">
+            <canvas id="eventsByTypeChart"></canvas>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <div class="evt-toolbar">
+    <form id="eventFiltersAdmin" class="evt-filter-form" method="get" action="{{ path('admin_evenement_index') }}">
+      <select class="form-select" name="type">
+        <option value="">Tous les types</option>
+        {% for t in types %}
+          <option value="{{ t.id }}" {% if selectedType and t.id == selectedType.id %}selected{% endif %}>
+            {{ t.nom }}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Rechercher un titre...">
     </form>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ path('admin_calendar') }}" class="btn evt-btn-ghost">Calendrier</a>
+      <a href="{{ path('admin_export_csv') }}" class="btn evt-btn-ghost">Exporter CSV</a>
+      <a href="{{ path('admin_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter un evenement</a>
+    </div>
   </div>
 
-  <div>
-    <a href="{{ path('admin_calendar') }}" class="btn btn-outline-secondary me-2">
-      Calendrier
-    </a>
-    <a href="{{ path('admin_evenement_new') }}" class="btn btn-primary">
-      + Ajouter un événement
-    </a>
+  <div class="card evt-card">
+    <div class="table-responsive text-nowrap">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Lieu</th>
+            <th>Partage</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-border-bottom-0">
+        {% for e in evenements %}
+          <tr>
+            <td>{{ e.id }}</td>
+            <td class="evt-title-cell">{{ e.titre }}</td>
+            <td>{{ e.lieu }}</td>
+            <td>
+              <span class="evt-pill {{ e.shareWithFamily ? 'is-yes' : 'is-no' }}">
+                {{ e.shareWithFamily ? 'Oui' : 'Non' }}
+              </span>
+            </td>
+            <td class="text-end">
+              <div class="evt-actions">
+                <a class="btn btn-sm btn-outline-info" href="{{ path('admin_evenement_show', { id: e.id }) }}">Voir</a>
+                <a class="btn btn-sm btn-outline-warning" href="{{ path('admin_evenement_edit', { id: e.id }) }}">Modifier</a>
+                <form method="post"
+                      action="{{ path('admin_evenement_delete', { id: e.id }) }}"
+                      style="display:inline-block"
+                      onsubmit="return confirm('Supprimer cet evenement ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ e.id) }}">
+                  <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="evt-empty">Aucun evenement trouve.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 
-<div class="card">
-  <div class="table-responsive text-nowrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Titre</th>
-          <th>Lieu</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-
-      <tbody class="table-border-bottom-0">
-      {% for e in evenements %}
-        <tr>
-          <td>{{ e.id }}</td>
-          <td class="fw-semibold">{{ e.titre }}</td>
-          <td>{{ e.lieu }}</td>
-
-          <td class="text-end">
-            <a class="btn btn-sm btn-outline-info"
-               href="{{ path('admin_evenement_show', { id: e.id }) }}">
-              Voir
-            </a>
-
-            <a class="btn btn-sm btn-outline-warning"
-               href="{{ path('admin_evenement_edit', { id: e.id }) }}">
-              Modifier
-            </a>
-
-            <form method="post"
-                  action="{{ path('admin_evenement_delete', { id: e.id }) }}"
-                  style="display:inline-block"
-                  onsubmit="return confirm('Supprimer cet événement ?');">
-              <input type="hidden" name="_token"
-                     value="{{ csrf_token('delete' ~ e.id) }}">
-              <button class="btn btn-sm btn-outline-danger">
-                Supprimer
-              </button>
-            </form>
-          </td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="4" class="text-center text-muted">
-            Aucun événement trouvé
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="mt-3">
+    {{ knp_pagination_render(evenements, 'pagination/evt_pagination.html.twig') }}
   </div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     (function () {
       const form = document.getElementById('eventFiltersAdmin');
@@ -104,6 +162,69 @@
           debounce = setTimeout(submit, 300);
         });
       });
+    })();
+  </script>
+  <script>
+    (function () {
+      if (!window.Chart) return;
+      const monthLabels = {{ monthLabels|json_encode|raw }};
+      const monthCounts = {{ monthCounts|json_encode|raw }};
+      const typeLabels = {{ typeLabels|json_encode|raw }};
+      const typeCounts = {{ typeCounts|json_encode|raw }};
+
+      const barCtx = document.getElementById('eventsByMonthChart');
+      if (barCtx) {
+        new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: monthLabels,
+            datasets: [{
+              label: 'Événements',
+              data: monthCounts,
+              backgroundColor: '#1f4ed8'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      const pieCtx = document.getElementById('eventsByTypeChart');
+      if (pieCtx) {
+        new Chart(pieCtx, {
+          type: 'doughnut',
+          data: {
+            labels: typeLabels,
+            datasets: [{
+              data: typeCounts,
+              backgroundColor: [
+                '#1f4ed8',
+                '#0f766e',
+                '#f59e0b',
+                '#ef4444',
+                '#8b5cf6',
+                '#14b8a6',
+                '#64748b'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
     })();
   </script>
 {% endblock %}

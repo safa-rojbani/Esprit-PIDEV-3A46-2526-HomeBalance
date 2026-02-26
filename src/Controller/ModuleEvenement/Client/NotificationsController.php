@@ -2,6 +2,7 @@
 
 namespace App\Controller\ModuleEvenement\Client;
 
+use App\Repository\NotificationRepository;
 use App\Repository\RappelRepository;
 use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +17,12 @@ use App\Entity\Family;
 class NotificationsController extends AbstractController
 {
     #[Route('', name: 'app_notifications', methods: ['GET'])]
-    public function index(RappelRepository $rappelRepository, Request $request, ActiveFamilyResolver $familyResolver): Response
+    public function index(
+        RappelRepository $rappelRepository,
+        NotificationRepository $notificationRepository,
+        Request $request,
+        ActiveFamilyResolver $familyResolver
+    ): Response
     {
         $user = $this->getUser();
         $family = $this->resolveFamily($familyResolver);
@@ -38,6 +44,14 @@ class NotificationsController extends AbstractController
             $qb->andWhere('r.estLu = false');
         }
 
+        $documentNotifications = $notificationRepository->findAllForRecipientInFamily($user, $family);
+        if ($filter === 'unread') {
+            $documentNotifications = array_values(array_filter(
+                $documentNotifications,
+                static fn($notification) => !$notification->isRead()
+            ));
+        }
+
         return $this->render('app/notifications/index.html.twig', [
             'rows' => array_map(static function ($rappel): array {
                 $eventTitle = null;
@@ -55,6 +69,7 @@ class NotificationsController extends AbstractController
                     'eventTitle' => $eventTitle,
                 ];
             }, $qb->getQuery()->getResult()),
+            'document_notifications' => $documentNotifications,
             'filter' => $filter,
         ]);
     }

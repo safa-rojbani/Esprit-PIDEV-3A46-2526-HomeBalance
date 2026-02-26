@@ -568,7 +568,7 @@ final class DocumentController extends AbstractController
     {
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->guessExtension() ?: 'bin';
-        $mimeType = $file->getClientMimeType() ?: 'application/octet-stream';
+        $mimeType = $file->getMimeType() ?: $file->getClientMimeType() ?: 'application/octet-stream';
         $fileSize = $file->getSize() ?? 0;
         $newFilename = uniqid('', true) . '.' . $extension;
 
@@ -579,6 +579,33 @@ final class DocumentController extends AbstractController
             );
         } catch (FileException $e) {
             throw $e;
+        }
+
+        $ext = strtolower((string) $extension);
+        if ($mimeType === 'application/octet-stream') {
+            $mimeMap = [
+                'pdf' => 'application/pdf',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'mp4' => 'video/mp4',
+                'webm' => 'video/webm',
+                'mov' => 'video/quicktime',
+                'mkv' => 'video/x-matroska',
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'txt' => 'text/plain',
+                'zip' => 'application/zip',
+            ];
+            if (isset($mimeMap[$ext])) {
+                $mimeType = $mimeMap[$ext];
+            }
         }
 
         $document->setFileName($originalName);

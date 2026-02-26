@@ -1,0 +1,41 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Inviter la famille{% endblock %}
+
+{% block body %}
+<div class="container-xxl py-4">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-2">Inviter des membres</h3>
+      <p class="text-muted">Choisissez les membres a inviter a l'evenement <strong>{{ evenement.titre }}</strong>.</p>
+
+      {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+      {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+      {% endfor %}
+
+      <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('rsvp_inviter' ~ evenement.id) }}">
+        <div class="mb-3">
+          {% if members is empty %}
+            <div class="alert alert-warning mb-0">Aucun membre a inviter.</div>
+          {% else %}
+            {% for member in members %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="invitees[]" value="{{ member.id }}" id="invitee-{{ member.id }}">
+                <label class="form-check-label" for="invitee-{{ member.id }}">
+                  {{ member.firstName }} {{ member.lastName }} ({{ member.email }})
+                </label>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      <button type="submit" class="btn btn-primary">Envoyer les invitations</button>
+        <a href="{{ path('app_evenement_show', {id: evenement.id}) }}" class="btn btn-outline-secondary">Retour</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

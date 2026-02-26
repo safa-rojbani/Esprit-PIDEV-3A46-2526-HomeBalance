@@ -179,7 +179,7 @@
             <span class="hb-hidden-badge-doc"><i class="bx bx-hide me-1"></i>Masque</span>
 
             {% if document.fileType starts with 'image/' %}
-              <img src="{{ asset(document.filePath) }}" alt="{{ document.fileName }}">
+              <img src="{{ document.filePath|imagine_filter('gallery_thumb') }}" alt="{{ document.fileName }}">
             {% elseif document.fileType == 'application/pdf' %}
               <i class="bx bxs-file-pdf" style="font-size:44px; opacity:.55;"></i>
             {% elseif document.fileType starts with 'video/' %}
