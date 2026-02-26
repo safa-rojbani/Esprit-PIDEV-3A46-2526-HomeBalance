@@ -1,0 +1,42 @@
+
+In FileLoader.php line 182:
+                             
+  Expected to find class "A  
+  pp\Form\SupportTicketStat  
+  usType" in file "C:\Users  
+  \medza\Downloads\HomeBala  
+  nce-msg-avancee\src\Form\  
+  SupportTicketStatusType.p  
+  hp" while importing servi  
+  ces from resource "../src  
+  /", but it was not found!  
+   Check the namespace pref  
+  ix used with the resource  
+   in C:\Users\medza\Downlo  
+  ads\HomeBalance-msg-avanc  
+  ee/config/services.yaml (  
+  which is being imported f  
+  rom "C:\Users\medza\Downl  
+  oads\HomeBalance-msg-avan  
+  cee\src\Kernel.php").      
+                             
+
+In FileLoader.php line 300:
+                             
+  Expected to find class "A  
+  pp\Form\SupportTicketStat  
+  usType" in file "C:\Users  
+  \medza\Downloads\HomeBala  
+  nce-msg-avancee\src\Form\  
+  SupportTicketStatusType.p  
+  hp" while importing servi  
+  ces from resource "../src  
+  /", but it was not found!  
+   Check the namespace pref  
+  ix used with the resource  
+  .                          
+                             
+
+2026-02-26T04:02:51+01:00 [info] Deprecated: Optional parameter $galleryId declared before required parameter $entityManager is implicitly treated as a required parameter
+2026-02-26T04:02:51+01:00 [info] Deprecated: Optional parameter $galleryId declared before required parameter $portalNotificationService is implicitly treated as a required parameter
+2026-02-26T04:02:51+01:00 [info] Deprecated: Optional parameter $galleryId declared before required parameter $portalNotificationService is implicitly treated as a required parameter

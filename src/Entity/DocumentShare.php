@@ -14,7 +14,7 @@ class DocumentShare
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'documentShares')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Document $document = null;
 

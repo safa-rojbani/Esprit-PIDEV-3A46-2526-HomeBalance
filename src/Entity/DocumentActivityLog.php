@@ -26,7 +26,7 @@ class DocumentActivityLog
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'documentActivityLogs')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Document $document = null;
 
@@ -132,4 +132,3 @@ class DocumentActivityLog
         return $this;
     }
 }
-

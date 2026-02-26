@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form\Admin;
+namespace App\Form;
 
 use App\Enum\StatusSupportTicket;
 use Symfony\Component\Form\AbstractType;
@@ -13,16 +13,16 @@ class SupportTicketStatusType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('status', EnumType::class, [
-                'class' => StatusSupportTicket::class,
-                'label' => 'Status',
-                'attr' => ['class' => 'form-select'],
-                'choice_label' => fn (StatusSupportTicket $s) => match ($s) {
-                    StatusSupportTicket::OPEN => 'Open',
-                    StatusSupportTicket::IN_PROGRESS => 'In Progress',
-                    StatusSupportTicket::CLOSED => 'Closed',
-                },
-            ]);
+            ->add('status', EnumType::class , [
+            'class' => StatusSupportTicket::class ,
+            'label' => 'Status',
+            'attr' => ['class' => 'form-select'],
+            'choice_label' => fn(StatusSupportTicket $s) => match ($s) {
+            StatusSupportTicket::OPEN => 'Open',
+            StatusSupportTicket::IN_PROGRESS => 'In Progress',
+            StatusSupportTicket::CLOSED => 'Closed',
+        },
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

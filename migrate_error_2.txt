@@ -1,0 +1,55 @@
+
+ [WARNING] You have 15       
+           previously        
+           executed          
+           migrations in the 
+           database that are 
+           not registered    
+           migrations.       
+
+ >>  (DoctrineMigrations\Version20260206133314)
+ >>  (DoctrineMigrations\Version20260207141430)
+ >>  (DoctrineMigrations\Version20260207171928)
+ >>  (DoctrineMigrations\Version20260208101935)
+ >>  (DoctrineMigrations\Version20260208163000)
+ >>  (DoctrineMigrations\Version20260208174500)
+ >>  (DoctrineMigrations\Version20260209080000)
+ >>  (DoctrineMigrations\Version20260209083000)
+ >>  (DoctrineMigrations\Version20260217213849)
+ >>  (DoctrineMigrations\Version20260218165936)
+ >>  (DoctrineMigrations\Version20260223010000)
+ >>  (DoctrineMigrations\Version20260223020000)
+ >>  (DoctrineMigrations\Version20260224220516)
+ >>  (DoctrineMigrations\Version20260224222410)
+ >> 2026-02-25 02:50:04 (DoctrineMigrations\Version20260225014906)
+[notice] Migrating up to DoctrineMigrations\Version20260225011500
+[error] Migration DoctrineMigrations\Version20260223143000 failed during Execution. Error: "An exception occurred while executing a query: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'document_share' already exists"
+
+In ExceptionConverter.php line 49:
+                             
+  An exception occurred whi  
+  le executing a query: SQL  
+  STATE[42S01]: Base table   
+  or view already exists: 1  
+  050 Table 'document_share  
+  ' already exists           
+                             
+
+In Exception.php line 24:
+                             
+  SQLSTATE[42S01]: Base tab  
+  le or view already exists  
+  : 1050 Table 'document_sh  
+  are' already exists        
+                             
+
+In Connection.php line 57:
+                             
+  SQLSTATE[42S01]: Base tab  
+  le or view already exists  
+  : 1050 Table 'document_sh  
+  are' already exists        
+                             
+
+doctrine:migrations:migrate [--write-sql [WRITE-SQL]] [--dry-run] [--query-time] [--allow-no-migration] [--all-or-nothing [ALL-OR-NOTHING]] [--no-all-or-nothing] [--configuration CONFIGURATION] [--em EM] [--conn CONN] [--] [<version>]
+

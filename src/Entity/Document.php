@@ -3,17 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\DocumentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Enum\EtatDocument;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
-#[UniqueEntity(
-    fields: ['family', 'fileName'],
-    message: 'Un document avec ce nom existe deja dans votre famille.'
-)]
 class Document
 {
     #[ORM\Id]
@@ -22,109 +17,132 @@ class Document
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: 'Le nom du fichier ne peut pas depasser {{ limit }} caracteres.'
-    )]
     private ?string $fileName = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: 'Le chemin du fichier ne peut pas depasser {{ limit }} caracteres.'
-    )]
     private ?string $filePath = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: 'Le type du fichier ne peut pas depasser {{ limit }} caracteres.'
-    )]
-    private ?string $fileType = null;
+    private ?string $originalName = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Regex(
-        pattern: '/^\d+$/',
-        message: 'La taille du fichier doit etre une valeur numerique.'
-    )]
-    private ?string $filesize = null;
+    #[ORM\Column(length: 10)]
+    private ?string $extension = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $uploadedAt = null;
+    #[ORM\Column]
+    private ?float $fileSize = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $etat = null;
+    private ?string $mimeType = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $uploadedAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column]
+    private ?bool $isPublic = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $status = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fileHash = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $metadata = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\ManyToOne]
-    private ?Family $family = null;
-
-    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $uploadedBY = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'documents')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Gallery $gallery = null;
 
-    #[Assert\NotNull(message: 'Veuillez selectionner un fichier.', groups: ['document_create'])]
-    #[Assert\File(
-        maxSize: '20M',
-        maxSizeMessage: 'Le fichier ne doit pas depasser 20 Mo.',
-        mimeTypes: [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'image/webp',
-            'application/pdf',
-            'video/mp4',
-            'video/webm',
-            'video/quicktime',
-            'video/ogg',
-            'video/x-matroska',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'text/plain',
-            'application/zip',
-            'application/x-zip-compressed'
-        ],
-        mimeTypesMessage: 'Type de fichier non autorise.'
-    )]
-    private ?UploadedFile $file = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Family $family = null;
 
-    public function getGallery(): ?Gallery
+    #[ORM\OneToMany(mappedBy: 'document', targetEntity: DocumentShare::class, orphanRemoval: true)]
+    private Collection $documentShares;
+
+    #[ORM\OneToMany(mappedBy: 'document', targetEntity: DocumentActivityLog::class, orphanRemoval: true)]
+    private Collection $documentActivityLogs;
+
+    public function __construct()
     {
-        return $this->gallery;
+        $this->documentShares = new ArrayCollection();
+        $this->documentActivityLogs = new ArrayCollection();
+        $this->uploadedAt = new \DateTimeImmutable();
+        $this->isPublic = false;
+        $this->status = 'active';
     }
 
-    public function setGallery(?Gallery $gallery): static
+    /* Compatibility methods */
+
+    public function getFileType(): ?string
     {
-        $this->gallery = $gallery;
+        return $this->mimeType;
+    }
+
+    public function setFileType(?string $fileType): static
+    {
+        $this->mimeType = $fileType;
         return $this;
     }
 
-    public function getFile(): ?UploadedFile
+    public function getFilesize(): ?float
     {
-        return $this->file;
+        return $this->fileSize;
     }
 
-    public function setFile(?UploadedFile $file): static
+    public function setFilesize(?float $fileSize): static
     {
-        $this->file = $file;
+        $this->fileSize = $fileSize;
         return $this;
     }
+
+    public function getEtat(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setEtat(string $etat): static
+    {
+        $this->status = $etat;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->uploadedAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->uploadedAt = $createdAt;
+        return $this;
+    }
+
+    public function getFamily(): ?Family
+    {
+        return $this->family;
+    }
+
+    public function setFamily(?Family $family): static
+    {
+        $this->family = $family;
+        return $this;
+    }
+
+    /* Standard getters/setters */
 
     public function getId(): ?int
     {
@@ -145,40 +163,48 @@ class Document
 
     public function getFilePath(): ?string
     {
-        if ($this->filePath === null) {
-            return null;
-        }
-
-        return ltrim($this->filePath, '/');
+        return $this->filePath;
     }
 
     public function setFilePath(string $filePath): static
     {
-        $this->filePath = ltrim($filePath, '/');
+        $this->filePath = $filePath;
 
         return $this;
     }
 
-    public function getFileType(): ?string
+    public function getOriginalName(): ?string
     {
-        return $this->fileType;
+        return $this->originalName;
     }
 
-    public function setFileType(string $fileType): static
+    public function setOriginalName(string $originalName): static
     {
-        $this->fileType = $fileType;
+        $this->originalName = $originalName;
 
         return $this;
     }
 
-    public function getFilesize(): ?string
+    public function getExtension(): ?string
     {
-        return $this->filesize;
+        return $this->extension;
     }
 
-    public function setFilesize(?string $filesize): static
+    public function setExtension(string $extension): static
     {
-        $this->filesize = $filesize;
+        $this->extension = $extension;
+
+        return $this;
+    }
+
+    public function getMimeType(): ?string
+    {
+        return $this->mimeType;
+    }
+
+    public function setMimeType(string $mimeType): static
+    {
+        $this->mimeType = $mimeType;
 
         return $this;
     }
@@ -188,33 +214,9 @@ class Document
         return $this->uploadedAt;
     }
 
-    public function setUploadedAt(?\DateTimeImmutable $uploadedAt): static
+    public function setUploadedAt(\DateTimeImmutable $uploadedAt): static
     {
         $this->uploadedAt = $uploadedAt;
-
-        return $this;
-    }
-
-    public function getEtat(): ?EtatDocument
-    {
-        return $this->etat ? EtatDocument::from($this->etat) : null;
-    }
-
-    public function setEtat(EtatDocument $etat): static
-    {
-        $this->etat = $etat->value;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -231,6 +233,66 @@ class Document
         return $this;
     }
 
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function isPublic(): ?bool
+    {
+        return $this->isPublic;
+    }
+
+    public function setIsPublic(bool $isPublic): static
+    {
+        $this->isPublic = $isPublic;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getFileHash(): ?string
+    {
+        return $this->fileHash;
+    }
+
+    public function setFileHash(?string $fileHash): static
+    {
+        $this->fileHash = $fileHash;
+
+        return $this;
+    }
+
+    public function getMetadata(): ?array
+    {
+        return $this->metadata;
+    }
+
+    public function setMetadata(?array $metadata): static
+    {
+        $this->metadata = $metadata;
+
+        return $this;
+    }
+
     public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
@@ -243,18 +305,6 @@ class Document
         return $this;
     }
 
-    public function getFamily(): ?Family
-    {
-        return $this->family;
-    }
-
-    public function setFamily(?Family $family): static
-    {
-        $this->family = $family;
-
-        return $this;
-    }
-
     public function getUploadedBY(): ?User
     {
         return $this->uploadedBY;
@@ -263,6 +313,78 @@ class Document
     public function setUploadedBY(?User $uploadedBY): static
     {
         $this->uploadedBY = $uploadedBY;
+
+        return $this;
+    }
+
+    public function getGallery(): ?Gallery
+    {
+        return $this->gallery;
+    }
+
+    public function setGallery(?Gallery $gallery): static
+    {
+        $this->gallery = $gallery;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DocumentShare>
+     */
+    public function getDocumentShares(): Collection
+    {
+        return $this->documentShares;
+    }
+
+    public function addDocumentShare(DocumentShare $documentShare): static
+    {
+        if (!$this->documentShares->contains($documentShare)) {
+            $this->documentShares->add($documentShare);
+            $documentShare->setDocument($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentShare(DocumentShare $documentShare): static
+    {
+        if ($this->documentShares->removeElement($documentShare)) {
+            // set the owning side to null (unless already changed)
+            if ($documentShare->getDocument() === $this) {
+                $documentShare->setDocument(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DocumentActivityLog>
+     */
+    public function getDocumentActivityLogs(): Collection
+    {
+        return $this->documentActivityLogs;
+    }
+
+    public function addDocumentActivityLog(DocumentActivityLog $documentActivityLog): static
+    {
+        if (!$this->documentActivityLogs->contains($documentActivityLog)) {
+            $this->documentActivityLogs->add($documentActivityLog);
+            $documentActivityLog->setDocument($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocumentActivityLog(DocumentActivityLog $documentActivityLog): static
+    {
+        if ($this->documentActivityLogs->removeElement($documentActivityLog)) {
+            // set the owning side to null (unless already changed)
+            if ($documentActivityLog->getDocument() === $this) {
+                $documentActivityLog->setDocument(null);
+            }
+        }
 
         return $this;
     }

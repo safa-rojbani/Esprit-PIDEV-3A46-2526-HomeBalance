@@ -64,7 +64,7 @@ class Gallery
     #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Document::class)]
     private Collection $documents;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'galleries')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?DefaultGallery $defaultGallery = null;
 

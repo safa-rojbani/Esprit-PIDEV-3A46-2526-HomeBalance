@@ -4,26 +4,26 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    app.notification_from: '%env(string:MAIL_FROM)%'
-    app.audit_retention_days: 180
+  app.notification_from: '%env(string:MAIL_FROM)%'
+  app.audit_retention_days: 180
 
-    # --- Feature flags / Admin AI ---
-    app.feature_biometric_stepup: '%env(bool:FEATURE_BIOMETRIC_STEPUP)%'
-    app.feature_ai_admin_assistant: '%env(bool:FEATURE_AI_ADMIN_ASSISTANT)%'
-    app.feature_ai_execute_enabled: '%env(bool:FEATURE_AI_EXECUTE_ENABLED)%'
+  # --- Feature flags / Admin AI ---
+  app.feature_biometric_stepup: '%env(bool:FEATURE_BIOMETRIC_STEPUP)%'
+  app.feature_ai_admin_assistant: '%env(bool:FEATURE_AI_ADMIN_ASSISTANT)%'
+  app.feature_ai_execute_enabled: '%env(bool:FEATURE_AI_EXECUTE_ENABLED)%'
 
-    # --- External keys (keep real values in .env.local) ---
-    app.luxand_api_key: '%env(string:LUXAND_API_KEY)%'
-    app.groq_api_key: '%env(string:GROQ_API_KEY)%'
-    app.groq_model: '%env(string:GROQ_MODEL)%'
+  # --- External keys (keep real values in .env.local) ---
+  app.luxand_api_key: '%env(string:LUXAND_API_KEY)%'
+  app.groq_api_key: '%env(string:GROQ_API_KEY)%'
+  app.groq_model: '%env(string:GROQ_MODEL)%'
 
-    # --- Public / Providers base URIs ---
-    app.public_base_url: '%env(APP_URL)%'
-    app.cloudconvert.base_uri: 'https://api.cloudconvert.com/v2'
-    app.cloudconvert.sync_base_uri: 'https://sync.api.cloudconvert.com/v2'
-    app.abstract_email_validation.base_uri: 'https://emailvalidation.abstractapi.com/v1/'
-    app.huggingface.base_uri: 'https://router.huggingface.co/hf-inference/models'
-    mercure.public_url: '%env(string:MERCURE_PUBLIC_URL)%'
+  # --- Public / Providers base URIs ---
+  app.public_base_url: '%env(APP_URL)%'
+  app.cloudconvert.base_uri: 'https://api.cloudconvert.com/v2'
+  app.cloudconvert.sync_base_uri: 'https://sync.api.cloudconvert.com/v2'
+  app.abstract_email_validation.base_uri: 'https://emailvalidation.abstractapi.com/v1/'
+  app.huggingface.base_uri: 'https://router.huggingface.co/hf-inference/models'
+  mercure.public_url: '%env(MERCURE_PUBLIC_URL)%'
 
 services:
     # default configuration for services in *this* file

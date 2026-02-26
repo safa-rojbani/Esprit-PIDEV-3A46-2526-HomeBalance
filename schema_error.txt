@@ -1,0 +1,40 @@
+ Updating database schema...
+
+
+In ExceptionConverter.php line 102:
+                             
+  An exception occurred whi  
+  le executing a query: SQL  
+  STATE[HY000]: General err  
+  or: 1005 Can't create tab  
+  le `homebalance_db`.`port  
+  al_notification` (errno:   
+  150 "Foreign key constrai  
+  nt is incorrectly formed"  
+  )                          
+                             
+
+In Exception.php line 24:
+                             
+  SQLSTATE[HY000]: General   
+  error: 1005 Can't create   
+  table `homebalance_db`.`p  
+  ortal_notification` (errn  
+  o: 150 "Foreign key const  
+  raint is incorrectly form  
+  ed")                       
+                             
+
+In Connection.php line 27:
+                             
+  SQLSTATE[HY000]: General   
+  error: 1005 Can't create   
+  table `homebalance_db`.`p  
+  ortal_notification` (errn  
+  o: 150 "Foreign key const  
+  raint is incorrectly form  
+  ed")                       
+                             
+
+doctrine:schema:update [--em EM] [--complete] [--dump-sql] [-f|--force]
+

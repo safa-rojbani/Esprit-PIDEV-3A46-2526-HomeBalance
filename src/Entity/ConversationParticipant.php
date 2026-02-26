@@ -16,7 +16,7 @@ class ConversationParticipant
     #[ORM\Column]
     private ?\DateTimeImmutable $joinedAt = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'conversationParticipants')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Conversation $conversation = null;
 

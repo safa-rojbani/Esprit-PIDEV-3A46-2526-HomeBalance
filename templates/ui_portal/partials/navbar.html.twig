@@ -144,6 +144,7 @@
       {% endif %}
 <li class="nav-item navbar-dropdown dropdown-user dropdown">
   <a class="nav-link dropdown-toggle hide-arrow p-0"
+     id="accountMenuToggle"
      href="#accountMenu"
      role="button"
      data-bs-toggle="dropdown"
@@ -178,7 +179,7 @@
 
   </a>
 
-  <ul class="dropdown-menu dropdown-menu-end">
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenuToggle">
 
           <li>
             <a class="dropdown-item" href="{{ path('portal_account') }}">
