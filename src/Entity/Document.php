@@ -35,7 +35,7 @@ class Document
     private ?string $mimeType = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $uploadedAt = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
@@ -47,7 +47,7 @@ class Document
     private ?bool $isPublic = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?string $etat = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $fileHash = null;
@@ -80,9 +80,9 @@ class Document
     {
         $this->documentShares = new ArrayCollection();
         $this->documentActivityLogs = new ArrayCollection();
-        $this->uploadedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
         $this->isPublic = false;
-        $this->status = 'active';
+        $this->etat = 'active';
     }
 
     /* Compatibility methods */
@@ -111,23 +111,23 @@ class Document
 
     public function getEtat(): ?string
     {
-        return $this->status;
+        return $this->etat;
     }
 
     public function setEtat(string $etat): static
     {
-        $this->status = $etat;
+        $this->etat = $etat;
         return $this;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->uploadedAt;
+        return $this->createdAt;
     }
 
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->uploadedAt = $createdAt;
+        $this->createdAt = $createdAt;
         return $this;
     }
 
@@ -211,12 +211,12 @@ class Document
 
     public function getUploadedAt(): ?\DateTimeImmutable
     {
-        return $this->uploadedAt;
+        return $this->createdAt;
     }
 
-    public function setUploadedAt(\DateTimeImmutable $uploadedAt): static
+    public function setUploadedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->uploadedAt = $uploadedAt;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -259,12 +259,12 @@ class Document
 
     public function getStatus(): ?string
     {
-        return $this->status;
+        return $this->etat;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $etat): static
     {
-        $this->status = $status;
+        $this->etat = $etat;
 
         return $this;
     }
