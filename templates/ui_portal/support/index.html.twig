@@ -1,0 +1,74 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Support · My Tickets{% endblock %}
+
+{% block extra_stylesheets %}
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div class="support-page">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 support-hero">
+      <div>
+        <h4 class="mb-1 support-hero-title">Support Center</h4>
+        <p class="text-muted mb-0 support-hero-subtitle">Track and manage your support requests in one place.</p>
+      </div>
+      <a class="btn btn-primary" href="{{ path('portal_support_new') }}">
+        <i class="bx bx-plus me-1"></i> New Ticket
+      </a>
+    </div>
+
+    <div class="card support-card">
+      <div class="table-responsive text-nowrap">
+        <table class="table align-middle mb-0 support-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Created</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if tickets is empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  <div class="support-empty-state">
+                    <i class="bx bx-help-circle d-block mb-2"></i>
+                    <p>No support tickets yet.</p>
+                    <small>Start a new ticket if you need help with your account or billing.</small>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              {% for ticket in tickets %}
+                <tr>
+                  <td><strong>#{{ ticket.id }}</strong></td>
+                  <td>{{ ticket.subject }}</td>
+                  <td>
+                    <span class="badge support-status-pill {{ ticket.statusBadgeClass }}">
+                      {{ ticket.status ? ticket.status.value|replace({'_': ' '})|upper : '—' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge support-priority-pill {{ ticket.priorityBadgeClass }}">
+                      {{ ticket.priority ? ticket.priority.value|upper : '—' }}
+                    </span>
+                  </td>
+                  <td>{{ ticket.createdAt ? ticket.createdAt|date('M d, Y H:i') : '—' }}</td>
+                  <td class="text-end">
+                    <a href="{{ path('portal_support_show', { id: ticket.id }) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bx bx-show me-1"></i> View
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

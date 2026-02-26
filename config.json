@@ -1,0 +1,1 @@
+{"apps":{"http":{"servers":{"srv0":{"listen":[":3000"],"routes":[{"handle":[{"handler":"mercure","publisher_jwt":{"key":"1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875","alg":"HS256"},"subscriber_jwt":{"key":"1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875","alg":"HS256"},"demo":true}]}]}}}}}}

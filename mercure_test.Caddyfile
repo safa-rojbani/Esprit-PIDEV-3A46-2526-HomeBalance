@@ -1,0 +1,12 @@
+{
+    admin off
+}
+
+:3000 {
+    mercure {
+        publisher_jwt 1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875 HS256
+        subscriber_jwt 1df3be7b01dc1e0c04451d362db3659b80107fb8bf08c4182a1b2342875 HS256
+        demo
+        anonymous
+    }
+}

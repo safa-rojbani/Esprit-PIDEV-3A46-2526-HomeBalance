@@ -1,0 +1,167 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }} · HomeBalance{% endblock %}
+
+{% block extra_stylesheets %}
+<link rel="stylesheet" href="{{ asset('css/support.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row" data-controller="support-ticket"
+     data-support-ticket-ai-replies-url-value="{{ path('portal_admin_support_ai_suggest_replies', { id: ticket.id }) }}"
+     data-support-ticket-classify-url-value="{{ path('portal_admin_support_ai_classify', { id: ticket.id }) }}">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('portal_dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('portal_admin_support_index') }}">Admin Support</a></li>
+                <li class="breadcrumb-item active">Ticket #{{ ticket.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Ticket Info -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Ticket Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">User</label>
+                            <div><strong>{{ ticket.user.username }}</strong></div>
+                            <div class="text-muted small">{{ ticket.user.email }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Subject</label>
+                            <div>{{ ticket.subject }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Category</label>
+                            <div>
+                                <span class="badge bg-label-info">General</span>
+                                <span class="badge bg-label-secondary ms-1 d-none"
+                                      data-support-ticket-target="categoryHint"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Priority</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div>
+                                    {% if ticket.priority.value == 'high' %}
+                                        <span class="badge bg-label-danger">High</span>
+                                    {% elseif ticket.priority.value == 'medium' %}
+                                        <span class="badge bg-label-warning">Medium</span>
+                                    {% elseif ticket.priority.value == 'low' %}
+                                        <span class="badge bg-label-info">Low</span>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-label-info d-none"
+                                      data-support-ticket-target="priorityHint"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Created At</label>
+                            <div>{{ ticket.createdAt|date('d/m/Y H:i') }}</div>
+                        </div>
+                        <hr>
+                        <form action="{{ path('portal_admin_support_show', {id: ticket.id}) }}" method="POST">
+                            <input type="hidden" name="action" value="change_status">
+                            <input type="hidden" name="_token" value="{{ csrf_token('change_status_' ~ ticket.id) }}">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Update Status</label>
+                                <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                                    {% for status in statusChoices %}
+                                        <option value="{{ status.value }}" {{ ticket.status == status ? 'selected' : '' }}>
+                                            {{ status.value|replace({'_': ' '})|title }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Conversation</h5>
+                        <span>
+                            {% if ticket.status.value == 'open' %}
+                                <span class="badge bg-label-danger">Open</span>
+                            {% elseif ticket.status.value == 'in_progress' %}
+                                <span class="badge bg-label-warning">In Progress</span>
+                            {% elseif ticket.status.value == 'closed' %}
+                                <span class="badge bg-label-success">Closed</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chat-history mb-4" id="chat-history">
+                            <!-- Initial Ticket Description -->
+                            <div class="message message-user">
+                                <div class="message-content">
+                                    <div class="fw-semibold mb-1">{{ ticket.user.username }}</div>
+                                    <p class="mb-0">{{ ticket.message|nl2br }}</p>
+                                    <div class="text-end mt-1"><small class="text-muted" style="font-size: 0.7rem;">{{ ticket.createdAt|date('H:i') }}</small></div>
+                                </div>
+                            </div>
+
+                            {% for message in ticket.messages %}
+                                <div class="message {{ message.author == ticket.user ? 'message-user' : 'message-admin' }}">
+                                    <div class="message-content">
+                                        <div class="fw-semibold mb-1">{{ message.author.username }}</div>
+                                        <p class="mb-0">{{ message.content|nl2br }}</p>
+                                        <div class="text-end mt-1"><small style="font-size: 0.7rem; opacity: .7;">{{ message.createdAt|date('H:i') }}</small></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if ticket.status.value != 'closed' %}
+                        <form action="{{ path('portal_admin_support_show', {id: ticket.id}) }}" method="POST">
+                            <input type="hidden" name="action" value="reply">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_reply_' ~ ticket.id) }}">
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Admin reply</span>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-action="click->support-ticket#requestAiReplies">
+                                    <i class="bx bx-bulb me-1"></i> Réponses IA
+                                </button>
+                            </div>
+                            <div class="mb-2" data-support-ticket-target="aiReplies"></div>
+                            <div class="mb-3">
+                                <textarea name="reply_content"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Type your reply here..."
+                                          data-support-ticket-target="reply"
+                                          required></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-send me-1"></i> Send Reply
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-secondary text-center mb-0">
+                            This ticket is closed. Re-open it to send a reply.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Scroll to bottom of chat
+    const chatHistory = document.getElementById('chat-history');
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+</script>
+{% endblock %}

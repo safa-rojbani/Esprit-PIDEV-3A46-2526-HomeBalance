@@ -30,17 +30,17 @@ class TaskCompletion
     private ?\DateTimeImmutable $validatedAt = null;
 
     // Tâche concernée
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
     // Enfant
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
     // Parent validateur
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $validatedBy = null;
 

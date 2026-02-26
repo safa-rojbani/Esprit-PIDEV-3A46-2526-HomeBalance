@@ -1,0 +1,88 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Support · Ticket #{{ ticket.id }}{% endblock %}
+
+{% block extra_stylesheets %}
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div class="support-page">
+    <div class="mb-4">
+      <a href="{{ path('portal_support_index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bx bx-arrow-back me-1"></i> Back to tickets
+      </a>
+    </div>
+
+    {# ── Ticket details card ── #}
+    <div class="card mb-4 support-ticket-card">
+      <div class="card-header d-flex align-items-center justify-content-between support-ticket-card-header">
+        <div>
+          <h5 class="mb-1">Ticket #{{ ticket.id }} — {{ ticket.subject }}</h5>
+          <small class="text-muted">Submitted {{ ticket.createdAt ? ticket.createdAt|date('M d, Y H:i') : '—' }}</small>
+        </div>
+        <div class="d-flex gap-2">
+          <span class="badge support-status-pill {{ ticket.statusBadgeClass }} fs-6">
+            {{ ticket.status ? ticket.status.value|replace({'_': ' '})|upper : '—' }}
+          </span>
+          <span class="badge support-priority-pill {{ ticket.priorityBadgeClass }} fs-6">
+            {{ ticket.priority ? ticket.priority.value|upper : '—' }}
+          </span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="mb-0" style="white-space: pre-line;">{{ ticket.message }}</p>
+      </div>
+    </div>
+
+    {# ── Conversation thread ── #}
+    <div class="card mb-4 support-thread-card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bx bx-chat me-1"></i> Conversation</h6>
+      </div>
+      <div class="card-body support-conversation-body">
+        {% if ticket.messages is empty %}
+          <p class="text-muted text-center py-3 mb-0">No replies yet. Our team will respond shortly.</p>
+        {% else %}
+          {% for msg in ticket.messages %}
+            {% set isUser = (msg.author.id == app.user.id) %}
+            <div class="support-thread-message {{ isUser ? 'support-thread-message-user' : 'support-thread-message-agent' }}">
+              <div class="support-thread-bubble {{ isUser ? 'support-thread-bubble-user' : 'support-thread-bubble-agent' }}">
+                <p class="mb-1" style="white-space: pre-line;">{{ msg.content }}</p>
+                <div class="support-thread-meta mt-1">
+                  {{ msg.author.firstName }} {{ msg.author.lastName }} · {{ msg.createdAt|date('M d, Y H:i') }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Reply form (only if ticket is not closed) ── #}
+    {% if ticket.status is not same as constant('App\\Enum\\StatusSupportTicket::CLOSED') %}
+      <div class="card support-reply-card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bx bx-reply me-1"></i> Reply</h6>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ path('portal_support_show', { id: ticket.id }) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('support_reply_' ~ ticket.id) }}" />
+            <div class="mb-3">
+              <textarea name="reply_content" class="form-control" rows="4" placeholder="Write your reply..." required></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                <i class="bx bx-send me-1"></i> Send Reply
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-success">
+        <i class="bx bx-check-circle me-1"></i> This ticket is closed. If you need further help, please create a new ticket.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

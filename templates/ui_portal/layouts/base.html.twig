@@ -31,7 +31,7 @@
     <script src="{{ asset('js/config.js') }}"></script>
   </head>
 
-  <body>
+  <body{% if app.user %} data-current-user-id="{{ app.user.id }}"{% endif %}>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
         {% set route = app.request.attributes.get('_route') %}
@@ -62,6 +62,10 @@
             or route starts with 'family_task'
             or route starts with 'parent_validation'
             or route starts with 'admin_task') ? 'module-tasks'
+          : (route starts with 'portal_messaging_'
+            or route starts with 'portal_messaging_message_') ? 'module-messaging'
+          : (route starts with 'portal_support_'
+            or route starts with 'portal_admin_support_') ? 'module-support'
           : 'dashboard'
         ) %}
 

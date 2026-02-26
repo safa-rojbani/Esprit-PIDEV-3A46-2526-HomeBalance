@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\ConversationParticipant;
+use App\Entity\Conversation;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +18,17 @@ class ConversationParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ConversationParticipant::class);
     }
 
-    //    /**
-    //     * @return ConversationParticipant[] Returns an array of ConversationParticipant objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function isUserParticipant(Conversation $conversation, User $user): bool
+    {
+        $count = $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.conversation = :conversation')
+            ->andWhere('cp.user = :user')
+            ->setParameter('conversation', $conversation)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
 
-    //    public function findOneBySomeField($value): ?ConversationParticipant
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $count > 0;
+    }
 }

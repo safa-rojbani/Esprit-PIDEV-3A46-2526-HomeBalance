@@ -1,0 +1,124 @@
+{% set isMe = message.sender == app.user %}
+{% set msgReactions = reactions[message.id] ?? {} %}
+
+<div class="msg-row {{ isMe ? 'msg-row--me' : 'msg-row--other' }}"
+     id="message-{{ message.id }}">
+
+    {# Avatar — shown only for received messages #}
+    {% if not isMe %}
+        <div class="msg-avatar">
+            {% if message.sender and message.sender.avatarPath %}
+                <img src="{{ asset(message.sender.avatarPath) }}" alt="">
+            {% else %}
+                {{ message.sender ? message.sender.firstName|slice(0,1)|upper : '?' }}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="msg-content-wrap">
+
+        {# Sender name — group chats only, for other people #}
+        {% if not isMe and current_conversation.type.value == 'group' %}
+            <div class="msg-sender-name">
+                {{ message.sender ? message.sender.firstName : 'Inconnu' }}
+            </div>
+        {% endif %}
+
+        {# Bubble + hover actions #}
+        <div class="message-bubble-group">
+
+            <div class="{{ isMe ? 'chat-bubble-me' : 'chat-bubble-other' }}">
+
+                {# Quoted reply preview inside bubble #}
+                {% if message.parentMessage %}
+                    {% set parent = message.parentMessage %}
+                    <div class="reply-quote-inner">
+                        <div class="reply-quote-inner-author">
+                            {{ parent.sender ? parent.sender.firstName : 'Inconnu' }}
+                        </div>
+                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;opacity:.82;">
+                            {{ parent.content|slice(0, 70) }}{% if parent.content|length > 70 %}…{% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Message text #}
+                <span>{{ message.content }}</span>
+
+                {# Attachment / image #}
+                {% if message.attachmentURL %}
+                    {% set ext = message.attachmentURL|split('.')|last|lower %}
+                    {% if ext in ['jpg','jpeg','png','gif','webp','svg'] %}
+                        <div style="margin-top:8px;">
+                            <img src="{{ asset(message.attachmentURL) }}"
+                                 alt="Image"
+                                 style="max-height:220px;max-width:100%;border-radius:10px;display:block;cursor:zoom-in;"
+                                 onclick="window.open(this.src,'_blank')">
+                        </div>
+                    {% else %}
+                        <div style="margin-top:8px;">
+                            <a href="{{ asset(message.attachmentURL) }}"
+                               target="_blank"
+                               style="display:inline-flex;align-items:center;gap:6px;
+                                      font-size:.78rem;font-weight:600;
+                                      color:{{ isMe ? 'rgba(255,255,255,0.9)' : 'var(--msg-primary)' }};
+                                      text-decoration:none;">
+                                <i class="bx bx-download"></i>
+                                Télécharger la pièce jointe
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {# Hover action buttons #}
+            <div class="message-actions">
+                <button type="button"
+                        title="Réagir"
+                        data-message-id="{{ message.id }}"
+                        data-action="click->messaging#toggleReactionPicker">
+                    <i class="bx bx-smile"></i>
+                </button>
+                <button type="button"
+                        title="Répondre"
+                        data-message-id="{{ message.id }}"
+                        data-sender-name="{{ message.sender ? message.sender.firstName : 'Inconnu' }}"
+                        data-content="{{ (message.content|slice(0, 200))|e('html_attr') }}"
+                        data-action="click->messaging#reply">
+                    <i class="bx bx-reply"></i>
+                </button>
+            </div>
+        </div>
+
+        {# Reactions bar #}
+        {% if msgReactions is not empty %}
+            <div class="reaction-bar" id="reactions-{{ message.id }}">
+                {% for emoji, data in msgReactions %}
+                    {% set userIds = data.users|keys %}
+                    {% set iReacted = app.user and (app.user.id in userIds) %}
+                    <button class="reaction-pill-modern {{ iReacted ? 'active' : '' }}"
+                            data-message-id="{{ message.id }}"
+                            data-emoji="{{ emoji }}"
+                            data-action="click->messaging#react"
+                            title="{{ data.users|join(', ') }}">
+                        {{ emoji }}&nbsp;{{ data.count }}
+                    </button>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="reaction-bar" id="reactions-{{ message.id }}" style="display:none;"></div>
+        {% endif %}
+
+        {# Timestamp + read tick #}
+        <div class="msg-meta {{ isMe ? 'msg-meta--me' : '' }}">
+            <span class="msg-time">{{ message.sentAt|date('H:i') }}</span>
+            {% if isMe %}
+                <i class="bx bx-check-double msg-tick {{ message.isRead ? 'msg-tick--read' : '' }}"
+                   id="tick-{{ message.id }}"
+                   title="{{ message.isRead ? 'Lu' : 'Envoyé' }}"></i>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>

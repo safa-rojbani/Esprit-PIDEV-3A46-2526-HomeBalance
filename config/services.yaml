@@ -12,6 +12,7 @@ parameters:
     app.luxand_api_key: '%env(string:LUXAND_API_KEY)%'
     app.groq_api_key: '%env(string:GROQ_API_KEY)%'
     app.groq_model: '%env(string:GROQ_MODEL)%'
+    mercure.public_url: '%env(string:MERCURE_PUBLIC_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -56,3 +57,12 @@ services:
         bind:
             $featureAiAssistantEnabled: '%app.feature_ai_admin_assistant%'
             $featureAiExecuteEnabled: '%app.feature_ai_execute_enabled%'
+
+    App\ServiceModuleMessagerie\Messaging\ChatAttachmentStorage:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\ServiceModuleMessagerie\Messaging\MercureTokenFactory:
+        arguments:
+            $jwtSecret: '%env(MERCURE_JWT_SECRET)%'
+

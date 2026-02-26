@@ -1,0 +1,66 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Messages · HomeBalance{% endblock %}
+
+{% block extra_stylesheets %}
+<link rel="stylesheet" href="{{ asset('css/messaging.css') }}?v=40">
+<style>
+  /* Remove default page padding so messaging fills the content area */
+  .container-xxl.container-p-y {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messaging-card">
+
+    {# ── LEFT SIDEBAR ─────────────────────────────────────────── #}
+    <div class="messaging-sidebar">
+        {% include 'ui_portal/messaging/_sidebar.html.twig' %}
+    </div>
+
+    {# ── MAIN CHAT AREA ───────────────────────────────────────── #}
+    <div class="messaging-main">
+
+        <turbo-frame id="chat_view"
+                     data-controller="messaging"
+                     data-action="turbo:submit-end->messaging#clearInput"
+                     data-messaging-mercure-url-value="{{ mercure_public_url }}"
+                     data-messaging-mercure-token-value="{{ mercure_token }}"
+                     data-messaging-conversation-id-value="{{ current_conversation ? current_conversation.id : '' }}"
+                     style="display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;">
+
+            {% if current_conversation %}
+                {% include 'ui_portal/messaging/_chat.html.twig' %}
+            {% else %}
+                {# ── Premium Empty State ── #}
+                <div class="msg-empty-state">
+                    <div class="msg-empty-icon">
+                        <i class="bx bx-message-square-dots"></i>
+                    </div>
+                    <h6 class="msg-empty-title">Démarrez une conversation</h6>
+                    <p class="msg-empty-sub">
+                        Sélectionnez une conversation existante ou créez-en une nouvelle pour commencer.
+                    </p>
+                    <a href="{{ path('portal_messaging_create') }}"
+                       class="btn btn-primary rounded-pill px-4 py-2"
+                       data-turbo="false"
+                       style="font-weight:700;font-size:.875rem;
+                              background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                              border:none;
+                              box-shadow:0 6px 20px rgba(99,102,241,0.4);
+                              transition:all .2s;">
+                        <i class="bx bx-plus me-1"></i> Nouvelle conversation
+                    </a>
+                </div>
+            {% endif %}
+
+        </turbo-frame>
+    </div>
+
+</div>
+{% endblock %}
