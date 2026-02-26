@@ -450,7 +450,7 @@
       if (capturedType === "image") {
         filename = `camera_${Date.now()}.jpg`;
       } else {
-        // choose extension from mime
+        
         const ext = filetype.includes('mp4') ? 'mp4' : (filetype.includes('quicktime') ? 'mov' : 'webm');
         filename = `video_${Date.now()}.${ext}`;
       }
