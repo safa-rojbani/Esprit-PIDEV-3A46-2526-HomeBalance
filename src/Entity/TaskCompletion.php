@@ -13,7 +13,7 @@ class TaskCompletion
     #[ORM\Column]
     private ?int $id = null;
 
-    // Quand lâ€™enfant soumet la tÃ¢che
+    // Quand l’enfant soumet la tâche
     #[ORM\Column]
     private ?\DateTimeImmutable $completedAt = null;
 
@@ -21,15 +21,15 @@ class TaskCompletion
     #[ORM\Column(length: 255)]
     private ?string $proof = null;
 
-    // DÃ©cision du parent
+    // Décision du parent
     #[ORM\Column(nullable: true)]
     private ?bool $isValidated = null;
 
-    // Quand le parent dÃ©cide
+    // Quand le parent décide
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $validatedAt = null;
 
-    // TÃ¢che concernÃ©e
+    // Tâche concernée
     #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
@@ -40,7 +40,7 @@ class TaskCompletion
     private ?User $user = null;
 
     // Parent validateur
-    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletionsValidated')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $validatedBy = null;
 

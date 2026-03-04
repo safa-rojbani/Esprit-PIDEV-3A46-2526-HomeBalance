@@ -26,7 +26,7 @@ class Message
     #[ORM\Column]
     private ?bool $isRead = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Conversation $conversation = null;
 
@@ -130,5 +130,3 @@ class Message
         return $this;
     }
 }
-
-

@@ -202,12 +202,37 @@
 
       <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-    <script src="{{ asset('vendor/libs/jquery/jquery.js') }}"></script>
-    <script src="{{ asset('vendor/libs/popper/popper.js') }}"></script>
-    <script src="{{ asset('vendor/js/bootstrap.js') }}"></script>
-    <script src="{{ asset('vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-    <script src="{{ asset('vendor/js/menu.js') }}"></script>
+    {# ── Vendor JS (CDN) ───────────────────────────────────────────────────── #}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/perfect-scrollbar@1.5.5/dist/perfect-scrollbar.min.js"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    {# ── Sneat menu / sidebar toggle (lightweight replacement for menu.js) ── #}
+    <script>
+      (function () {
+        var MENU_CLASS   = 'layout-menu-expanded';
+        var TOGGLE_SEL   = '.layout-menu-toggle';
+        var OVERLAY_SEL  = '.layout-overlay';
+
+        function toggleMenu() {
+          document.documentElement.classList.toggle(MENU_CLASS);
+        }
+        function closeMenu() {
+          document.documentElement.classList.remove(MENU_CLASS);
+        }
+
+        function bindEvents() {
+          document.querySelectorAll(TOGGLE_SEL).forEach(function (el) {
+            el.addEventListener('click', function (e) { e.preventDefault(); toggleMenu(); });
+          });
+          var overlay = document.querySelector(OVERLAY_SEL);
+          if (overlay) overlay.addEventListener('click', closeMenu);
+        }
+
+        document.addEventListener('DOMContentLoaded', bindEvents);
+        document.addEventListener('turbo:load', bindEvents);
+      })();
+    </script>
 
     <script>
       (function () {

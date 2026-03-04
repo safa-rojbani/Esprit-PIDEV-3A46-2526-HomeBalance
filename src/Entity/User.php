@@ -105,11 +105,23 @@ private ?string $status = null;
     #[ORM\JoinTable(name: 'user_badges')]
     private Collection $badges;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskCompletion::class)]
+    private Collection $taskCompletions;
+
+    #[ORM\OneToMany(mappedBy: 'validatedBy', targetEntity: TaskCompletion::class)]
+    private Collection $taskCompletionsValidated;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ConversationParticipant::class)]
+    private Collection $conversationParticipants;
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
         $this->badges = new ArrayCollection();
+        $this->taskCompletions = new ArrayCollection();
+        $this->taskCompletionsValidated = new ArrayCollection();
+        $this->conversationParticipants = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -446,5 +458,29 @@ public function setStatus(UserStatus $status): static
         $this->badges->removeElement($badge);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskCompletion>
+     */
+    public function getTaskCompletions(): Collection
+    {
+        return $this->taskCompletions;
+    }
+
+    /**
+     * @return Collection<int, TaskCompletion>
+     */
+    public function getTaskCompletionsValidated(): Collection
+    {
+        return $this->taskCompletionsValidated;
+    }
+
+    /**
+     * @return Collection<int, ConversationParticipant>
+     */
+    public function getConversationParticipants(): Collection
+    {
+        return $this->conversationParticipants;
     }
 }
