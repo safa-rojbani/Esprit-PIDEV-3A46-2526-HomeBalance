@@ -108,9 +108,10 @@ PROMPT;
             throw new \RuntimeException('Gemini returned an empty content payload.');
         }
 
-        $parsed = json_decode($this->stripCodeFence($content), true);
+        $parsed = $this->decodeJsonObject($content);
         if (!is_array($parsed)) {
-            throw new \RuntimeException('Gemini response is not valid JSON.');
+            $excerpt = mb_substr(preg_replace('/\s+/', ' ', trim($content)) ?? '', 0, 260);
+            throw new \RuntimeException(sprintf('Gemini response is not valid JSON. Raw excerpt: %s', $excerpt));
         }
 
         $score = VisionAnalysisResult::clampScore((int) ($parsed['tidy_score'] ?? 0));
@@ -170,5 +171,36 @@ PROMPT;
         }
 
         return trim($trimmed);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function decodeJsonObject(string $content): ?array
+    {
+        $normalized = $this->stripCodeFence($content);
+
+        $decoded = json_decode($normalized, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        $start = strpos($normalized, '{');
+        $end = strrpos($normalized, '}');
+        if ($start === false || $end === false || $end <= $start) {
+            return null;
+        }
+
+        $candidate = substr($normalized, $start, $end - $start + 1);
+        if (!is_string($candidate) || trim($candidate) === '') {
+            return null;
+        }
+
+        $decoded = json_decode($candidate, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        return null;
     }
 }
