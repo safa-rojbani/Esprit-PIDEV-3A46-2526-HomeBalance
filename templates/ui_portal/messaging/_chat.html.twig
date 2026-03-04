@@ -1,0 +1,228 @@
+{#
+  _chat.html.twig — inside <turbo-frame id="chat_view"> (display:flex column)
+#}
+
+{% set otherParticipants = current_conversation.conversationParticipants|filter(p => p.user != app.user) %}
+{% set chatName = current_conversation.conversationName %}
+{% set chatPartner = null %}
+{% if current_conversation.type.value == 'private' %}
+    {% set chatPartner = otherParticipants|first.user|default(null) %}
+    {% set chatName = chatPartner
+        ? (chatPartner.firstName ~ ' ' ~ chatPartner.lastName)
+        : 'Unknown User' %}
+{% endif %}
+
+{# ── 1. HEADER ─────────────────────────────────────────────────── #}
+<div class="messaging-chat-header">
+
+    <div class="chat-header-left">
+        <div class="chat-header-avatar">
+            {% if chatPartner and chatPartner.avatarPath %}
+                <img src="{{ asset(chatPartner.avatarPath) }}" alt="">
+            {% elseif current_conversation.type.value == 'group' %}
+                <i class="bx bx-group" style="font-size:1.15rem;"></i>
+            {% else %}
+                {{ chatName|slice(0,2)|upper }}
+            {% endif %}
+        </div>
+        <div>
+            <div class="chat-header-name">{{ chatName }}</div>
+            <div class="chat-header-sub"
+                 id="chat-status-line"
+                 data-messaging-target="statusLine">
+                {% if current_conversation.type.value == 'group' %}
+                    <span class="chat-header-badge">
+                        <i class="bx bx-group" style="font-size:.9rem;"></i>
+                        {{ current_conversation.conversationParticipants|length }} membres
+                    </span>
+                {% else %}
+                    <span class="chat-header-online-dot"></span>
+                    <span style="color:#22c55e;font-weight:600;">En ligne</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-header-actions">
+        <button class="btn-icon-action" type="button" title="Appel vocal">
+            <i class="bx bx-phone"></i>
+        </button>
+        <button class="btn-icon-action" type="button" title="Appel vidéo">
+            <i class="bx bx-video"></i>
+        </button>
+        <button class="btn-icon-action" type="button" title="Paramètres della conversation">
+            <i class="bx bx-cog"></i>
+        </button>
+        <div class="dropdown">
+            <button class="btn-icon-action" type="button"
+                    data-bs-toggle="dropdown" title="Plus d'options">
+                <i class="bx bx-dots-vertical-rounded"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="#"
+                       data-action="click->messaging#requestSummary">
+                        <i class="bx bx-file-find me-2 text-primary"></i> Résumé IA
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#"
+                       data-action="click->messaging#requestSmartReplies">
+                        <i class="bx bx-bulb me-2 text-warning"></i> Réponses IA
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ path('portal_messaging_index') }}"
+                       data-turbo="false">
+                        <i class="bx bx-arrow-back me-2 text-secondary"></i> Toutes les conv.
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+{# ── 2. SCROLLABLE BODY ────────────────────────────────────────── #}
+<div class="messaging-chat-body"
+     id="chat-messages"
+     data-messaging-target="messages">
+
+    <div data-messaging-target="summaryPanel" class="mb-2"></div>
+
+    <div id="chat-messages-list">
+        {% if messages is empty %}
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        padding:3rem 0;color:#9ca3af;text-align:center;position:relative;z-index:1;">
+                <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                            display:flex;align-items:center;justify-content:center;margin-bottom:1rem;
+                            box-shadow:0 8px 24px rgba(99,102,241,0.3);">
+                    <i class="bx bx-message-rounded-dots" style="font-size:2rem;color:#fff;"></i>
+                </div>
+                <p class="small mb-0" style="color:#9ca3af;font-weight:600;">Dites bonjour ! 👋</p>
+                <p class="small mt-1 mb-0" style="color:#b5bcc9;font-size:.75rem;">Envoyez le premier message</p>
+            </div>
+        {% else %}
+            {% set lastDate = null %}
+            {% for message in messages %}
+                {% set currentDate = message.sentAt|date('Y-m-d') %}
+                {% if currentDate != lastDate %}
+                    <div class="date-divider">
+                        <span>
+                            {% if currentDate == "now"|date('Y-m-d') %}Aujourd'hui
+                            {% elseif currentDate == ("now - 1 day")|date('Y-m-d') %}Hier
+                            {% else %}{{ message.sentAt|date('d M Y') }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% set lastDate = currentDate %}
+                {% endif %}
+                {% include 'ui_portal/messaging/_message_item.html.twig' %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# Typing indicator #}
+    <div id="typing-indicator"
+         class="d-none"
+         data-messaging-target="typingIndicator"
+         style="padding: 4px 0 0 38px;">
+        <span style="font-size:.75rem;color:#9ca3af;display:inline-flex;align-items:center;gap:6px;">
+            <span data-messaging-target="typingName"></span>
+            <span class="typing-dots">
+                <span></span><span></span><span></span>
+            </span>
+        </span>
+    </div>
+</div>
+
+{# ── 3. INPUT FOOTER ────────────────────────────────────────────── #}
+<div class="messaging-chat-footer">
+
+    {# Reply preview #}
+    <div data-messaging-target="replyPreview" class="reply-preview d-none"></div>
+
+    {# AI suggestions #}
+    <div data-messaging-target="smartReplies" class="smart-replies-container d-none"></div>
+
+    {{ form_start(form, {
+        'attr': {
+            'class': 'footer-form-row',
+            'data-messaging-target': 'form',
+            'action': path('portal_messaging_show', {id: current_conversation.id})
+        }
+    }) }}
+
+        {# Hidden file input #}
+        <div class="d-none">
+            {{ form_widget(form.attachment, {
+                'attr': {
+                    'data-messaging-target': 'attachment',
+                    'data-action': 'change->messaging#handleSelection'
+                }
+            }) }}
+        </div>
+
+        <button type="button"
+                class="btn-attach"
+                title="Joindre un fichier"
+                data-action="click->messaging#triggerUpload">
+            <i class="bx bx-paperclip"></i>
+        </button>
+
+        <button type="button"
+                class="btn-emoji"
+                title="Emoji"
+                data-action="click->messaging#toggleEmojiPicker">
+            <i class="bx bx-smile"></i>
+        </button>
+
+        <div style="flex:1;position:relative;min-width:0;">
+            <div data-messaging-target="attachmentPreview"
+                 class="attachment-preview-pill d-none">
+                <i class="bx bx-file" style="font-size:.85rem;"></i>
+                <span></span>
+            </div>
+
+            {{ form_widget(form.content, {
+                'attr': {
+                    'data-messaging-target': 'input',
+                    'data-action': 'keydown->messaging#handleKeydown input->messaging#handleTyping',
+                    'class': 'message-input',
+                    'placeholder': 'Écrire un message…',
+                    'rows': '1',
+                    'style': 'width:100%;'
+                }
+            }) }}
+        </div>
+
+        <button type="submit" class="btn-send" title="Envoyer">
+            <i class="bx bxs-send"></i>
+        </button>
+
+    {{ form_end(form) }}
+
+    {# Char counter — progressive feedback #}
+    <div class="footer-char-counter" id="char-counter" style="display:none;"></div>
+</div>
+
+<script>
+(function() {
+    const textarea = document.querySelector('[data-messaging-target="input"]');
+    const counter  = document.getElementById('char-counter');
+    const MAX = 1000;
+    if (!textarea || !counter) return;
+
+    textarea.addEventListener('input', function() {
+        const len = this.value.length;
+        if (len > 600) {
+            counter.style.display = 'block';
+            counter.textContent = `${len} / ${MAX}`;
+            counter.className = 'footer-char-counter' + (len >= MAX ? ' danger' : len > 850 ? ' warn' : '');
+        } else {
+            counter.style.display = 'none';
+        }
+    });
+})();
+</script>

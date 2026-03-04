@@ -30,9 +30,21 @@
     route: is_portal_admin ? 'admin_calendar' : 'app_calendar',
     label: 'Evenements',
     icon: 'bx bx-calendar'
+  },
+  {
+    key: 'module-messaging',
+    route: 'portal_messaging_index',
+    label: 'Messagerie',
+    icon: 'bx bx-chat'
+  },
+  {
+    key: 'module-support',
+    route: is_portal_admin ? 'portal_admin_support_index' : 'portal_support_index',
+    label: 'Support',
+    icon: 'bx bx-support'
   }
 ] %}
-{% set default_module_keys = ['module-charge', 'module-documents', 'module-tasks', 'module-events'] %}
+{% set default_module_keys = ['module-charge', 'module-documents', 'module-tasks', 'module-events', 'module-messaging', 'module-support'] %}
 {% set selected_module_keys = default_module_keys %}
 {% if app.user and app.user.preferences is defined and app.user.preferences.communication is defined and app.user.preferences.communication.modules is defined and app.user.preferences.communication.modules is iterable and app.user.preferences.communication.modules|length > 0 %}
   {% set selected_module_keys = app.user.preferences.communication.modules %}

@@ -1,0 +1,89 @@
+{% extends 'ui_portal/layouts/base.html.twig' %}
+
+{% block title %}Admin Support · HomeBalance{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('portal_dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item active">Admin Support</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Support Tickets</h5>
+                <div class="d-flex gap-2">
+                    <form action="{{ path('portal_admin_support_index') }}" method="GET" class="d-flex gap-2">
+                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                            {% for key, label in filters.statusChoices %}
+                                <option value="{{ key }}" {{ filters.status == key ? 'selected' : '' }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Subject</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>
+                                <strong>{{ ticket.user.username }}</strong><br>
+                                <small class="text-muted">{{ ticket.user.email }}</small>
+                            </td>
+                            <td>{{ ticket.subject }}</td>
+                            <td>
+                                {% if ticket.priority.value == 'high' %}
+                                    <span class="badge bg-label-danger">High</span>
+                                {% elseif ticket.priority.value == 'medium' %}
+                                    <span class="badge bg-label-warning">Medium</span>
+                                {% elseif ticket.priority.value == 'low' %}
+                                    <span class="badge bg-label-info">Low</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.status.value == 'open' %}
+                                    <span class="badge bg-label-danger">Open</span>
+                                {% elseif ticket.status.value == 'in_progress' %}
+                                    <span class="badge bg-label-warning">In Progress</span>
+                                {% elseif ticket.status.value == 'closed' %}
+                                    <span class="badge bg-label-success">Closed</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ticket.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <a href="{{ path('portal_admin_support_show', {id: ticket.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="bx bx-show me-1"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center p-4">
+                                <i class="bx bx-support mb-2" style="font-size: 2rem; opacity: .2;"></i>
+                                <p class="mb-0">No tickets found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

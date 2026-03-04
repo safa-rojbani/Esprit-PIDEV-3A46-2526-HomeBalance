@@ -35,12 +35,12 @@ class TaskCompletion
     private ?Task $task = null;
 
     // Enfant
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
     // Parent validateur
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'taskCompletions')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $validatedBy = null;
 
