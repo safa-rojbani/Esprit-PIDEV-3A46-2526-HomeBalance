@@ -9,7 +9,7 @@
 
 {% block body %}
 <div class="evt-shell">
-  {% set totalRows = rows|length %}
+{% set totalRows = pagination is defined and pagination.getTotalItemCount is defined ? pagination.getTotalItemCount : rows|length %}
   {% set activeRows = 0 %}
   {% set unreadRows = 0 %}
   {% for row in rows %}
@@ -96,5 +96,10 @@
       </table>
     </div>
   </div>
+  {% if pagination is defined %}
+    <div class="mt-3">
+      {{ knp_pagination_render(pagination, 'pagination/evt_pagination.html.twig') }}
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

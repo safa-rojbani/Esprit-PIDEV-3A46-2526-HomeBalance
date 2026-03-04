@@ -51,6 +51,5 @@ when@dev:
     messenger:
       transports:
         async: 'sync://'
-        ai_async: 'sync://'
         scheduler_default: 'sync://'
         failed: 'sync://'

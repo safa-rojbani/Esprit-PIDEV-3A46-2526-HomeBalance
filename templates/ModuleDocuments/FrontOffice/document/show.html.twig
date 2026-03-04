@@ -191,10 +191,10 @@
       </div>
     </div>
 
-    <div class="hb-media">
-      {% set fp = asset(document.filePath) %}
-      {% set ft = document.fileType|default('') %}
+    {% set fp = asset(document.filePath) %}
+    {% set ft = document.fileType|default('') %}
 
+    <div class="hb-media">
       {% if ft starts with 'image/' %}
         <img src="{{ document.filePath|imagine_filter('document_show') }}" alt="{{ document.fileName }}">
 
@@ -204,20 +204,20 @@
           Votre navigateur ne prend pas en charge la lecture video.
         </video>
 
-     {% elseif ft == 'application/pdf' %}
-  <iframe
-    src="{{ fp }}#toolbar=1&navpanes=0&scrollbar=1"
-    title="Apercu PDF"
-    loading="lazy">
-  </iframe>
+      {% elseif ft == 'application/pdf' %}
+        <iframe
+          src="{{ fp }}#toolbar=1&navpanes=0&scrollbar=1"
+          title="Apercu PDF"
+          loading="lazy">
+        </iframe>
 
-  {# fallback si iframe bloque (Safari / certaines configs) #}
-  <div class="hb-fallback" id="hbPdfFallback" style="display:none;">
-    Apercu PDF indisponible
-    <div class="mt-3">
-      <a href="{{ fp }}" target="_blank">Ouvrir</a>
-    </div>
-  </div>
+        {# fallback si iframe bloque (Safari / certaines configs) #}
+        <div class="hb-fallback" id="hbPdfFallback" style="display:none;">
+          Apercu PDF indisponible
+          <div class="mt-3">
+            <a href="{{ fp }}" target="_blank">Ouvrir</a>
+          </div>
+        </div>
 
       {% else %}
         <div class="hb-fallback">
@@ -538,7 +538,7 @@
   }
 
   function hbEscapeHtml(value){
-    return String(value ?? '').replace(/[&<>"]/g, (char) => ({
+    return String(value ?? '').replace(/[&<>\"]/g, (char) => ({
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
@@ -799,7 +799,7 @@
     if (!classifyUrl) return;
 
     const parseLabels = () => String(labelsInput.value || '')
-      .split(/[,\n;]+/)
+      .split(/[;\n,]+/)
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
 
@@ -990,8 +990,4 @@
   document.addEventListener('turbo:load', hbInitDocumentShowPage);
 </script>
 
-
-
 {% endblock %}
-
-

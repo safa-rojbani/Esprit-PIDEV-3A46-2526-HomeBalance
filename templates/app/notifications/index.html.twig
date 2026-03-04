@@ -12,6 +12,8 @@
   {% set totalRows = rows|length %}
   {% set unreadRows = 0 %}
   {% set popupRows = 0 %}
+  {% set docTotal = document_notifications|length %}
+  {% set docUnread = 0 %}
   {% for row in rows %}
     {% set r = row.rappel %}
     {% if not r.estLu %}
@@ -19,6 +21,11 @@
     {% endif %}
     {% if r.canal == 'popup' %}
       {% set popupRows = popupRows + 1 %}
+    {% endif %}
+  {% endfor %}
+  {% for notification in document_notifications %}
+    {% if not notification.isRead %}
+      {% set docUnread = docUnread + 1 %}
     {% endif %}
   {% endfor %}
 
@@ -62,6 +69,35 @@
     </div>
   </div>
 
+  <div class="evt-kpis">
+    <div class="evt-kpi">
+      <span class="label">Documents</span>
+      <span class="value">{{ docTotal }}</span>
+      <span class="meta">notifications</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Non lues</span>
+      <span class="value">{{ docUnread }}</span>
+      <span class="meta">en attente</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Taux lecture</span>
+      <span class="value">
+        {% if docTotal > 0 %}
+          {{ (((docTotal - docUnread) / docTotal) * 100)|round(0, 'floor') }}%
+        {% else %}
+          0%
+        {% endif %}
+      </span>
+      <span class="meta">documents lus</span>
+    </div>
+    <div class="evt-kpi">
+      <span class="label">Source</span>
+      <span class="value">Docs</span>
+      <span class="meta">module documents</span>
+    </div>
+  </div>
+
   <div class="card evt-card">
     <div class="table-responsive">
       <table class="table evt-table">
@@ -87,6 +123,74 @@
         {% else %}
           <tr>
             <td colspan="5" class="evt-empty">Aucune notification.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card evt-card mt-3">
+    <div class="table-responsive">
+      <table class="table evt-table">
+        <thead>
+          <tr>
+            <th>Notification document</th>
+            <th>Acteur</th>
+            <th>Lu</th>
+            <th>Recue</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for notification in document_notifications %}
+          {% set payload = notification.payload ?? {} %}
+          {% set actor_first_name = notification.actor ? notification.actor.firstName : '' %}
+          {% set actor_last_name = notification.actor ? notification.actor.lastName : '' %}
+          {% set actor_name = (actor_first_name ~ ' ' ~ actor_last_name)|trim %}
+          {% set actor_label = actor_name != '' ? actor_name : 'Un membre' %}
+          {% set notification_message = actor_label ~ ' a effectue une action.' %}
+
+          {% if notification.type == 'gallery_created' %}
+            {% set notification_message = actor_label ~ ' a cree la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'gallery_updated' %}
+            {% set notification_message = actor_label ~ ' a modifie la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'gallery_deleted' %}
+            {% set notification_message = actor_label ~ ' a supprime la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'gallery_hidden' %}
+            {% set notification_message = actor_label ~ ' a masque la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'gallery_restored' %}
+            {% set notification_message = actor_label ~ ' a restaure la galerie ' ~ (payload.galleryName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'document_uploaded' %}
+            {% set notification_message = actor_label ~ ' a ajoute le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'document_updated' %}
+            {% set notification_message = actor_label ~ ' a modifie le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'document_deleted_to_trash' %}
+            {% set notification_message = actor_label ~ ' a envoye le document ' ~ (payload.documentName|default('sans nom')) ~ ' dans la corbeille.' %}
+          {% elseif notification.type == 'document_hidden' %}
+            {% set notification_message = actor_label ~ ' a masque le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'document_restored_from_hidden' %}
+            {% set notification_message = actor_label ~ ' a restaure le document ' ~ (payload.documentName|default('sans nom')) ~ ' depuis les elements masques.' %}
+          {% elseif notification.type == 'document_restored_from_trash' %}
+            {% set notification_message = actor_label ~ ' a restaure le document ' ~ (payload.documentName|default('sans nom')) ~ ' depuis la corbeille.' %}
+          {% elseif notification.type == 'document_deleted_permanently' %}
+            {% set notification_message = actor_label ~ ' a supprime definitivement le document ' ~ (payload.documentName|default('sans nom')) ~ '.' %}
+          {% elseif notification.type == 'documents_restored_from_trash' %}
+            {% set notification_message = actor_label ~ ' a restaure ' ~ (payload.count|default(0)) ~ ' documents depuis la corbeille.' %}
+          {% elseif notification.type == 'documents_deleted_permanently' %}
+            {% set notification_message = actor_label ~ ' a supprime definitivement ' ~ (payload.count|default(0)) ~ ' documents.' %}
+          {% elseif notification.type == 'document_transferred' %}
+            {% set notification_message = actor_label ~ ' a deplace le document ' ~ (payload.documentName|default('sans nom')) ~ ' vers la galerie ' ~ (payload.toGalleryName|default('sans nom')) ~ '.' %}
+          {% endif %}
+
+          <tr>
+            <td class="evt-title-cell">{{ notification_message }}</td>
+            <td>{{ actor_label }}</td>
+            <td><span class="evt-pill {{ notification.isRead ? 'is-yes' : 'is-no' }}">{{ notification.isRead ? 'Oui' : 'Non' }}</span></td>
+            <td>{{ notification.createdAt ? notification.createdAt|date('Y-m-d H:i') : '-' }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4" class="evt-empty">Aucune notification document.</td>
           </tr>
         {% endfor %}
         </tbody>

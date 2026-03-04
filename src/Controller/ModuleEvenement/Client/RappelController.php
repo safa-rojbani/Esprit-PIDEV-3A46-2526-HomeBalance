@@ -9,6 +9,7 @@ use App\Repository\EvenementRepository;
 use App\Repository\RappelRepository;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,14 +22,19 @@ use App\Entity\Family;
 class RappelController extends AbstractController
 {
     #[Route('/rappels', name: 'app_rappel_history', methods: ['GET'])]
-    public function history(RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
+    public function history(
+        Request $request,
+        RappelRepository $rappelRepository,
+        ActiveFamilyResolver $familyResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $user = $this->getUser();
         $family = $this->resolveFamily($familyResolver);
 
         $rappelRepository->cleanupOrphanedAndPast();
         $now = new \DateTimeImmutable();
-        $rappels = $rappelRepository->createQueryBuilder('r')
+        $qb = $rappelRepository->createQueryBuilder('r')
             ->innerJoin('r.evenement', 'e')
             ->andWhere('r.user = :user')
             ->andWhere('(e.family = :family OR e.family IS NULL)')
@@ -36,9 +42,15 @@ class RappelController extends AbstractController
             ->setParameter('user', $user)
             ->setParameter('family', $family)
             ->setParameter('now', $now)
-            ->orderBy('r.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('r.id', 'DESC');
+
+        $pagination = $paginator->paginate(
+            $qb,
+            max(1, (int) $request->query->get('page', 1)),
+            10
+        );
+
+        $rappels = $pagination->getItems();
 
         return $this->render('app/rappel/history.html.twig', [
             'rows' => array_map(static function (Rappel $rappel): array {
@@ -61,19 +73,34 @@ class RappelController extends AbstractController
                     'eventTitle' => $eventTitle,
                 ];
             }, $rappels),
+            'pagination' => $pagination,
         ]);
     }
 
     #[Route('/evenement/{id}/rappels', name: 'app_evenement_rappels', methods: ['GET'])]
-    public function index(Evenement $evenement, RappelRepository $rappelRepository, ActiveFamilyResolver $familyResolver): Response
+    public function index(
+        Request $request,
+        Evenement $evenement,
+        RappelRepository $rappelRepository,
+        ActiveFamilyResolver $familyResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
         $this->assertCanViewEvent($family, $evenement);
 
         $user = $this->getUser();
-        $rappels = $rappelRepository->findBy(
-            ['evenement' => $evenement, 'user' => $user],
-            ['offsetMinutes' => 'ASC']
+        $qb = $rappelRepository->createQueryBuilder('r')
+            ->andWhere('r.evenement = :evenement')
+            ->andWhere('r.user = :user')
+            ->setParameter('evenement', $evenement)
+            ->setParameter('user', $user)
+            ->orderBy('r.offsetMinutes', 'ASC');
+
+        $rappels = $paginator->paginate(
+            $qb,
+            max(1, (int) $request->query->get('page', 1)),
+            10
         );
 
         return $this->render('app/rappel/index.html.twig', [

@@ -15,14 +15,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
 
 final class DocumentShareController extends AbstractController
 {
@@ -41,6 +44,7 @@ final class DocumentShareController extends AbstractController
         UrlGeneratorInterface $urlGenerator,
         MailerInterface $mailer,
         ParameterBagInterface $parameterBag,
+        LoggerInterface $logger,
     ): Response {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
@@ -53,29 +57,21 @@ final class DocumentShareController extends AbstractController
         try {
             $expiresAt = $this->resolveExpirationFromRequest($request);
         } catch (\InvalidArgumentException $e) {
-            $this->addFlash('danger', $e->getMessage());
-
-            return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+            return $this->shareErrorResponse($request, $document->getId(), $galleryId, $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
         $shareChannel = strtolower(trim((string) $request->request->get('share_channel', 'whatsapp')));
         if (!\in_array($shareChannel, ['email', 'whatsapp'], true)) {
-            $this->addFlash('danger', 'Canal de partage invalide.');
-
-            return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+            return $this->shareErrorResponse($request, $document->getId(), $galleryId, 'Canal de partage invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         $emailTarget = trim((string) $request->request->get('share_email', ''));
         if ($shareChannel === 'email' && $emailTarget === '') {
-            $this->addFlash('danger', 'Veuillez renseigner une adresse email.');
-
-            return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+            return $this->shareErrorResponse($request, $document->getId(), $galleryId, 'Veuillez renseigner une adresse email.', Response::HTTP_BAD_REQUEST);
         }
 
         if ($emailTarget !== '' && !filter_var($emailTarget, \FILTER_VALIDATE_EMAIL)) {
-            $this->addFlash('danger', 'Adresse email invalide.');
-
-            return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+            return $this->shareErrorResponse($request, $document->getId(), $galleryId, 'Adresse email invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         $now = new \DateTimeImmutable();
@@ -99,16 +95,17 @@ final class DocumentShareController extends AbstractController
             );
             $entityManager->flush();
 
-            $this->addFlash(
-                'danger',
+            return $this->shareErrorResponse(
+                $request,
+                $document->getId(),
+                $galleryId,
                 sprintf(
                     'Limite atteinte: maximum %d partages (email + WhatsApp) par heure. Reessayez apres %s.',
                     self::SHARE_LIMIT_PER_HOUR,
                     $retryLabel
-                )
+                ),
+                Response::HTTP_TOO_MANY_REQUESTS
             );
-
-            return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
         }
 
         if ($shareChannel === 'email' && $emailTarget !== '') {
@@ -125,14 +122,18 @@ final class DocumentShareController extends AbstractController
                 );
                 $entityManager->flush();
 
-                $this->addFlash('danger', 'Validation email externe non configuree. Envoi bloque.');
-
-                return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+                return $this->shareErrorResponse(
+                    $request,
+                    $document->getId(),
+                    $galleryId,
+                    'Validation email externe non configuree. Envoi bloque.',
+                    Response::HTTP_SERVICE_UNAVAILABLE
+                );
             }
 
             try {
                 $validation = $emailValidationClient->validate($emailTarget);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
                 $documentActivityTracker->track(
                     $family,
                     $actor,
@@ -145,9 +146,18 @@ final class DocumentShareController extends AbstractController
                 );
                 $entityManager->flush();
 
-                $this->addFlash('danger', 'Validation email externe indisponible. Envoi bloque.');
+                $logger->warning('Email validation API failed', [
+                    'error' => $e->getMessage(),
+                    'email' => $emailTarget,
+                ]);
 
-                return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+                return $this->shareErrorResponse(
+                    $request,
+                    $document->getId(),
+                    $galleryId,
+                    'Validation email externe indisponible. Envoi bloque.',
+                    Response::HTTP_SERVICE_UNAVAILABLE
+                );
             }
 
             if (($validation['is_valid'] ?? false) !== true) {
@@ -176,9 +186,13 @@ final class DocumentShareController extends AbstractController
                 );
                 $entityManager->flush();
 
-                $this->addFlash('danger', $message);
-
-                return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($document->getId(), $galleryId));
+                return $this->shareErrorResponse(
+                    $request,
+                    $document->getId(),
+                    $galleryId,
+                    $message,
+                    Response::HTTP_BAD_REQUEST
+                );
             }
         }
 
@@ -234,8 +248,32 @@ final class DocumentShareController extends AbstractController
             try {
                 $mailer->send($email);
                 $emailSent = true;
+            } catch (TransportExceptionInterface $e) {
+                $logger->error('SMTP transport failed', [
+                    'error' => $e->getMessage(),
+                    'email' => $emailTarget,
+                ]);
+
+                return $this->shareErrorResponse(
+                    $request,
+                    $document->getId(),
+                    $galleryId,
+                    'Service email temporairement indisponible. Veuillez reessayer plus tard.',
+                    Response::HTTP_SERVICE_UNAVAILABLE
+                );
             } catch (\Throwable $e) {
-                $this->addFlash('warning', 'Lien genere, mais envoi email impossible pour le moment.');
+                $logger->error('Unexpected mailer error', [
+                    'error' => $e->getMessage(),
+                    'email' => $emailTarget,
+                ]);
+
+                return $this->shareErrorResponse(
+                    $request,
+                    $document->getId(),
+                    $galleryId,
+                    'Envoi email impossible pour le moment.',
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
             }
         }
 
@@ -246,6 +284,12 @@ final class DocumentShareController extends AbstractController
         );
         if ($shareChannel === 'email') {
             if ($emailSent) {
+                if ($request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json')) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'Le document a ete partage par email.',
+                    ]);
+                }
                 $this->addFlash('success', 'Le document a ete partage par email.');
             }
 
@@ -427,4 +471,19 @@ final class DocumentShareController extends AbstractController
             throw $this->createAccessDeniedException();
         }
     }
+
+    private function shareErrorResponse(Request $request, int $documentId, ?int $galleryId, string $message, int $status): Response
+    {
+        if ($request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json')) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $message,
+            ], $status);
+        }
+
+        $this->addFlash('danger', $message);
+
+        return $this->redirectToRoute('app_document_show', $this->buildShowRouteParams($documentId, $galleryId));
+    }
+
 }

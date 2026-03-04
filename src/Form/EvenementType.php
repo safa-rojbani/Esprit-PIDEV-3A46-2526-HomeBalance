@@ -9,6 +9,7 @@ use App\Repository\TypeEvenementRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -40,6 +41,13 @@ class EvenementType extends AbstractType
             ->add('lieu', null, [
                 'label' => 'Lieu',
                 'attr' => ['placeholder' => 'Ex: Maison'],
+            ])
+            ->add('imageFiles', FileType::class, [
+                'label' => 'Images (optionnel)',
+                'required' => false,
+                'mapped' => false,
+                'multiple' => true,
+                'attr' => ['accept' => 'image/*'],
             ])
             ->add('typeEvenement', EntityType::class, [
                 'label' => "Type d'evenement",
@@ -74,4 +82,3 @@ class EvenementType extends AbstractType
         $resolver->setAllowedTypes('family', ['null', Family::class]);
     }
 }
-

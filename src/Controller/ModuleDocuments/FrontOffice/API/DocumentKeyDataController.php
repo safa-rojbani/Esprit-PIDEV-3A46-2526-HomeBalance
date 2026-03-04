@@ -21,7 +21,7 @@ final class DocumentKeyDataController extends AbstractController
      */
     private const DETECTION_LABELS = ['Facture', 'Contrat', 'Autre'];
 
-    #[Route('/{id}/extract-key-data', name: 'app_document_extract_key_data', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/extract-key-data', name: 'app_document_extract_key_data', methods: ['POST', 'GET'], requirements: ['id' => '\d+'])]
     public function extract(
         Document $document,
         ActiveFamilyResolver $familyResolver,

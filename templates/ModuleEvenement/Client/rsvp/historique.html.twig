@@ -1,0 +1,45 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Historique RSVP{% endblock %}
+
+{% block body %}
+<div class="container-xxl py-4">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-2">Historique des invitations</h3>
+      <p class="text-muted">Evenement : <strong>{{ evenement.titre }}</strong></p>
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Invite</th>
+            <th>Statut</th>
+            <th>Date reponse</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for inv in invitations %}
+          <tr>
+            <td>{{ inv.invitee.firstName }} {{ inv.invitee.lastName }}</td>
+            <td>
+              {% set badge = 'bg-secondary' %}
+              {% if inv.statut == 'accepte' %}{% set badge = 'bg-success' %}{% endif %}
+              {% if inv.statut == 'refuse' %}{% set badge = 'bg-danger' %}{% endif %}
+              {% if inv.statut == 'peut_etre' %}{% set badge = 'bg-warning text-dark' %}{% endif %}
+              <span class="badge {{ badge }}">{{ inv.statut|replace({'_':' '})|title }}</span>
+            </td>
+            <td>{{ inv.reponduAt ? inv.reponduAt|date('d/m/Y H:i') : '-' }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="text-muted">Aucune invitation.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <a href="{{ path('app_evenement_show', {id: evenement.id}) }}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

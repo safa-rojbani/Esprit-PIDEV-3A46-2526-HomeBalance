@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\TypeEvenement;
+use App\Entity\Family;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,14 @@ class TypeEvenementRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TypeEvenement::class);
+    }
+
+    public function findForFamilyQueryBuilder(Family $family)
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('(t.family = :family OR t.family IS NULL)')
+            ->setParameter('family', $family)
+            ->orderBy('t.nom', 'ASC');
     }
 
     //    /**

@@ -1,0 +1,53 @@
+{% if pageCount > 1 %}
+  <nav class="evt-pager" aria-label="Pagination">
+    <ul class="evt-pager-list" style="list-style:none; padding:0; margin:0;">
+      <li class="evt-pager-item {{ previous is not defined ? 'is-disabled' : '' }}">
+        {% if previous is defined %}
+          <a class="evt-pager-btn" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" rel="prev" aria-label="Precedent">&lsaquo;</a>
+        {% else %}
+          <span class="evt-pager-btn" aria-hidden="true">&lsaquo;</span>
+        {% endif %}
+      </li>
+
+      {% if first is defined and first > 1 %}
+        <li class="evt-pager-item">
+          <a class="evt-pager-btn" href="{{ path(route, query|merge({(pageParameterName): 1})) }}">1</a>
+        </li>
+        {% if first > 2 %}
+          <li class="evt-pager-item is-ellipsis">
+            <span class="evt-pager-ellipsis">…</span>
+          </li>
+        {% endif %}
+      {% endif %}
+
+      {% for page in pagesInRange %}
+        <li class="evt-pager-item {{ page == current ? 'is-active' : '' }}">
+          {% if page == current %}
+            <span class="evt-pager-btn">{{ page }}</span>
+          {% else %}
+            <a class="evt-pager-btn" href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+
+      {% if last is defined and last < pageCount %}
+        {% if last < pageCount - 1 %}
+          <li class="evt-pager-item is-ellipsis">
+            <span class="evt-pager-ellipsis">…</span>
+          </li>
+        {% endif %}
+        <li class="evt-pager-item">
+          <a class="evt-pager-btn" href="{{ path(route, query|merge({(pageParameterName): pageCount})) }}">{{ pageCount }}</a>
+        </li>
+      {% endif %}
+
+      <li class="evt-pager-item {{ next is not defined ? 'is-disabled' : '' }}">
+        {% if next is defined %}
+          <a class="evt-pager-btn" href="{{ path(route, query|merge({(pageParameterName): next})) }}" rel="next" aria-label="Suivant">&rsaquo;</a>
+        {% else %}
+          <span class="evt-pager-btn" aria-hidden="true">&rsaquo;</span>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}

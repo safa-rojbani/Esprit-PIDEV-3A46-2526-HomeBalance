@@ -17,6 +17,9 @@
     <div class="d-flex gap-2 flex-wrap">
       <a href="{{ path('app_evenement_index') }}" class="btn evt-btn-ghost">Retour</a>
       <a href="{{ path('app_evenement_rappels', { id: evenement.id }) }}" class="btn btn-outline-secondary">Rappels</a>
+      <a href="{{ path('portal_ical_export', { id: evenement.id }) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="ti ti-calendar-export"></i> Exporter .ics
+      </a>
     </div>
   </div>
 
@@ -45,6 +48,19 @@
 
   <div class="card evt-card">
     <div class="card-body">
+      {% if evenement.shareWithFamily and evenement.createdBy == app.user %}
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a href="{{ path('rsvp_inviter', { id: evenement.id }) }}" class="btn btn-outline-secondary">Gerer les invitations</a>
+          <a href="{{ path('rsvp_historique', { id: evenement.id }) }}" class="btn btn-outline-secondary">Historique RSVP</a>
+        </div>
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge bg-success">Accepte: {{ evenement.getNombreAcceptes() }}</span>
+        <span class="badge bg-danger">Refuse: {{ evenement.getNombreRefuses() }}</span>
+        <span class="badge bg-warning text-dark">Peut-etre: {{ evenement.getNombrePeutEtre() }}</span>
+        <span class="badge bg-secondary">En attente: {{ evenement.getNombreEnAttente() }}</span>
+      </div>
+
       <dl class="evt-meta">
         <dt>Titre</dt>
         <dd>{{ evenement.titre }}</dd>
@@ -71,7 +87,227 @@
           </span>
         </dd>
       </dl>
+
+      {% if evenement.images is defined and evenement.images|length > 0 %}
+        <div class="mt-3">
+          <strong>Images</strong>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-2" id="eventImages">
+          {% for image in evenement.images %}
+            {% if image.imageName %}
+              <button type="button" class="p-0 border-0 bg-transparent" data-idx="{{ loop.index0 }}">
+                <img src="{{ asset('uploads/evenements/' ~ image.imageName) }}"
+                     class="img-fluid rounded border"
+                     style="max-height:140px;"
+                     alt="Image evenement">
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if evenement.lieu %}
+        <div class="mt-4">
+          <strong>Carte</strong>
+        </div>
+        <div class="mt-2 d-none" id="eventMapWrapper" data-location="{{ evenement.lieu }}">
+          <iframe
+            id="eventMapFrame"
+            width="100%"
+            height="250"
+            style="border:0"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="">
+          </iframe>
+        </div>
+        <div class="small text-muted mt-2" id="eventDistanceShow"></div>
+        <div class="mt-2 d-none" id="eventWeatherWrapper">
+          <strong>Meteo:</strong>
+          <div class="d-flex align-items-center gap-2 mt-1" id="eventWeather">
+            <img id="eventWeatherIcon" src="" alt="Meteo" width="32" height="32">
+            <span id="eventWeatherText"></span>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="imageLightbox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body p-0 position-relative">
+        <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="lbPrev">&laquo;</button>
+          <div class="small text-muted" id="lbCounter"></div>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="lbNext">&raquo;</button>
+        </div>
+        <div class="d-flex justify-content-center align-items-center bg-dark" style="min-height: 320px;">
+          <img id="lbImage" src="" class="img-fluid" style="max-height:70vh;" alt="Image evenement">
+        </div>
+        <div class="d-flex flex-wrap gap-2 p-3 bg-white border-top" id="lbThumbs" style="max-height: 180px; overflow-y: auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const imgList = document.getElementById('eventImages');
+      if (!imgList) return;
+
+      const images = Array.from(imgList.querySelectorAll('img')).map((img) => img.src);
+      if (images.length === 0) return;
+
+      const lightboxEl = document.getElementById('imageLightbox');
+      const lbImage = document.getElementById('lbImage');
+      const lbThumbs = document.getElementById('lbThumbs');
+      const lbCounter = document.getElementById('lbCounter');
+      const lbPrev = document.getElementById('lbPrev');
+      const lbNext = document.getElementById('lbNext');
+      let currentIndex = 0;
+
+      function renderLightbox(index) {
+        currentIndex = Math.max(0, Math.min(index, images.length - 1));
+        lbImage.src = images[currentIndex];
+        lbCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+        lbThumbs.innerHTML = images
+          .map((url, i) => `<button type="button" class="p-0 border-0 bg-transparent${i === currentIndex ? ' opacity-75' : ''}" data-idx="${i}"><img src="${url}" class="img-fluid rounded border" style="max-height:80px;" alt="Miniature"></button>`)
+          .join('');
+      }
+
+      const lbModal = new bootstrap.Modal(lightboxEl);
+      imgList.querySelectorAll('button[data-idx]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          renderLightbox(parseInt(btn.dataset.idx, 10));
+          lbModal.show();
+        });
+      });
+      lbPrev.onclick = () => renderLightbox(currentIndex - 1);
+      lbNext.onclick = () => renderLightbox(currentIndex + 1);
+      lbThumbs.onclick = (e) => {
+        const target = e.target.closest('button[data-idx]');
+        if (target) {
+          renderLightbox(parseInt(target.dataset.idx, 10));
+        }
+      };
+
+      const mapWrapper = document.getElementById('eventMapWrapper');
+      const mapFrame = document.getElementById('eventMapFrame');
+      const distanceEl = document.getElementById('eventDistanceShow');
+      const weatherWrapper = document.getElementById('eventWeatherWrapper');
+      const weatherText = document.getElementById('eventWeatherText');
+      const weatherIcon = document.getElementById('eventWeatherIcon');
+      if (mapWrapper && mapFrame) {
+        const location = mapWrapper.dataset.location || '';
+        if (location) {
+          loadOsmMap(location, mapFrame, mapWrapper, distanceEl, weatherWrapper, weatherText, weatherIcon);
+        }
+      }
+    });
+  </script>
+  <script>
+    async function loadOsmMap(location, frameEl, wrapperEl, distanceEl, weatherWrapper, weatherText, weatherIcon) {
+      if (!location || !frameEl) return;
+      try {
+        const url = `/portal/geo/search?q=${encodeURIComponent(location)}&country=tn&lang=fr`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          frameEl.src = '';
+          if (wrapperEl) wrapperEl.classList.add('d-none');
+          if (distanceEl) distanceEl.textContent = '';
+          return;
+        }
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        const delta = 0.02;
+        const bbox = [
+          (lon - delta).toFixed(6),
+          (lat - delta).toFixed(6),
+          (lon + delta).toFixed(6),
+          (lat + delta).toFixed(6)
+        ].join('%2C');
+        frameEl.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${lat},${lon}&layer=mapnik`;
+        if (wrapperEl) wrapperEl.classList.remove('d-none');
+        if (distanceEl) {
+          computeDistanceKm(lat, lon, distanceEl);
+        }
+        if (weatherWrapper && weatherText && weatherIcon) {
+          loadWeather(location, weatherWrapper, weatherText, weatherIcon, lat, lon);
+        }
+      } catch (e) {
+        frameEl.src = '';
+        if (wrapperEl) wrapperEl.classList.add('d-none');
+        if (distanceEl) distanceEl.textContent = '';
+      }
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (v) => (v * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function computeDistanceKm(lat, lon, distanceEl) {
+      if (!navigator.geolocation) {
+        distanceEl.textContent = 'Geolocalisation non supportee.';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const km = haversineKm(pos.coords.latitude, pos.coords.longitude, lat, lon);
+          distanceEl.innerHTML = `Distance: ${formatDistance(km)} ${distanceBadge(km)}`;
+        },
+        () => {
+          distanceEl.textContent = 'Autorisez la localisation pour calculer la distance.';
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function loadWeather(place, wrapperEl, textEl, iconEl, lat, lon) {
+      if (!wrapperEl || !textEl || !iconEl) return;
+      try {
+        const url = (lat != null && lon != null)
+          ? `/portal/api/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+          : `/portal/api/weather?place=${encodeURIComponent(place)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          wrapperEl.classList.add('d-none');
+          return;
+        }
+        iconEl.src = `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+        textEl.textContent = `${data.temp}°C • ${data.description}`;
+        wrapperEl.classList.remove('d-none');
+      } catch (e) {
+        wrapperEl.classList.add('d-none');
+      }
+    }
+
+    function formatDistance(distanceKm) {
+      if (distanceKm < 1) {
+        return `${Math.round(distanceKm * 1000)} m`;
+      }
+      return `${distanceKm.toFixed(distanceKm < 10 ? 2 : 1)} km`;
+    }
+
+    function distanceBadge(distanceKm) {
+      if (distanceKm < 5) return '<span class="badge bg-success">Proche</span>';
+      if (distanceKm <= 50) return '<span class="badge bg-warning text-dark">Moyenne distance</span>';
+      return '<span class="badge bg-danger">Loin</span>';
+    }
+  </script>
 {% endblock %}

@@ -23,6 +23,10 @@
     <a href="{{ path('app_evenement_new') }}" class="btn evt-btn-primary">+ Ajouter</a>
   </div>
 
+  {% for message in app.flashes('warning') %}
+    <div class="alert alert-warning mt-2">{{ message }}</div>
+  {% endfor %}
+
   <div class="evt-toolbar">
     <form id="calendarFilters" class="evt-filter-form" method="get" action="{{ path('app_calendar') }}">
       <select class="form-select" name="type">
@@ -68,12 +72,49 @@
           <strong>Lieu:</strong>
           <div id="eventLocation">-</div>
         </div>
+        <div class="mb-2 d-none" id="eventRsvpWrapper">
+          <strong>RSVP:</strong>
+          <div class="d-flex flex-wrap gap-2 mt-1" id="eventRsvpBadges"></div>
+        </div>
+        <div class="mb-2 d-none" id="eventDistanceWrapper">
+          <strong>Distance:</strong>
+          <div id="eventDistance">-</div>
+        </div>
+        <div class="mb-2 d-none" id="eventWeatherWrapper">
+          <strong>Meteo:</strong>
+          <div class="d-flex align-items-center gap-2 mt-1" id="eventWeather">
+            <img id="eventWeatherIcon" src="" alt="Meteo" width="32" height="32">
+            <span id="eventWeatherText"></span>
+          </div>
+        </div>
+        <div class="mt-2 d-none" id="eventMapWrapper" data-location="">
+          <strong>Carte:</strong>
+          <div class="mt-1">
+            <iframe
+              id="eventMapFrame"
+              width="100%"
+              height="250"
+              style="border:0"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              src="">
+            </iframe>
+          </div>
+        </div>
         <div>
           <strong>Description:</strong>
           <div id="eventDescription">-</div>
         </div>
+
+        {# Images #}
+        <div class="mt-2 d-none" id="eventImagesWrapper">
+          <strong>Images:</strong>
+          <div class="mt-1 d-flex flex-wrap gap-2" id="eventImages"></div>
+        </div>
+
       </div>
       <div class="modal-footer">
+        <a id="eventInvite" class="btn btn-outline-secondary d-none" href="#">Gerer les invitations</a>
         <a id="eventView" class="btn btn-outline-primary" href="#">Voir</a>
         <a id="eventEdit" class="btn btn-primary" href="#">Modifier</a>
         <form id="eventDeleteForm" method="post" action="#" class="d-inline">
@@ -85,19 +126,41 @@
   </div>
 </div>
 
+<div class="modal fade" id="imageLightbox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body p-0 position-relative">
+        <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="lbPrev">&laquo;</button>
+          <div class="small text-muted" id="lbCounter"></div>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="lbNext">&raquo;</button>
+        </div>
+        <div class="d-flex justify-content-center align-items-center bg-dark" style="min-height: 320px;">
+          <img id="lbImage" src="" class="img-fluid" style="max-height:70vh;" alt="Image evenement">
+        </div>
+        <div class="d-flex flex-wrap gap-2 p-3 bg-white border-top" id="lbThumbs" style="max-height: 180px; overflow-y: auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block javascripts %}
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       if (!calendarEl) {
         return;
       }
+      if (calendarEl.dataset.fcInitialized === 'true') {
+        return;
+      }
       if (!window.FullCalendar || !window.FullCalendar.Calendar) {
-        calendarEl.innerHTML = '<div class="alert alert-danger mb-0">Calendrier non chargÃ©. VÃ©rifie le chargement du CDN FullCalendar (connexion ou bloqueur).</div>';
+        calendarEl.innerHTML = '<div class="alert alert-danger mb-0">Calendrier non chargé. Vérifie le chargement du CDN FullCalendar (connexion ou bloqueur).</div>';
         return;
       }
       const feedUrl = "{{ path('app_evenements_feed') }}";
@@ -105,9 +168,11 @@
       const eventsUrl = params.toString() ? `${feedUrl}?${params.toString()}` : feedUrl;
       const showUrlTemplate = "{{ path('app_evenement_show', { id: 0 }) }}";
       const editUrlTemplate = "{{ path('app_evenement_edit', { id: 0 }) }}";
+      const inviteUrlTemplate = "{{ path('rsvp_inviter', { id: 0 }) }}";
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'fr',
+        timeZone: 'local',
         initialView: 'dayGridMonth',
         height: 'auto',
         headerToolbar: {
@@ -128,10 +193,109 @@
           document.getElementById('eventLocation').textContent = props.location || '-';
           document.getElementById('eventDescription').textContent = props.description || '-';
 
+          const rsvpWrapper = document.getElementById('eventRsvpWrapper');
+          const rsvpBadges = document.getElementById('eventRsvpBadges');
+          const rsvpData = [
+            { label: 'Accepte', value: props.rsvpAcceptes || 0, cls: 'bg-success' },
+            { label: 'Refuse', value: props.rsvpRefuses || 0, cls: 'bg-danger' },
+            { label: 'Peut-etre', value: props.rsvpPeutEtre || 0, cls: 'bg-warning text-dark' },
+            { label: 'En attente', value: props.rsvpEnAttente || 0, cls: 'bg-secondary' }
+          ];
+          if (rsvpBadges) {
+            rsvpBadges.innerHTML = rsvpData
+              .map((item) => `<span class="badge ${item.cls}">${item.label}: ${item.value}</span>`)
+              .join('');
+          }
+          if (rsvpWrapper) {
+            rsvpWrapper.classList.remove('d-none');
+          }
+
+          const mapWrapper = document.getElementById('eventMapWrapper');
+          const mapFrame = document.getElementById('eventMapFrame');
+          const weatherWrapper = document.getElementById('eventWeatherWrapper');
+          const weatherText = document.getElementById('eventWeatherText');
+          const weatherIcon = document.getElementById('eventWeatherIcon');
+          if (props.location) {
+            mapWrapper.dataset.location = props.location;
+            mapWrapper.classList.remove('d-none');
+            loadOsmMap(
+              props.location,
+              mapFrame,
+              mapWrapper,
+              document.getElementById('eventDistanceWrapper'),
+              document.getElementById('eventDistance'),
+              weatherWrapper,
+              weatherText,
+              weatherIcon
+            );
+          } else {
+            mapFrame.src = '';
+            mapWrapper.classList.add('d-none');
+            const distWrapper = document.getElementById('eventDistanceWrapper');
+            const distEl = document.getElementById('eventDistance');
+            if (distWrapper) distWrapper.classList.add('d-none');
+            if (distEl) distEl.textContent = '-';
+            if (weatherWrapper) weatherWrapper.classList.add('d-none');
+            if (weatherText) weatherText.textContent = '';
+          }
+
+          // Images in modal
+          const imgWrapper = document.getElementById('eventImagesWrapper');
+          const imgList = document.getElementById('eventImages');
+          const images = Array.isArray(props.imageUrls) ? props.imageUrls : [];
+
+          if (images.length > 0) {
+            imgList.innerHTML = images
+              .map((url, idx) => `<button type="button" class="p-0 border-0 bg-transparent" data-idx="${idx}"><img src="${url}" class="img-fluid rounded border" style="max-height:120px;" alt="Image evenement"></button>`)
+              .join('');
+            imgWrapper.classList.remove('d-none');
+          } else {
+            imgList.innerHTML = '';
+            imgWrapper.classList.add('d-none');
+          }
+
+          // Lightbox behavior
+          const lightboxEl = document.getElementById('imageLightbox');
+          const lbImage = document.getElementById('lbImage');
+          const lbThumbs = document.getElementById('lbThumbs');
+          const lbCounter = document.getElementById('lbCounter');
+          const lbPrev = document.getElementById('lbPrev');
+          const lbNext = document.getElementById('lbNext');
+          let currentIndex = 0;
+
+          function renderLightbox(index) {
+            if (!images.length) return;
+            currentIndex = Math.max(0, Math.min(index, images.length - 1));
+            lbImage.src = images[currentIndex];
+            lbCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+            lbThumbs.innerHTML = images
+              .map((url, i) => `<button type="button" class="p-0 border-0 bg-transparent${i === currentIndex ? ' opacity-75' : ''}" data-idx="${i}"><img src="${url}" class="img-fluid rounded border" style="max-height:80px;" alt="Miniature"></button>`)
+              .join('');
+          }
+
+          if (images.length > 0) {
+            const lbModal = new bootstrap.Modal(lightboxEl);
+            imgList.querySelectorAll('button[data-idx]').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                renderLightbox(parseInt(btn.dataset.idx, 10));
+                lbModal.show();
+              });
+            });
+            lbPrev.onclick = () => renderLightbox(currentIndex - 1);
+            lbNext.onclick = () => renderLightbox(currentIndex + 1);
+            lbThumbs.onclick = (e) => {
+              const target = e.target.closest('button[data-idx]');
+              if (target) {
+                renderLightbox(parseInt(target.dataset.idx, 10));
+              }
+            };
+          }
+
           const showUrl = showUrlTemplate.replace('/0', '/' + ev.id);
           const editUrl = editUrlTemplate.replace('/0', '/' + ev.id);
           const viewEl = document.getElementById('eventView');
           const editEl = document.getElementById('eventEdit');
+          const inviteEl = document.getElementById('eventInvite');
           const deleteForm = document.getElementById('eventDeleteForm');
           const deleteBtn = document.getElementById('eventDeleteBtn');
           const deleteTokenEl = document.getElementById('eventDeleteToken');
@@ -143,6 +307,15 @@
             editEl.classList.remove('d-none');
           } else {
             editEl.classList.add('d-none');
+          }
+
+          if (inviteEl) {
+            if (props.canInvite) {
+              inviteEl.setAttribute('href', inviteUrlTemplate.replace('/0', '/' + ev.id));
+              inviteEl.classList.remove('d-none');
+            } else {
+              inviteEl.classList.add('d-none');
+            }
           }
 
           if (props.canDelete && props.deleteUrl && props.deleteToken) {
@@ -162,11 +335,125 @@
       });
 
       calendar.render();
+      calendarEl.dataset.fcInitialized = 'true';
+      calendarEl._fcInstance = calendar;
+    }
 
+    document.addEventListener('DOMContentLoaded', initCalendar);
+    document.addEventListener('turbo:load', initCalendar);
+    document.addEventListener('turbo:before-cache', () => {
+      const calendarEl = document.getElementById('calendar');
+      if (calendarEl && calendarEl._fcInstance) {
+        calendarEl._fcInstance.destroy();
+        delete calendarEl._fcInstance;
+        delete calendarEl.dataset.fcInitialized;
+        calendarEl.innerHTML = '';
+      }
     });
   </script>
 
   <script>
+    async function loadOsmMap(location, frameEl, wrapperEl, distanceWrapper, distanceEl, weatherWrapper, weatherText, weatherIcon) {
+      if (!location || !frameEl) return;
+      try {
+        const url = `/portal/geo/search?q=${encodeURIComponent(location)}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          frameEl.src = '';
+          if (wrapperEl) wrapperEl.classList.add('d-none');
+          if (distanceWrapper) distanceWrapper.classList.add('d-none');
+          if (distanceEl) distanceEl.textContent = '-';
+          return;
+        }
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        const delta = 0.02;
+        const bbox = [
+          (lon - delta).toFixed(6),
+          (lat - delta).toFixed(6),
+          (lon + delta).toFixed(6),
+          (lat + delta).toFixed(6)
+        ].join('%2C');
+        frameEl.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${lat},${lon}&layer=mapnik`;
+        if (wrapperEl) wrapperEl.classList.remove('d-none');
+        if (distanceWrapper) distanceWrapper.classList.remove('d-none');
+        if (distanceEl) {
+          computeDistanceKm(lat, lon, distanceEl);
+        }
+        if (weatherWrapper && weatherText && weatherIcon) {
+          loadWeather(location, weatherWrapper, weatherText, weatherIcon, lat, lon);
+        }
+      } catch (e) {
+        frameEl.src = '';
+        if (wrapperEl) wrapperEl.classList.add('d-none');
+        if (distanceWrapper) distanceWrapper.classList.add('d-none');
+        if (distanceEl) distanceEl.textContent = '-';
+      }
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (v) => (v * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function formatDistance(distanceKm) {
+      if (distanceKm < 1) {
+        return `${Math.round(distanceKm * 1000)} m`;
+      }
+      return `${distanceKm.toFixed(distanceKm < 10 ? 2 : 1)} km`;
+    }
+
+    function distanceBadge(distanceKm) {
+      if (distanceKm < 5) return '<span class="badge bg-success">Proche</span>';
+      if (distanceKm <= 50) return '<span class="badge bg-warning text-dark">Moyenne distance</span>';
+      return '<span class="badge bg-danger">Loin</span>';
+    }
+
+    function computeDistanceKm(lat, lon, distanceEl) {
+      if (!navigator.geolocation) {
+        distanceEl.textContent = 'Geolocalisation non supportee.';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const km = haversineKm(pos.coords.latitude, pos.coords.longitude, lat, lon);
+          distanceEl.innerHTML = `${formatDistance(km)} ${distanceBadge(km)}`;
+        },
+        () => {
+          distanceEl.textContent = 'Autorisez la localisation.';
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function loadWeather(place, wrapperEl, textEl, iconEl, lat, lon) {
+      if (!wrapperEl || !textEl || !iconEl) return;
+      try {
+        const url = (lat != null && lon != null)
+          ? `/portal/api/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+          : `/portal/api/weather?place=${encodeURIComponent(place)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          wrapperEl.classList.add('d-none');
+          return;
+        }
+        iconEl.src = `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+        textEl.textContent = `${data.temp}°C • ${data.description}`;
+        wrapperEl.classList.remove('d-none');
+      } catch (e) {
+        wrapperEl.classList.add('d-none');
+      }
+    }
+
     (function () {
       const form = document.getElementById('calendarFilters');
       if (!form) return;

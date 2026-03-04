@@ -6,6 +6,7 @@ use App\Entity\TypeEvenement;
 use App\Form\TypeEvenementClientType;
 use App\Repository\TypeEvenementRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,16 +19,21 @@ use App\Entity\Family;
 class TypeEvenementController extends AbstractController
 {
     #[Route('', name: 'app_type_evenement_index', methods: ['GET'])]
-    public function index(TypeEvenementRepository $repo, ActiveFamilyResolver $familyResolver): Response
+    public function index(
+        Request $request,
+        TypeEvenementRepository $repo,
+        ActiveFamilyResolver $familyResolver,
+        PaginatorInterface $paginator
+    ): Response
     {
         $family = $this->resolveFamily($familyResolver);
 
-        $types = $repo->createQueryBuilder('t')
-            ->andWhere('(t.family = :family OR t.family IS NULL)')
-            ->setParameter('family', $family)
-            ->orderBy('t.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
+        $qb = $repo->findForFamilyQueryBuilder($family);
+        $types = $paginator->paginate(
+            $qb,
+            max(1, (int) $request->query->get('page', 1)),
+            10
+        );
 
         return $this->render('app/type_evenement/index.html.twig', [
             'type_evenements' => $types,

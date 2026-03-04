@@ -3,8 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\EvenementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\ModuleEvenement\InvitationRsvp;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -72,6 +75,18 @@ class Evenement
     #[ORM\Column(options: ['default' => false])]
     private bool $shareWithFamily = false;
 
+    #[ORM\OneToMany(mappedBy: 'evenement', targetEntity: EvenementImage::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $images;
+
+    #[ORM\OneToMany(mappedBy: 'evenement', targetEntity: InvitationRsvp::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $invitations;
+
+    public function __construct()
+    {
+        $this->images = new ArrayCollection();
+        $this->invitations = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -85,7 +100,6 @@ class Evenement
     public function setTitre(string $titre): static
     {
         $this->titre = $titre;
-
         return $this;
     }
 
@@ -97,7 +111,6 @@ class Evenement
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -109,7 +122,6 @@ class Evenement
     public function setDateDebut(?\DateTimeImmutable $dateDebut): static
     {
         $this->dateDebut = $dateDebut;
-
         return $this;
     }
 
@@ -121,7 +133,6 @@ class Evenement
     public function setDateFin(?\DateTimeImmutable $dateFin): static
     {
         $this->dateFin = $dateFin;
-
         return $this;
     }
 
@@ -133,7 +144,6 @@ class Evenement
     public function setLieu(string $lieu): static
     {
         $this->lieu = $lieu;
-
         return $this;
     }
 
@@ -145,7 +155,6 @@ class Evenement
     public function setDateCreation(\DateTimeImmutable $dateCreation): static
     {
         $this->dateCreation = $dateCreation;
-
         return $this;
     }
 
@@ -157,7 +166,6 @@ class Evenement
     public function setDateModification(\DateTimeImmutable $dateModification): static
     {
         $this->dateModification = $dateModification;
-
         return $this;
     }
 
@@ -169,7 +177,6 @@ class Evenement
     public function setFamily(?Family $family): static
     {
         $this->family = $family;
-
         return $this;
     }
 
@@ -181,7 +188,6 @@ class Evenement
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
-
         return $this;
     }
 
@@ -193,7 +199,6 @@ class Evenement
     public function setTypeEvenement(?TypeEvenement $TypeEvenement): static
     {
         $this->TypeEvenement = $TypeEvenement;
-
         return $this;
     }
 
@@ -205,8 +210,93 @@ class Evenement
     public function setShareWithFamily(bool $shareWithFamily): static
     {
         $this->shareWithFamily = $shareWithFamily;
+        return $this;
+    }
+
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImage(EvenementImage $image): static
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+            $image->setEvenement($this);
+        }
 
         return $this;
+    }
+
+    public function removeImage(EvenementImage $image): static
+    {
+        if ($this->images->removeElement($image)) {
+            if ($image->getEvenement() === $this) {
+                $image->setEvenement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, InvitationRsvp>
+     */
+    public function getInvitations(): Collection
+    {
+        return $this->invitations;
+    }
+
+    public function addInvitation(InvitationRsvp $invitation): static
+    {
+        if (!$this->invitations->contains($invitation)) {
+            $this->invitations->add($invitation);
+            $invitation->setEvenement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvitation(InvitationRsvp $invitation): static
+    {
+        if ($this->invitations->removeElement($invitation)) {
+            if ($invitation->getEvenement() === $this) {
+                $invitation->setEvenement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getNombreAcceptes(): int
+    {
+        return $this->countInvitationsByStatus(InvitationRsvp::STATUS_ACCEPTE);
+    }
+
+    public function getNombreRefuses(): int
+    {
+        return $this->countInvitationsByStatus(InvitationRsvp::STATUS_REFUSE);
+    }
+
+    public function getNombrePeutEtre(): int
+    {
+        return $this->countInvitationsByStatus(InvitationRsvp::STATUS_PEUT_ETRE);
+    }
+
+    public function getNombreEnAttente(): int
+    {
+        return $this->countInvitationsByStatus(InvitationRsvp::STATUS_EN_ATTENTE);
+    }
+
+    private function countInvitationsByStatus(string $status): int
+    {
+        $count = 0;
+        foreach ($this->invitations as $invitation) {
+            if ($invitation->getStatut() === $status) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     #[Assert\Callback]
