@@ -7,7 +7,7 @@
     </a>
   </div>
 
-  <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+  <div class="navbar-nav-right d-flex align-items-center justify-content-end flex-grow-1" id="navbar-collapse">
     <div class="navbar-nav align-items-center me-auto">
       <form class="nav-item d-flex align-items-center" method="get" action="{{ path('portal_search') }}">
         <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
@@ -200,12 +200,14 @@
 
       {# Account dropdown (HEAD avatar logic kept) #}
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
-        <a
-          class="nav-link dropdown-toggle hide-arrow p-0"
-          href="#accountMenu"
-          role="button"
+        <button
+          type="button"
+          id="accountMenuToggle"
+          class="nav-link dropdown-toggle hide-arrow p-0 border-0 bg-transparent"
           data-bs-toggle="dropdown"
-          aria-expanded="false">
+          data-bs-auto-close="outside"
+          aria-expanded="false"
+          aria-haspopup="true">
           <div class="avatar avatar-online" style="width: 3.25rem; height: 3.25rem;">
             {% set navbarAvatarPath = app.user ? app.user.avatarPath : null %}
             {% set navbarAvatarFallback = 'https://api.dicebear.com/9.x/adventurer/svg?seed=' ~ (app.user ? app.user.id : 'homebalance') %}
@@ -232,9 +234,9 @@
               class="w-px-52 h-px-52 rounded-circle object-fit-cover"
               onerror="this.onerror=null;this.src='{{ navbarAvatarFallback }}';" />
           </div>
-        </a>
+        </button>
 
-        <ul class="dropdown-menu dropdown-menu-end">
+        <ul id="accountMenu" class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenuToggle">
           <li>
             <a class="dropdown-item" href="{{ path('portal_account') }}">
               <div class="d-flex align-items-center">

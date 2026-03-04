@@ -17,7 +17,6 @@
     <div class="col-xl-7">
       <div class="card gradient-card orbit-card h-100" data-controller="orbit-card">
         <div class="card-body">
-        <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="text-uppercase fw-medium text-white-50 mb-1">Votre foyer aujourd’hui</p>
@@ -35,9 +34,9 @@
               <strong>{{ "now"|date('d M') }}</strong>
             </span>
           </div>
-          <div class="orbit-strip mt-4" data-controller="streak-meter" data-streak-meter-count-value="{{ metrics.badgeCount }}">
+          <div class="orbit-strip mt-4" data-controller="streak-meter" data-streak-meter-count-value="{{ recentActivity|length }}">
             <div>
-              <h5 class="text-white mb-0">{{ metrics.badgeCount }}</h5>
+              <h5 class="text-white mb-0">{{ recentActivity|length }}</h5>
               <small class="text-white-50">Vos contributions</small>
             </div>
             <div>
@@ -45,8 +44,8 @@
               <small class="text-white-50">Personnes dans le foyer</small>
             </div>
             <div>
-              <h5 class="text-white mb-0">{{ recentActivity|length }}</h5>
-              <small class="text-white-50">Moments enregistrés</small>
+              <h5 class="text-white mb-0">{{ metrics.badgeCount }}</h5>
+              <small class="text-white-50">Badges obtenus</small>
             </div>
           </div>
         </div>
@@ -287,7 +286,7 @@
       {% else %}
         <ul class="timeline timeline-center mt-3" data-timeline-peek-target="timeline">
           {% for event in recentActivity %}
-            <li class="timeline-item ps-4">
+            <li class="timeline-item">
               <span class="timeline-point-{{ event.type }}"></span>
               <div class="timeline-event">
                 <div class="timeline-header">
@@ -373,4 +372,5 @@
     })();
   </script>
 {% endblock %}
+
 

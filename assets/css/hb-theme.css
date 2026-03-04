@@ -73,7 +73,7 @@ h6,
   border-radius: 0.75rem;
 }
 
-.menu-item.active > .menu-link,
+.menu-item.active>.menu-link,
 .menu-link:hover {
   background: rgba(105, 108, 255, 0.12);
   color: #2b2f4c;
@@ -85,7 +85,7 @@ h6,
   margin: 0.25rem 0 0.75rem;
 }
 
-.menu-item.open > .menu-sub {
+.menu-item.open>.menu-sub {
   display: block;
 }
 
@@ -141,4 +141,331 @@ h6,
   .layout-navbar {
     margin-top: 0.75rem;
   }
+}
+
+/* ================================================================
+   DASHBOARD COMPONENTS
+   ================================================================ */
+
+/* --- Gradient / Orbit welcome card --- */
+.gradient-card {
+  background: linear-gradient(135deg, #7367f0 0%, #9e95f5 50%, #ce9ffc 100%);
+  border: none;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.orbit-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  backdrop-filter: blur(6px);
+  color: #fff;
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: center;
+}
+
+.orbit-chip small {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.orbit-chip strong {
+  font-size: 1rem;
+}
+
+.orbit-strip {
+  display: flex;
+  gap: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.orbit-strip>div {
+  display: flex;
+  flex-direction: column;
+}
+
+.orbit-strip h5 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* --- Pulse / Engagement ring card --- */
+.pulse-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(105, 108, 255, 0.15);
+  background: #fff;
+}
+
+.pulse-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 8px solid #ede9fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 8px solid transparent;
+  border-top-color: #7367f0;
+  border-right-color: #7367f0;
+  animation: pulse-rotate 2s linear infinite;
+}
+
+@keyframes pulse-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pulse-ring__value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #7367f0;
+}
+
+.pulse-meta {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pulse-meta li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.pulse-meta li:last-child {
+  border-bottom: none;
+}
+
+/* --- Timeline --- */
+.timeline { list-style: none !important; 
+  position: relative;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1.1rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #7367f0 0%, #e9ecef 100%);
+  border-radius: 2px;
+}
+
+.timeline-item { list-style: none !important; 
+  position: relative;
+  padding-left: 2.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+[class^="timeline-point-"] {
+  position: absolute;
+  left: 0.55rem;
+  top: 0.3rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.timeline-point-primary {
+  background: #7367f0;
+  box-shadow: 0 0 0 3px rgba(115, 103, 240, 0.25);
+}
+
+.timeline-point-success {
+  background: #28c76f;
+  box-shadow: 0 0 0 3px rgba(40, 199, 111, 0.25);
+}
+
+.timeline-point-warning {
+  background: #ff9f43;
+  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.25);
+}
+
+.timeline-point-info {
+  background: #00cfe8;
+  box-shadow: 0 0 0 3px rgba(0, 207, 232, 0.25);
+}
+
+.timeline-point-secondary {
+  background: #82868b;
+  box-shadow: 0 0 0 3px rgba(130, 134, 139, 0.2);
+}
+
+.timeline-point-danger {
+  background: #ea5455;
+  box-shadow: 0 0 0 3px rgba(234, 84, 85, 0.25);
+}
+
+.timeline-event {
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e9ecef;
+  transition: box-shadow 0.2s;
+}
+
+.timeline-event:hover {
+  box-shadow: 0 2px 12px rgba(115, 103, 240, 0.1);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+  gap: 0.5rem;
+}
+
+.timeline-header h6 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* --- Notification Heatmap --- */
+.heatmap-card {
+  border-radius: 1rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 90px);
+  gap: 0.5rem 0.4rem;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.heatmap-grid__corner {
+  font-weight: 600;
+  color: #6e6b7b;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.heatmap-grid__column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: #6e6b7b;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.heatmap-grid__row-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.25rem 0;
+}
+
+.heatmap-grid__row-label strong {
+  font-size: 0.85rem;
+}
+
+.heatmap-grid__row-label small {
+  font-size: 0.7rem;
+  color: #9aa4b2;
+}
+
+.heatmap-cell {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f0f0f0;
+  color: #6e6b7b;
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.heatmap-cell.is-active {
+  background: rgba(115, 103, 240, 0.15);
+  color: #7367f0;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+  transform: scale(1.04);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #6e6b7b;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot--on {
+  background: #7367f0;
+}
+
+.dot--off {
+  background: #d8d6de;
+}
+
+/* --- Badge tile --- */
+.badge-tile {
+  background: #fafaff;
+  transition: box-shadow 0.2s;
+}
+
+.badge-tile:hover {
+  box-shadow: 0 4px 16px rgba(115, 103, 240, 0.12);
+}
+
+/* --- Chart canvas dimensions fix --- */
+#dashboardEventsByMonth,
+#dashboardEventsByType {
+  width: 100% !important;
+  height: 100% !important;
 }

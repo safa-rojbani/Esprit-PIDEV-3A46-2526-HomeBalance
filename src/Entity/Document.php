@@ -71,7 +71,7 @@ class Document
     #[ORM\JoinColumn(nullable: false)]
     private ?User $uploadedBY = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'documents')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Gallery $gallery = null;
 
