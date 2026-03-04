@@ -14,7 +14,8 @@ class HuggingFaceClient
 {
     private const BASE_URL = 'https://api-inference.huggingface.co/models/';
     private const MAX_RETRIES = 3;
-    private const RETRY_DELAY_MS = 20000;
+    private const RETRY_DELAY_MS = 2000;  // 2 seconds between retries (was 20000 = 20s, causing 60s total timeout)
+    private const HTTP_TIMEOUT = 10;      // 10 second HTTP request timeout
 
     private readonly HttpClientInterface $httpClient;
     private readonly string $apiToken;
@@ -22,7 +23,9 @@ class HuggingFaceClient
     public function __construct(
         ?HttpClientInterface $httpClient = null,
     ) {
-        $this->httpClient = $httpClient ?? HttpClient::create();
+        $this->httpClient = $httpClient ?? HttpClient::create([
+            'timeout' => self::HTTP_TIMEOUT,
+        ]);
         $this->apiToken = $_ENV['HUGGINGFACE_API_TOKEN'] ?? $_SERVER['HUGGINGFACE_API_TOKEN'] ?? '';
         
         if (empty($this->apiToken)) {
@@ -64,7 +67,7 @@ class HuggingFaceClient
                     );
                     
                     if ($attempt < self::MAX_RETRIES) {
-                        usleep(self::RETRY_DELAY_MS * 1000); // Convert to microseconds
+                        usleep(self::RETRY_DELAY_MS * 1000); // RETRY_DELAY_MS (ms) * 1000 = microseconds
                         continue;
                     }
                 }
@@ -92,7 +95,7 @@ class HuggingFaceClient
                 );
 
                 if ($attempt < self::MAX_RETRIES) {
-                    usleep(self::RETRY_DELAY_MS * 1000);
+                    usleep(self::RETRY_DELAY_MS * 1000); // RETRY_DELAY_MS (ms) * 1000 = microseconds
                     continue;
                 }
             } catch (\Throwable $e) {
