@@ -6,7 +6,7 @@ class SummarizeConversationMessage
 {
     public function __construct(
         private readonly int $conversationId,
-        private readonly int $userId,
+        private readonly string $userId,
         private readonly int $limit = 50,
     ) {
     }
@@ -16,7 +16,7 @@ class SummarizeConversationMessage
         return $this->conversationId;
     }
 
-    public function getUserId(): int
+    public function getUserId(): string
     {
         return $this->userId;
     }

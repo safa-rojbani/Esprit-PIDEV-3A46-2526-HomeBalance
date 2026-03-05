@@ -65,6 +65,7 @@ class Evenement
     private ?Family $family = null;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne]

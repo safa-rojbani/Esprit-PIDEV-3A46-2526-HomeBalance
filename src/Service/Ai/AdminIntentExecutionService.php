@@ -6,7 +6,6 @@ use App\Entity\AdminAiExecutionLog;
 use App\Entity\AdminAiSession;
 use App\Entity\User;
 use App\Enum\UserStatus;
-use App\Repository\AdminAiExecutionLogRepository;
 use App\Repository\UserRepository;
 use App\Service\NotificationService;
 use DateTimeImmutable;
@@ -22,7 +21,6 @@ final class AdminIntentExecutionService
         private readonly NotificationService $notificationService,
         private readonly AdminIntentAuditService $auditService,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly AdminAiExecutionLogRepository $executionLogRepository,
     ) {
     }
 

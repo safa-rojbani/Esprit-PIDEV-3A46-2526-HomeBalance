@@ -59,8 +59,18 @@
                                 </li>
                             {% endfor %}
                         </ul>
-                        <div class="mt-3">
-                            {{ knp_pagination_render(adminTasks) }}
+                        <div class="mt-3 d-flex justify-content-between align-items-center">
+                            <a class="btn btn-sm btn-outline-secondary {{ not adminPagination.hasPrevious ? 'disabled' : '' }}"
+                               href="{{ adminPagination.hasPrevious ? path('parent_task_index', {adminPage: adminPagination.page - 1, familyPage: familyPagination.page}) : '#' }}">
+                                <i class="bx bx-chevron-left"></i>
+                                Precedent
+                            </a>
+                            <span class="small text-muted">Page {{ adminPagination.page }}</span>
+                            <a class="btn btn-sm btn-outline-secondary {{ not adminPagination.hasNext ? 'disabled' : '' }}"
+                               href="{{ adminPagination.hasNext ? path('parent_task_index', {adminPage: adminPagination.page + 1, familyPage: familyPagination.page}) : '#' }}">
+                                Suivant
+                                <i class="bx bx-chevron-right"></i>
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -107,8 +117,18 @@
                                 </li>
                             {% endfor %}
                         </ul>
-                        <div class="mt-3">
-                            {{ knp_pagination_render(familyTasks) }}
+                        <div class="mt-3 d-flex justify-content-between align-items-center">
+                            <a class="btn btn-sm btn-outline-secondary {{ not familyPagination.hasPrevious ? 'disabled' : '' }}"
+                               href="{{ familyPagination.hasPrevious ? path('parent_task_index', {familyPage: familyPagination.page - 1, adminPage: adminPagination.page}) : '#' }}">
+                                <i class="bx bx-chevron-left"></i>
+                                Precedent
+                            </a>
+                            <span class="small text-muted">Page {{ familyPagination.page }}</span>
+                            <a class="btn btn-sm btn-outline-secondary {{ not familyPagination.hasNext ? 'disabled' : '' }}"
+                               href="{{ familyPagination.hasNext ? path('parent_task_index', {familyPage: familyPagination.page + 1, adminPage: adminPagination.page}) : '#' }}">
+                                Suivant
+                                <i class="bx bx-chevron-right"></i>
+                            </a>
                         </div>
                     {% endif %}
                 </div>

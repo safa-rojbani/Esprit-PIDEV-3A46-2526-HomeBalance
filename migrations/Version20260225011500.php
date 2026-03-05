@@ -21,13 +21,23 @@ final class Version20260225011500 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $schemaManager = $this->connection->createSchemaManager();
+        $userIdCollation = $this->resolveUserIdCollation();
+        $userIdCharset = $this->resolveCharsetFromCollation($userIdCollation);
 
         if (!$schemaManager->tablesExist(['document_activity_log'])) {
-            $this->addSql('CREATE TABLE document_activity_log (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, user_id VARCHAR(36) DEFAULT NULL, document_id INT DEFAULT NULL, event_type VARCHAR(64) NOT NULL, channel VARCHAR(32) DEFAULT NULL, metadata JSON DEFAULT NULL COMMENT \'(DC2Type:json)\', created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX idx_document_activity_family_created (family_id, created_at), INDEX idx_document_activity_user_created (user_id, created_at), INDEX idx_document_activity_document_created (document_id, created_at), INDEX idx_document_activity_event_created (event_type, created_at), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+            $this->addSql(sprintf(
+                'CREATE TABLE document_activity_log (id INT AUTO_INCREMENT NOT NULL, family_id INT NOT NULL, user_id VARCHAR(36) DEFAULT NULL, document_id INT DEFAULT NULL, event_type VARCHAR(64) NOT NULL, channel VARCHAR(32) DEFAULT NULL, metadata JSON DEFAULT NULL COMMENT \'(DC2Type:json)\', created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX idx_document_activity_family_created (family_id, created_at), INDEX idx_document_activity_user_created (user_id, created_at), INDEX idx_document_activity_document_created (document_id, created_at), INDEX idx_document_activity_event_created (event_type, created_at), PRIMARY KEY(id)) DEFAULT CHARACTER SET %s COLLATE `%s` ENGINE = InnoDB',
+                $userIdCharset,
+                $userIdCollation
+            ));
         } else {
             // Recovery path for partially failed migration runs.
-            $this->addSql('ALTER TABLE document_activity_log CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-            $this->addSql('ALTER TABLE document_activity_log MODIFY user_id VARCHAR(36) DEFAULT NULL');
+            $this->addSql(sprintf(
+                'ALTER TABLE document_activity_log CONVERT TO CHARACTER SET %s COLLATE %s',
+                $userIdCharset,
+                $userIdCollation
+            ));
+            $this->addSql(sprintf('ALTER TABLE document_activity_log MODIFY user_id VARCHAR(36) COLLATE %s DEFAULT NULL', $userIdCollation));
         }
 
         $existingForeignKeys = array_map(
@@ -70,5 +80,33 @@ final class Version20260225011500 extends AbstractMigration
 
         $this->addSql('DROP TABLE document_activity_log');
         $this->addSql('DROP TABLE IF EXISTS document_insight_daily');
+    }
+
+    private function resolveUserIdCollation(): string
+    {
+        $collation = $this->connection->fetchOne(
+            "SELECT COLLATION_NAME
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = 'user'
+               AND COLUMN_NAME = 'id'
+             LIMIT 1"
+        );
+
+        if (!is_string($collation) || trim($collation) === '') {
+            return 'utf8mb4_general_ci';
+        }
+
+        return trim($collation);
+    }
+
+    private function resolveCharsetFromCollation(string $collation): string
+    {
+        $charset = strstr($collation, '_', true);
+        if (!is_string($charset) || $charset === '') {
+            return 'utf8mb4';
+        }
+
+        return $charset;
     }
 }

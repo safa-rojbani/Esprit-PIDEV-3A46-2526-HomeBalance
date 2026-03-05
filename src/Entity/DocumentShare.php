@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\DocumentShareRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: DocumentShareRepository::class)]
 #[ORM\Table(name: 'document_share')]
@@ -26,6 +27,7 @@ class DocumentShare
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $sharedBy = null;
 
+    #[Ignore]
     #[ORM\Column(length: 64, unique: true)]
     private ?string $tokenHash = null;
 
@@ -87,7 +89,7 @@ class DocumentShare
         return $this->tokenHash;
     }
 
-    public function setTokenHash(string $tokenHash): static
+    public function setTokenHash(#[\SensitiveParameter] string $tokenHash): static
     {
         $this->tokenHash = $tokenHash;
 

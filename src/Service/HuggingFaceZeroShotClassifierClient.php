@@ -140,10 +140,6 @@ final class HuggingFaceZeroShotClassifierClient
         $statusCode = $response->getStatusCode();
         $payload = $response->toArray(false);
 
-        if (!is_array($payload)) {
-            throw new \RuntimeException('Hugging Face response is invalid.');
-        }
-
         if ($statusCode >= 400) {
             $message = $this->extractErrorMessage($payload);
             throw new \RuntimeException($message !== '' ? $message : ('Hugging Face request failed (HTTP ' . $statusCode . ').'));

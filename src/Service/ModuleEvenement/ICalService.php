@@ -88,13 +88,7 @@ class ICalService
         if ($date === null) {
             return null;
         }
-        if ($date instanceof \DateTimeImmutable) {
-            return $date;
-        }
-        if ($date instanceof \DateTime) {
-            return \DateTimeImmutable::createFromMutable($date);
-        }
 
-        return null;
+        return $date instanceof \DateTimeImmutable ? $date : \DateTimeImmutable::createFromInterface($date);
     }
 }

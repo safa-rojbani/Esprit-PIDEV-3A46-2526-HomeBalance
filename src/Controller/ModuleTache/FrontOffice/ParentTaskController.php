@@ -18,6 +18,7 @@ use App\Repository\TaskRepository;
 use App\Service\TaskPointResolver;
 use App\Service\TaskPenaltyService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -35,34 +36,46 @@ class ParentTaskController extends AbstractController
         TaskRepository $taskRepository,
         TaskPointResolver $taskPointResolver,
         Request $request,
-        PaginatorInterface $paginator,
         ActiveFamilyResolver $familyResolver
     ): Response {
         [$parent, $family] = $this->resolveUserAndFamily($familyResolver);
         $this->ensureParent($parent);
 
-        $adminTasks = $taskRepository->findActiveGlobalAdminTasks();
-        $familyTasks = $taskRepository->findFamilyTasks($family);
+        $adminPage = max(1, $request->query->getInt('adminPage', 1));
+        $familyPage = max(1, $request->query->getInt('familyPage', 1));
+
+        $adminPageData = $this->fetchTasksPage(
+            $taskRepository->createActiveGlobalAdminTasksQueryBuilder(),
+            $adminPage,
+            8
+        );
+        $familyPageData = $this->fetchTasksPage(
+            $taskRepository->createFamilyTasksQueryBuilder($family),
+            $familyPage,
+            8
+        );
+
+        $adminTasks = $adminPageData['items'];
+        $familyTasks = $familyPageData['items'];
+
         $adminTaskPoints = $taskPointResolver->resolvePointsForTasks($adminTasks);
         $familyTaskPoints = $taskPointResolver->resolvePointsForTasks($familyTasks);
-        $adminTasks = $paginator->paginate(
-            $adminTasks,
-            max(1, $request->query->getInt('adminPage', 1)),
-            8,
-            ['pageParameterName' => 'adminPage']
-        );
-        $familyTasks = $paginator->paginate(
-            $familyTasks,
-            max(1, $request->query->getInt('familyPage', 1)),
-            8,
-            ['pageParameterName' => 'familyPage']
-        );
 
         return $this->render('ModuleTache/frontoffice/parent/index.html.twig', [
             'adminTasks' => $adminTasks,
             'familyTasks' => $familyTasks,
             'adminTaskPoints' => $adminTaskPoints,
             'familyTaskPoints' => $familyTaskPoints,
+            'adminPagination' => [
+                'page' => $adminPageData['page'],
+                'hasPrevious' => $adminPageData['hasPrevious'],
+                'hasNext' => $adminPageData['hasNext'],
+            ],
+            'familyPagination' => [
+                'page' => $familyPageData['page'],
+                'hasPrevious' => $familyPageData['hasPrevious'],
+                'hasNext' => $familyPageData['hasNext'],
+            ],
         ]);
     }
 
@@ -616,5 +629,40 @@ class ParentTaskController extends AbstractController
         \usort($tasks, static function (Task $a, Task $b): int {
             return ($b->getCreatedAt()?->getTimestamp() ?? 0) <=> ($a->getCreatedAt()?->getTimestamp() ?? 0);
         });
+    }
+
+    /**
+     * Lightweight pagination without total COUNT(*):
+     * fetch limit+1 rows to detect whether a next page exists.
+     *
+     * @return array{items: array<int, Task>, page: int, hasPrevious: bool, hasNext: bool}
+     */
+    private function fetchTasksPage(QueryBuilder $qb, int $page, int $limit): array
+    {
+        $offset = ($page - 1) * $limit;
+        $rawItems = $qb
+            ->setFirstResult($offset)
+            ->setMaxResults($limit + 1)
+            ->getQuery()
+            ->getResult();
+
+        $items = [];
+        foreach ($rawItems as $item) {
+            if ($item instanceof Task) {
+                $items[] = $item;
+            }
+        }
+
+        $hasNext = \count($items) > $limit;
+        if ($hasNext) {
+            $items = \array_slice($items, 0, $limit);
+        }
+
+        return [
+            'items' => $items,
+            'page' => $page,
+            'hasPrevious' => $page > 1,
+            'hasNext' => $hasNext,
+        ];
     }
 }

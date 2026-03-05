@@ -52,7 +52,7 @@ class Task
     private ?User $createdBy = null;
 
     // ✅ RELATION AVEC LES VALIDATIONS
-    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskCompletion::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskCompletion::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['completedAt' => 'DESC'])]
 
     private Collection $taskCompletions;

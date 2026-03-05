@@ -43,27 +43,25 @@ class PointRuleRepository extends ServiceEntityRepository
         }
 
         $rules = $this->createQueryBuilder('pr')
-            ->addSelect('t')
-            ->join('pr.task', 't')
             ->andWhere('pr.task IN (:tasks)')
             ->andWhere('(pr.validFrom IS NULL OR pr.validFrom <= :at)')
             ->andWhere('(pr.validTo IS NULL OR pr.validTo >= :at)')
             ->setParameter('tasks', $tasks)
             ->setParameter('at', $at)
-            ->orderBy('t.id', 'ASC')
-            ->addOrderBy('pr.validFrom', 'DESC')
-            ->addOrderBy('pr.id', 'DESC')
             ->getQuery()
             ->getResult();
 
         $byTask = [];
         foreach ($rules as $rule) {
             $taskId = $rule->getTask()?->getId();
-            if ($taskId === null || isset($byTask[$taskId])) {
+            if ($taskId === null) {
                 continue;
             }
 
-            $byTask[$taskId] = $rule;
+            $existing = $byTask[$taskId] ?? null;
+            if ($existing === null || $this->isRuleHigherPriority($rule, $existing)) {
+                $byTask[$taskId] = $rule;
+            }
         }
 
         return $byTask;
@@ -79,6 +77,18 @@ class PointRuleRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function isRuleHigherPriority(PointRule $candidate, PointRule $current): bool
+    {
+        $candidateFrom = $candidate->getValidFrom()?->getTimestamp() ?? PHP_INT_MIN;
+        $currentFrom = $current->getValidFrom()?->getTimestamp() ?? PHP_INT_MIN;
+
+        if ($candidateFrom !== $currentFrom) {
+            return $candidateFrom > $currentFrom;
+        }
+
+        return ($candidate->getId() ?? 0) > ($current->getId() ?? 0);
     }
 
     //    /**

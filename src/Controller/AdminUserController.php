@@ -288,7 +288,7 @@ final class AdminUserController extends AbstractController
         }
 
         $user->setResetToken(bin2hex(random_bytes(32)));
-        $user->setResetExpiresAt(new \DateTime('+1 hour'));
+        $user->setResetExpiresAt(new DateTimeImmutable('+1 hour'));
         $entityManager->flush();
 
         $auditNotifier->recordAndNotify(
@@ -659,8 +659,8 @@ final class AdminUserController extends AbstractController
             'previous' => $previousFamily === null ? null : [
                 'id' => $previousFamily->getId(),
                 'name' => $previousFamily->getName(),
-                'joinedAt' => $latestMembership?->getJoinedAt(),
-                'leftAt' => $latestMembership?->getLeftAt(),
+                'joinedAt' => $latestMembership->getJoinedAt(),
+                'leftAt' => $latestMembership->getLeftAt(),
             ],
         ];
     }

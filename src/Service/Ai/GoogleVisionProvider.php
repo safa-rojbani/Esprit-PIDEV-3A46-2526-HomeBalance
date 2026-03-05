@@ -23,7 +23,7 @@ final class GoogleVisionProvider implements VisionProviderInterface
         return 'google';
     }
 
-    public function getModelName(): ?string
+    public function getModelName(): string
     {
         return 'cloud-vision-v1';
     }

@@ -29,7 +29,7 @@ class RappelController extends AbstractController
         PaginatorInterface $paginator
     ): Response
     {
-        $user = $this->getUser();
+        $user = $this->requireUser();
         $family = $this->resolveFamily($familyResolver);
 
         $rappelRepository->cleanupOrphanedAndPast();
@@ -89,7 +89,7 @@ class RappelController extends AbstractController
         $family = $this->resolveFamily($familyResolver);
         $this->assertCanViewEvent($family, $evenement);
 
-        $user = $this->getUser();
+        $user = $this->requireUser();
         $qb = $rappelRepository->createQueryBuilder('r')
             ->andWhere('r.evenement = :evenement')
             ->andWhere('r.user = :user')
@@ -124,16 +124,13 @@ class RappelController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         $this->assertCanViewEvent($family, $evenement);
-        if ($this->getUser() === null) {
-            throw $this->createAccessDeniedException();
-        }
+        $user = $this->requireUser();
 
         $rappel = new Rappel();
         $form = $this->createForm(RappelType::class, $rappel);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = $this->getUser();
             $rappel->setEvenement($evenement);
             $rappel->setUser($user);
             $rappel->setFamily($family);
@@ -236,10 +233,7 @@ class RappelController extends AbstractController
 
     private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
+        $user = $this->requireUser();
 
         $family = $familyResolver->resolveForUser($user);
         if ($family === null) {
@@ -247,6 +241,16 @@ class RappelController extends AbstractController
         }
 
         return $family;
+    }
+
+    private function requireUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
     }
 
     private function assertSameFamily(Family $family, ?Family $targetFamily): void

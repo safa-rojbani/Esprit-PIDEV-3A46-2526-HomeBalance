@@ -38,10 +38,8 @@ class FamilyBadgeRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('fb')
             ->andWhere('fb.family = :family')
             ->andWhere('fb.badge = :badge')
-            ->setParameters([
-                'family' => $family,
-                'badge' => $badge,
-            ])
+            ->setParameter('family', $family)
+            ->setParameter('badge', $badge)
             ->getQuery()
             ->getOneOrNullResult();
     }

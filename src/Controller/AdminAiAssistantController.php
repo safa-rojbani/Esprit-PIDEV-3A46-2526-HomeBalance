@@ -72,7 +72,7 @@ final class AdminAiAssistantController extends AbstractController
 
         $impactSummary = $this->buildImpactSummary($selectedSession);
         // For AI execution, step-up verification is bound to action-level approval, not per-target user.
-        $sessionTargetUserId = '';
+        $sessionTargetUserId = $this->resolveSessionTargetUserId($selectedSession);
         $stepUpTargetUser = null;
         $stepUpActionKey = 'admin.ai.execute';
         $stepUpAlreadySatisfied = $stepUpGuardService->isSatisfied($request, $stepUpActionKey, $stepUpTargetUser);

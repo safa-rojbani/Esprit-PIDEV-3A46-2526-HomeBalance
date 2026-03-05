@@ -6,6 +6,7 @@ use App\Entity\Evenement;
 use App\Entity\User;
 use App\Repository\InvitationRsvpRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: InvitationRsvpRepository::class)]
 #[ORM\Table(name: 'invitation_rsvp')]
@@ -22,6 +23,7 @@ class InvitationRsvp
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Ignore]
     #[ORM\Column(length: 64, unique: true)]
     private string $token;
 
@@ -62,7 +64,7 @@ class InvitationRsvp
         return $this->token;
     }
 
-    public function setToken(string $token): static
+    public function setToken(#[\SensitiveParameter] string $token): static
     {
         $this->token = $token;
         return $this;

@@ -70,9 +70,7 @@ class EvenementFeedController extends AbstractController
             LEFT JOIN user u ON u.id = e.created_by_id
         ';
 
-        if ($where) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
-        }
+        $sql .= ' WHERE ' . implode(' AND ', $where);
 
         $sql .= ' ORDER BY e.date_debut ASC';
 

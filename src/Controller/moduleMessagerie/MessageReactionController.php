@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\moduleMessagerie;
+namespace App\Controller\ModuleMessagerie;
 
 use App\Entity\Message;
 use App\Entity\User;

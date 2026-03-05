@@ -64,9 +64,6 @@ final class HuggingFaceImageOcrClient
     {
         $statusCode = $response->getStatusCode();
         $payload = $response->toArray(false);
-        if (!is_array($payload)) {
-            throw new \RuntimeException('Hugging Face OCR response is invalid.');
-        }
 
         if ($statusCode >= 400) {
             $message = $this->extractErrorMessage($payload);

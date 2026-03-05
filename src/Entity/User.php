@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use App\Enum\UserStatus;
 use App\Enum\SystemRole;
 use App\Enum\FamilyRole;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -22,15 +23,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 #[ORM\Id]
 #[ORM\Column(type: 'string', length: 36, unique: true)]
-private ?string $id = null;
+private string $id;
 
 
 
     #[ORM\Column(length: 180)]
-    private ?string $email = null;
+    private string $email = '';
 
     #[ORM\Column(length: 180, unique: true)]
-    private ?string $username = null;
+    private string $username = '';
 
     /**
      * @var list<string> The user roles
@@ -41,23 +42,24 @@ private ?string $id = null;
     /**
      * @var string The hashed password
      */
+    #[Ignore]
     #[ORM\Column]
-    private ?string $password = null;
+    private string $password = '';
 
     #[ORM\Column(length: 255)]
-    private ?string $FirstName = null;
+    private string $FirstName = '';
 
     #[ORM\Column(length: 255)]
-    private ?string $LastName = null;
+    private string $LastName = '';
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $birthDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatarPath = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $locale = null;
+    private string $locale = 'fr';
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $timeZone = null;
@@ -66,14 +68,15 @@ private ?string $id = null;
     private ?array $preferences = null;
 
     #[ORM\Column(length: 255)]
-private ?string $status = null;
+private string $status = 'active';
 
     #[ORM\Column(length: 255)]
-    private ?string $systemRole = null;
+    private string $systemRole = 'CUSTOMER';
 
     #[ORM\Column(length: 255)]
-    private ?string $familyRole = null;
+    private string $familyRole = 'SOLO';
 
+    #[Ignore]
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $emailVerificationToken = null;
 
@@ -83,6 +86,7 @@ private ?string $status = null;
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $emailVerifiedAt = null;
 
+    #[Ignore]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $resetToken = null;
 
@@ -93,7 +97,7 @@ private ?string $status = null;
     private ?\DateTime $lastLogin = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
@@ -111,7 +115,7 @@ private ?string $status = null;
     #[ORM\OneToMany(mappedBy: 'validatedBy', targetEntity: TaskCompletion::class)]
     private Collection $taskCompletionsValidated;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ConversationParticipant::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ConversationParticipant::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $conversationParticipants;
 
     public function __construct()
@@ -195,7 +199,7 @@ private ?string $status = null;
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(#[\SensitiveParameter] string $password): static
     {
         $this->password = $password;
 
@@ -333,7 +337,7 @@ public function setStatus(UserStatus $status): static
         return $this->emailVerificationToken;
     }
 
-    public function setEmailVerificationToken(?string $emailVerificationToken): static
+    public function setEmailVerificationToken(#[\SensitiveParameter] ?string $emailVerificationToken): static
     {
         $this->emailVerificationToken = $emailVerificationToken;
 
@@ -369,7 +373,7 @@ public function setStatus(UserStatus $status): static
         return $this->resetToken;
     }
 
-    public function setResetToken(?string $resetToken): static
+    public function setResetToken(#[\SensitiveParameter] ?string $resetToken): static
     {
         $this->resetToken = $resetToken;
 

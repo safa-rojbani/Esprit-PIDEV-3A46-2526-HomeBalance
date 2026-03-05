@@ -1,0 +1,8 @@
+parameters:
+    level: 5
+    paths:
+        - src/Controller
+        - src/Service
+        - src/Repository
+        - src/MessageHandler
+    treatPhpDocTypesAsCertain: false

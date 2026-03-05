@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\DocumentRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\EtatDocument;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -61,7 +62,7 @@ class Document
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\ManyToOne]

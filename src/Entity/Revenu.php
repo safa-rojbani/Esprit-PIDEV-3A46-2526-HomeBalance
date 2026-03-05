@@ -42,7 +42,7 @@ class Revenu
 private ?Family $family = null;
 
 #[ORM\ManyToOne]
-#[ORM\JoinColumn(nullable: true)]
+#[ORM\JoinColumn(nullable: false)]
 private ?User $createdBy = null;
 
     public function getId(): ?int

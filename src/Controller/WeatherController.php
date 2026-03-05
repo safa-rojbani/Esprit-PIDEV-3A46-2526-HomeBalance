@@ -45,7 +45,7 @@ class WeatherController extends AbstractController
                 'timeout' => 5.0,
             ])->toArray(false);
 
-            if (!is_array($geo) || count($geo) === 0 || !isset($geo[0]['lat'], $geo[0]['lon'])) {
+            if (count($geo) === 0 || !isset($geo[0]['lat'], $geo[0]['lon'])) {
                 $geo = $client->request('GET', 'https://nominatim.openstreetmap.org/search', [
                     'query' => [
                         'format' => 'json',
@@ -59,7 +59,7 @@ class WeatherController extends AbstractController
                     'timeout' => 5.0,
                 ])->toArray(false);
 
-                if (!is_array($geo) || count($geo) === 0 || !isset($geo[0]['lat'], $geo[0]['lon'])) {
+                if (count($geo) === 0 || !isset($geo[0]['lat'], $geo[0]['lon'])) {
                     return $this->json(['error' => 'not_found'], 404);
                 }
 

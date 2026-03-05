@@ -50,18 +50,59 @@ class NotificationRepository extends ServiceEntityRepository
     /**
      * @return Notification[]
      */
-    public function findAllForRecipientInFamily(User $recipient, Family $family): array
+    public function findAllForRecipientInFamily(User $recipient, Family $family, ?int $limit = null): array
     {
-        return $this->createQueryBuilder('n')
-            ->addSelect('actor')
-            ->leftJoin('n.actor', 'actor')
+        if ($limit !== null) {
+            $limit = max(1, min($limit, 100));
+        }
+
+        $idsQb = $this->createQueryBuilder('n')
+            ->select('n.id AS id')
             ->andWhere('n.recipient = :recipient')
             ->andWhere('n.family = :family')
             ->setParameter('recipient', $recipient)
             ->setParameter('family', $family)
             ->orderBy('n.isRead', 'ASC')
-            ->addOrderBy('n.createdAt', 'DESC')
+            ->addOrderBy('n.createdAt', 'DESC');
+
+        if ($limit !== null) {
+            $idsQb->setMaxResults($limit);
+        }
+
+        $idRows = $idsQb
+            ->getQuery()
+            ->getScalarResult();
+
+        if ($idRows === []) {
+            return [];
+        }
+
+        $orderedIds = array_map(
+            static fn (array $row): int => (int) ($row['id'] ?? 0),
+            $idRows
+        );
+        $orderedIds = array_values(array_filter($orderedIds, static fn (int $id): bool => $id > 0));
+
+        if ($orderedIds === []) {
+            return [];
+        }
+
+        /** @var array<int, Notification> $notificationsById */
+        $notificationsById = $this->createQueryBuilder('n', 'n.id')
+            ->addSelect('actor')
+            ->leftJoin('n.actor', 'actor')
+            ->andWhere('n.id IN (:ids)')
+            ->setParameter('ids', $orderedIds)
             ->getQuery()
             ->getResult();
+
+        $ordered = [];
+        foreach ($orderedIds as $id) {
+            if (isset($notificationsById[$id])) {
+                $ordered[] = $notificationsById[$id];
+            }
+        }
+
+        return $ordered;
     }
 }

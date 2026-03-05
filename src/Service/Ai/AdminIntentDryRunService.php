@@ -170,11 +170,8 @@ final class AdminIntentDryRunService
 
     private function countActionsSince(User $user, array $actions, DateTimeImmutable $since): int
     {
-        $em = $this->auditTrailRepository->getEntityManager();
-
-        return (int) $em->createQueryBuilder()
+        return (int) $this->auditTrailRepository->createQueryBuilder('a')
             ->select('COUNT(a.id)')
-            ->from('App\Entity\AuditTrail', 'a')
             ->andWhere('a.user = :user')
             ->andWhere('a.action IN (:actions)')
             ->andWhere('a.createdAt >= :since')

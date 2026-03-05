@@ -25,7 +25,7 @@ final class AzureVisionProvider implements VisionProviderInterface
         return 'azure';
     }
 
-    public function getModelName(): ?string
+    public function getModelName(): string
     {
         return 'computer-vision-v3.2';
     }

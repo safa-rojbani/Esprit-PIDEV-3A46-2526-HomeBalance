@@ -202,7 +202,7 @@ final class BadgeAwardingService
     }
 
     /**
-     * @param array<int, array{user: User, points: int}> $scores
+     * @param array<int, \App\Entity\Score> $scores
      * @return array<int, array{family: Family, scores: array<int, array{user: User, points: int}>}>
      */
     private function groupScoresByFamily(array $scores): array

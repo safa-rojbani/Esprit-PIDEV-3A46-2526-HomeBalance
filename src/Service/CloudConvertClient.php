@@ -267,10 +267,7 @@ final class CloudConvertClient
 
         $formData = new FormDataPart($fields);
 
-        $attempts = 0;
-        do {
-            $attempts++;
-
+        foreach ([1, 2] as $attempt) {
             try {
                 $response = $this->httpClient->request('POST', $uploadUrl, [
                     'headers' => $formData->getPreparedHeaders()->toArray(),
@@ -287,13 +284,11 @@ final class CloudConvertClient
 
                 return;
             } catch (TransportExceptionInterface $e) {
-                if ($attempts >= 2) {
+                if ($attempt === 2) {
                     throw new \RuntimeException('CloudConvert upload timeout/network error: ' . $e->getMessage(), 0, $e);
                 }
             }
-        } while ($attempts < 2);
-
-        throw new \RuntimeException('CloudConvert upload step failed.');
+        }
     }
 
     private function waitForJob(string $jobId, int $timeoutSeconds = 300): array
@@ -349,19 +344,16 @@ final class CloudConvertClient
         $data = $response->toArray(false);
 
         if ($statusCode >= 400) {
-            $message = null;
-            if (is_array($data)) {
-                $message = $data['message']
-                    ?? $data['error']['message']
-                    ?? $data['error']
-                    ?? null;
-            }
+            $message = $data['message']
+                ?? $data['error']['message']
+                ?? $data['error']
+                ?? null;
 
             $text = is_string($message) && $message !== '' ? $message : ('CloudConvert request failed with HTTP ' . $statusCode);
             throw new \RuntimeException($text);
         }
 
-        return is_array($data) ? $data : [];
+        return $data;
     }
 
     /**

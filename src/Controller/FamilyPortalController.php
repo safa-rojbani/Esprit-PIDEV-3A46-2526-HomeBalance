@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Enum\FamilyRole;
+use App\Entity\User;
 use App\Repository\FamilyInvitationRepository;
 use App\Repository\FamilyMembershipRepository;
 use App\Service\FamilyManager;
@@ -29,8 +30,7 @@ final class FamilyPortalController extends AbstractController
     public function settings(): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $user = $this->getUser();
-        \assert($user !== null);
+        $user = $this->requireUser();
         $family = $user->getFamily();
 
         $members = $family ? $this->membershipRepository->findActiveMemberships($family) : [];
@@ -50,8 +50,7 @@ final class FamilyPortalController extends AbstractController
     public function create(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $user = $this->getUser();
-        \assert($user !== null);
+        $user = $this->requireUser();
 
         if (!$this->isCsrfTokenValid('family_create', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -77,8 +76,7 @@ final class FamilyPortalController extends AbstractController
     public function join(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $user = $this->getUser();
-        \assert($user !== null);
+        $user = $this->requireUser();
 
         if (!$this->isCsrfTokenValid('family_join', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -104,8 +102,7 @@ final class FamilyPortalController extends AbstractController
     public function refreshCode(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $user = $this->getUser();
-        \assert($user !== null);
+        $user = $this->requireUser();
         $family = $user->getFamily();
 
         if (!$this->isCsrfTokenValid('family_code', (string) $request->request->get('_token'))) {
@@ -127,8 +124,7 @@ final class FamilyPortalController extends AbstractController
     public function invite(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $user = $this->getUser();
-        \assert($user !== null);
+        $user = $this->requireUser();
         $family = $user->getFamily();
 
         if (!$this->isCsrfTokenValid('family_invite', (string) $request->request->get('_token'))) {
@@ -154,5 +150,15 @@ final class FamilyPortalController extends AbstractController
         }
 
         return $this->redirectToRoute('portal_family_settings');
+    }
+
+    private function requireUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
     }
 }

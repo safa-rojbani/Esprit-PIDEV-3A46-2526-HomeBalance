@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace App\Controller\moduleMessagerie;
+namespace App\Controller\ModuleMessagerie;
 
 use App\Entity\Conversation;
 use App\Entity\ConversationParticipant;
@@ -154,7 +154,7 @@ class MessagingController extends AbstractController
                 }
             }
 
-            $attachmentFile = $form->get('attachment')?->getData();
+            $attachmentFile = $form->get('attachment')->getData();
             if ($attachmentFile) {
                 try {
                     $attachmentUrl = $this->attachmentStorage->store($attachmentFile);
@@ -281,7 +281,12 @@ class MessagingController extends AbstractController
 
         // Trigger AI generation if there are unread messages
         if (count($unreadMessages) > 0) {
-            $message = new GenerateSmartRepliesMessage($conversation->getId(), $user->getId());
+            $userId = $user->getId();
+            if ($userId === null) {
+                return new JsonResponse(['error' => 'User identifier missing'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $message = new GenerateSmartRepliesMessage($conversation->getId(), $userId);
             $this->messageBus->dispatch($message);
         }
 
@@ -309,7 +314,12 @@ class MessagingController extends AbstractController
         $limit = max(10, min($limit, 100)); // Clamp between 10 and 100
 
         // Dispatch summarization message
-        $message = new SummarizeConversationMessage($conversation->getId(), $user->getId(), $limit);
+        $userId = $user->getId();
+        if ($userId === null) {
+            return new JsonResponse(['error' => 'User identifier missing'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $message = new SummarizeConversationMessage($conversation->getId(), $userId, $limit);
         $this->messageBus->dispatch($message);
 
         return new JsonResponse(['status' => 'accepted'], Response::HTTP_ACCEPTED);
@@ -358,18 +368,11 @@ class MessagingController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        
-        $presence = $user->getPresence();
-        if (!$presence) {
-            $presence = new \App\Entity\UserPresence();
-            $presence->setUser($user);
-            $this->entityManager->persist($presence);
-            $user->setPresence($presence);
+
+        try {
+            $this->mercurePublisher->publishPresence($user, true);
+        } catch (\Throwable $e) {
         }
-        
-        $presence->setLastSeenAt(new \DateTimeImmutable());
-        $presence->setIsOnline(true);
-        $this->entityManager->flush();
         
         return new JsonResponse(['ok' => true]);
     }

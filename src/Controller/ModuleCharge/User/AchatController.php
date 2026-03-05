@@ -35,6 +35,9 @@ public function index(
 {
     $family = $this->resolveFamily($familyResolver);
     $user = $this->getUser();
+    if (!$user instanceof User) {
+        throw $this->createAccessDeniedException();
+    }
     $searchQuery = trim((string) $request->query->get('q', ''));
     $month = trim((string) $request->query->get('month', ''));
     $categoryId = $request->query->getInt('category', 0);
@@ -94,6 +97,9 @@ public function index(
     {
         $family = $this->resolveFamily($familyResolver);
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $achat = new Achat();
         $form = $this->createForm(AchatType::class, $achat);
@@ -101,8 +107,8 @@ public function index(
 
         if ($form->isSubmitted() && $form->isValid()) {
             $achat->setCreatedAt(new \DateTimeImmutable());
-$achat->setCreatedBy($user);
-$achat->setEstAchete(false);
+            $achat->setCreatedBy($user);
+            $achat->setEstAchete(false);
             $achat->setFamily($family);
             $entityManager->persist($achat);
             $entityManager->flush();

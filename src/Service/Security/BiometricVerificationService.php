@@ -133,9 +133,6 @@ final class BiometricVerificationService
         }
 
         $session = $request->getSession();
-        if ($session === null) {
-            return false;
-        }
 
         /** @var array<string, array{verifiedAt: string, targetUserId: ?string}> $records */
         $records = $session->get(self::SESSION_KEY, []);
@@ -163,9 +160,6 @@ final class BiometricVerificationService
     private function storeVerifiedSession(Request $request, string $actionKey, ?User $targetUser): void
     {
         $session = $request->getSession();
-        if ($session === null) {
-            return;
-        }
 
         /** @var array<string, array{verifiedAt: string, targetUserId: ?string}> $records */
         $records = $session->get(self::SESSION_KEY, []);

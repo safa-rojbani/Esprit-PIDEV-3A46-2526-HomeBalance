@@ -244,16 +244,10 @@ final class DocumentKeyDataExtractor
             }
 
             if (preg_match_all('/[A-Z0-9][A-Z0-9\-\/_.]{2,}/iu', $trimmed, $matches) >= 1) {
-                $tokens = $matches[0] ?? [];
-                if (is_array($tokens)) {
-                    foreach ($tokens as $token) {
-                        if (!is_string($token)) {
-                            continue;
-                        }
-                        $candidate = trim($token);
-                        if (preg_match('/\d{2,}/', $candidate) === 1) {
-                            return $candidate;
-                        }
+                foreach ($matches[0] as $token) {
+                    $candidate = trim($token);
+                    if (preg_match('/\d{2,}/', $candidate) === 1) {
+                        return $candidate;
                     }
                 }
             }
@@ -462,16 +456,13 @@ final class DocumentKeyDataExtractor
             return null;
         }
 
-        $tokens = $matches[0] ?? [];
-        if (!is_array($tokens) || $tokens === []) {
+        $tokens = $matches[0];
+        if ($tokens === []) {
             return null;
         }
 
         $values = [];
         foreach ($tokens as $token) {
-            if (!is_string($token)) {
-                continue;
-            }
             $parsed = $this->parseAmountToken($token);
             if ($parsed !== null) {
                 $values[] = $parsed;
@@ -493,9 +484,9 @@ final class DocumentKeyDataExtractor
 
         $values = [];
         foreach ($matches as $match) {
-            $token = isset($match[1]) && is_string($match[1]) ? $match[1] : null;
-            $suffix = isset($match[2]) && is_string($match[2]) ? $match[2] : '';
-            if ($token === null || $suffix === '%') {
+            $token = $match[1];
+            $suffix = $match[2];
+            if ($suffix === '%') {
                 continue;
             }
 
@@ -740,8 +731,8 @@ final class DocumentKeyDataExtractor
             return null;
         }
 
-        $first = trim((string) ($matches[1] ?? ''));
-        $second = trim((string) ($matches[2] ?? ''));
+        $first = trim($matches[1]);
+        $second = trim($matches[2]);
         if ($first === '' && $second === '') {
             return null;
         }

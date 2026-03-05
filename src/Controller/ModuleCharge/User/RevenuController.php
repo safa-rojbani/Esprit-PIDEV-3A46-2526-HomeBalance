@@ -50,6 +50,9 @@ final class RevenuController extends AbstractController
     {
         $family = $this->resolveFamily($familyResolver);
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $revenu = new Revenu();
 
@@ -99,6 +102,9 @@ final class RevenuController extends AbstractController
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $revenu->getFamily());
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $types = $this->getAvailableTypes($repo, $typeRevenuRepository, $family);
 

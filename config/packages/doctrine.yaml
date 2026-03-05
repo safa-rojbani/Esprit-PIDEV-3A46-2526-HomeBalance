@@ -1,6 +1,13 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        charset: utf8mb4
+        default_table_options:
+            charset: utf8mb4
+            collate: utf8mb4_unicode_ci
+        options:
+            # PDO::MYSQL_ATTR_INIT_COMMAND
+            1002: "SET time_zone = '+01:00', SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,NO_ENGINE_SUBSTITUTION'"
         # Use the serverVersion from DATABASE_URL (MariaDB) to avoid platform mismatch
         # server_version: '8.3'
 

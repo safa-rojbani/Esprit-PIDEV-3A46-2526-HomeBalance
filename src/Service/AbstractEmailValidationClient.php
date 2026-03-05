@@ -119,9 +119,6 @@ final class AbstractEmailValidationClient
     {
         $statusCode = $response->getStatusCode();
         $payload = $response->toArray(false);
-        if (!is_array($payload)) {
-            throw new \RuntimeException('Abstract API response is invalid.');
-        }
 
         if ($statusCode >= 400) {
             $message = (string) ($payload['error']['message'] ?? $payload['message'] ?? 'Abstract API request failed.');

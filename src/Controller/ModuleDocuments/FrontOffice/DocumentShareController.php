@@ -429,12 +429,6 @@ final class DocumentShareController extends AbstractController
         return $safeName;
     }
 
-    private function isLocalhostUrl(string $url): bool
-    {
-        $host = strtolower((string) parse_url($url, \PHP_URL_HOST));
-        return $host === 'localhost' || $host === '127.0.0.1';
-    }
-
     private function renderInvalidShare(int $status): Response
     {
         return $this->render('ModuleDocuments/Public/share_invalid.html.twig', [], new Response('', $status));

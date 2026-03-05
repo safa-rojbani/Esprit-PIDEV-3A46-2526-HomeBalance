@@ -62,7 +62,7 @@ final class AdminFamilyMembershipController extends AbstractController
         $grouped = [];
         foreach ($memberships as $membership) {
             $family = $membership->getFamily();
-            $familyId = $family?->getId() ?? 0;
+            $familyId = $family->getId();
             $grouped[$familyId] ??= [
                 'family' => $family,
                 'memberships' => [],

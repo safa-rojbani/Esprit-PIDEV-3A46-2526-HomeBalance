@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\moduleMessagerie;
+namespace App\Controller\ModuleMessagerie;
 
 use App\Entity\SupportMessage;
 use App\Entity\SupportTicket;

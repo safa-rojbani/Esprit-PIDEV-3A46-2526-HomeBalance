@@ -135,7 +135,7 @@ final class WeeklyInsightsDataBuilder
             if ($assignment->getPenaltyAppliedAt() !== null && ($assignment->getPenaltyPoints() ?? 0) < 0) {
                 $taskId = $task?->getId();
                 if ($taskId !== null) {
-                    $taskIssueMap[$taskId] ??= $this->newTaskIssueBucket((string) $task?->getTitle());
+                    $taskIssueMap[$taskId] ??= $this->newTaskIssueBucket((string) $task->getTitle());
                 }
 
                 if ($assignment->getStatus() === TaskAssignmentStatus::COMPLETED) {
@@ -208,7 +208,7 @@ final class WeeklyInsightsDataBuilder
             $stats[$memberId] = [
                 'memberId' => $memberId,
                 'memberName' => $this->displayName($member),
-                'role' => $member->getFamilyRole()?->value ?? 'unknown',
+                'role' => $member->getFamilyRole()->value,
                 'pointsCurrent' => 0,
                 'pointsPrevious' => 0,
                 'deltaPoints' => 0,

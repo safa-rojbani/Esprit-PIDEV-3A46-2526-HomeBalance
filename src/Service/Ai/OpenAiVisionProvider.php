@@ -23,7 +23,7 @@ final class OpenAiVisionProvider implements VisionProviderInterface
         return 'openai';
     }
 
-    public function getModelName(): ?string
+    public function getModelName(): string
     {
         return $this->model;
     }

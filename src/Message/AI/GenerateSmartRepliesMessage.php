@@ -6,7 +6,7 @@ class GenerateSmartRepliesMessage
 {
     public function __construct(
         private readonly int $conversationId,
-        private readonly int $userId,
+        private readonly string $userId,
     ) {
     }
 
@@ -15,7 +15,7 @@ class GenerateSmartRepliesMessage
         return $this->conversationId;
     }
 
-    public function getUserId(): int
+    public function getUserId(): string
     {
         return $this->userId;
     }

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FavoriteDocsRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FavoriteDocsRepository::class)]
@@ -19,7 +20,7 @@ class FavoriteDocs
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedBy = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\ManyToOne]

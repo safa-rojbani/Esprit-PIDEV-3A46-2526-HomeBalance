@@ -14,6 +14,8 @@ use Symfony\Component\Security\Core\Security;
 
 final class PortalNotificationSubscriber implements EventSubscriberInterface
 {
+    private const NAVBAR_NOTIFICATION_LIMIT = 20;
+
     public function __construct(
         private readonly Security $security,
         private readonly ActiveFamilyResolver $familyResolver,
@@ -58,19 +60,17 @@ final class PortalNotificationSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $notifications = $this->notificationRepository->findAllForRecipientInFamily($user, $family);
-        $unreadCount = 0;
+        $notifications = $this->notificationRepository
+            ->findAllForRecipientInFamily($user, $family, self::NAVBAR_NOTIFICATION_LIMIT);
+        $unreadCount = $this->notificationRepository->countUnreadForRecipientInFamily($user, $family);
         $latestUnread = null;
-
         foreach ($notifications as $notification) {
             if ($notification->isRead()) {
-                continue;
+                break;
             }
 
-            ++$unreadCount;
-            if ($latestUnread === null) {
-                $latestUnread = $notification;
-            }
+            $latestUnread = $notification;
+            break;
         }
 
         $now = new \DateTimeImmutable();
@@ -89,11 +89,36 @@ final class PortalNotificationSubscriber implements EventSubscriberInterface
             ->getQuery()
             ->getSingleScalarResult();
 
-        $rappels = (clone $rappelBaseQb)
+        $rappelIdRows = (clone $rappelBaseQb)
+            ->select('r.id AS id')
             ->orderBy('r.scheduledAt', 'DESC')
             ->setMaxResults(6)
             ->getQuery()
-            ->getResult();
+            ->getScalarResult();
+
+        $rappelIds = array_map(
+            static fn (array $row): int => (int) ($row['id'] ?? 0),
+            $rappelIdRows
+        );
+        $rappelIds = array_values(array_filter($rappelIds, static fn (int $id): bool => $id > 0));
+
+        $rappels = [];
+        if ($rappelIds !== []) {
+            /** @var array<int, \App\Entity\Rappel> $rappelsById */
+            $rappelsById = $this->rappelRepository->createQueryBuilder('r', 'r.id')
+                ->addSelect('e')
+                ->innerJoin('r.evenement', 'e')
+                ->andWhere('r.id IN (:ids)')
+                ->setParameter('ids', $rappelIds)
+                ->getQuery()
+                ->getResult();
+
+            foreach ($rappelIds as $id) {
+                if (isset($rappelsById[$id])) {
+                    $rappels[] = $rappelsById[$id];
+                }
+            }
+        }
 
         $rappelRows = array_map(static function ($rappel): array {
             $eventTitle = null;

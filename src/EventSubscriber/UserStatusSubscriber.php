@@ -62,7 +62,9 @@ final class UserStatusSubscriber implements EventSubscriberInterface
 
         if ($request->hasSession()) {
             $session = $request->getSession();
-            $session->getFlashBag()->add('error', $message);
+            if (method_exists($session, 'getFlashBag')) {
+                $session->getFlashBag()->add('error', $message);
+            }
             $session->remove('_security_main');
         }
 

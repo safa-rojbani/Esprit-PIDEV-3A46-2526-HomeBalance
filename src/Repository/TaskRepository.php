@@ -6,6 +6,7 @@ use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Family;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @extends ServiceEntityRepository<Task>
@@ -34,10 +35,7 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findFamilyTasks(Family $family): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.family = :family')
-            ->setParameter('family', $family)
-            ->orderBy('t.createdAt', 'DESC')
+        return $this->createFamilyTasksQueryBuilder($family)
             ->getQuery()
             ->getResult();
     }
@@ -47,12 +45,25 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findActiveGlobalAdminTasks(): array
     {
+        return $this->createActiveGlobalAdminTasksQueryBuilder()
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function createFamilyTasksQueryBuilder(Family $family): QueryBuilder
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.family = :family')
+            ->setParameter('family', $family)
+            ->orderBy('t.createdAt', 'DESC');
+    }
+
+    public function createActiveGlobalAdminTasksQueryBuilder(): QueryBuilder
+    {
         return $this->createQueryBuilder('t')
             ->andWhere('t.family IS NULL')
             ->andWhere('t.isActive = true')
-            ->orderBy('t.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('t.createdAt', 'DESC');
     }
 
     public function findFamilyDuplicateFromTemplate(Task $template, Family $family): ?Task

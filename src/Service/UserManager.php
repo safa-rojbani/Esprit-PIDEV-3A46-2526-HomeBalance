@@ -34,9 +34,30 @@ class UserManager
         $timeZone = $data['timeZones'] ?? null;
         $timeZone = $timeZone !== null && $timeZone !== '' ? $timeZone : ($user->getTimeZone() ?? 'UTC');
 
-        $changes = array_merge($changes, $this->updateIfChanged($user->getFirstName(), $data['firstName'] ?? $user->getFirstName() ?? '', fn ($value) => $user->setFirstName($value ?? ''), 'firstName'));
-        $changes = array_merge($changes, $this->updateIfChanged($user->getLastName(), $data['lastName'] ?? $user->getLastName() ?? '', fn ($value) => $user->setLastName($value ?? ''), 'lastName'));
-        $changes = array_merge($changes, $this->updateIfChanged($user->getEmail(), $data['email'] ?? $user->getEmail() ?? '', fn ($value) => $user->setEmail($value ?? ''), 'email'));
+        $changes = array_merge($changes, $this->updateIfChanged(
+            $user->getFirstName(),
+            $data['firstName'] ?? $user->getFirstName() ?? '',
+            function ($value) use ($user): void {
+                $user->setFirstName($value ?? '');
+            },
+            'firstName'
+        ));
+        $changes = array_merge($changes, $this->updateIfChanged(
+            $user->getLastName(),
+            $data['lastName'] ?? $user->getLastName() ?? '',
+            function ($value) use ($user): void {
+                $user->setLastName($value ?? '');
+            },
+            'lastName'
+        ));
+        $changes = array_merge($changes, $this->updateIfChanged(
+            $user->getEmail(),
+            $data['email'] ?? $user->getEmail() ?? '',
+            function ($value) use ($user): void {
+                $user->setEmail($value ?? '');
+            },
+            'email'
+        ));
 
         if ($locale !== $user->getLocale()) {
             $user->setLocale($locale);

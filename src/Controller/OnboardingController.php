@@ -25,10 +25,6 @@ final class OnboardingController extends AbstractController
             return $this->redirectToRoute('portal_auth_login');
         }
 
-        if ($user->getSystemRole()?->value === 'ADMIN') {
-            return $this->redirectToRoute('portal_dashboard');
-        }
-
         if ($user->getSystemRole()?->value === 'ADMIN' || $this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('portal_dashboard');
         }
@@ -53,10 +49,6 @@ final class OnboardingController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             return $this->redirectToRoute('portal_auth_login');
-        }
-
-        if ($user->getSystemRole()?->value === 'ADMIN') {
-            return $this->redirectToRoute('portal_dashboard');
         }
 
         if ($user->getSystemRole()?->value === 'ADMIN' || $this->isGranted('ROLE_ADMIN')) {
@@ -100,11 +92,7 @@ final class OnboardingController extends AbstractController
             return $this->redirectToRoute('portal_auth_login');
         }
 
-        if ($user->getSystemRole()?->value === 'ADMIN') {
-            return $this->redirectToRoute('portal_dashboard');
-        }
-
-        if ($user->getSystemRole()?->value === 'ADMIN') {
+        if ($user->getSystemRole()?->value === 'ADMIN' || $this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('portal_dashboard');
         }
 

@@ -136,10 +136,10 @@ final class DocumentController extends AbstractController
     public function show(
         Request $request,
         Document $document,
-        ?int $galleryId = null,
         ActiveFamilyResolver $familyResolver,
         DocumentActivityTracker $documentActivityTracker,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?int $galleryId = null
     ): Response
     {
         $family = $this->resolveFamily($familyResolver);
@@ -190,9 +190,9 @@ final class DocumentController extends AbstractController
         Request $request,
         Document $document,
         EntityManagerInterface $entityManager,
-        ?int $galleryId = null,
         ActiveFamilyResolver $familyResolver,
-        PortalNotificationService $portalNotificationService
+        PortalNotificationService $portalNotificationService,
+        ?int $galleryId = null
     ): Response {
         $family = $this->resolveFamily($familyResolver);
         $this->assertSameFamily($family, $document->getFamily());
@@ -255,9 +255,9 @@ final class DocumentController extends AbstractController
         Request $request,
         Document $document,
         EntityManagerInterface $entityManager,
-        ?int $galleryId = null,
         ActiveFamilyResolver $familyResolver,
-        PortalNotificationService $portalNotificationService
+        PortalNotificationService $portalNotificationService,
+        ?int $galleryId = null
     ): Response
     {
         $family = $this->resolveFamily($familyResolver);

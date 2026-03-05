@@ -38,6 +38,7 @@ class Achat
     private ?Family $family = null;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $CreatedBy = null;
 
     public function getId(): ?int

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\AdminBiometricProfileRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: AdminBiometricProfileRepository::class)]
@@ -22,6 +23,7 @@ class AdminBiometricProfile
     #[ORM\Column(length: 32)]
     private string $provider = 'luxand';
 
+    #[Ignore]
     #[ORM\Column(length: 512)]
     private string $referenceFaceTokenEncrypted = '';
 
@@ -78,7 +80,7 @@ class AdminBiometricProfile
         return $this->referenceFaceTokenEncrypted;
     }
 
-    public function setReferenceFaceTokenEncrypted(string $referenceFaceTokenEncrypted): self
+    public function setReferenceFaceTokenEncrypted(#[\SensitiveParameter] string $referenceFaceTokenEncrypted): self
     {
         $this->referenceFaceTokenEncrypted = $referenceFaceTokenEncrypted;
 

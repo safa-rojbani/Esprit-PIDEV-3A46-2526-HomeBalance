@@ -24,7 +24,7 @@ class NotificationsController extends AbstractController
         ActiveFamilyResolver $familyResolver
     ): Response
     {
-        $user = $this->getUser();
+        $user = $this->requireUser();
         $family = $this->resolveFamily($familyResolver);
 
         $rappelRepository->cleanupOrphanedAndPast();
@@ -76,10 +76,7 @@ class NotificationsController extends AbstractController
 
     private function resolveFamily(ActiveFamilyResolver $familyResolver): Family
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
+        $user = $this->requireUser();
 
         $family = $familyResolver->resolveForUser($user);
         if ($family === null) {
@@ -87,5 +84,15 @@ class NotificationsController extends AbstractController
         }
 
         return $family;
+    }
+
+    private function requireUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
     }
 }

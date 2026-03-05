@@ -23,7 +23,7 @@ final class GeminiVisionProvider implements VisionProviderInterface
         return 'gemini';
     }
 
-    public function getModelName(): ?string
+    public function getModelName(): string
     {
         return $this->model;
     }
@@ -192,7 +192,7 @@ PROMPT;
         }
 
         $candidate = substr($normalized, $start, $end - $start + 1);
-        if (!is_string($candidate) || trim($candidate) === '') {
+        if (trim($candidate) === '') {
             return null;
         }
 

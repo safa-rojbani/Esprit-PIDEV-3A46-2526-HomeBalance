@@ -7,7 +7,6 @@ use App\Message\SMS\SendSmsFallbackMessage;
 use App\Repository\UserRepository;
 use App\Service\AuditTrailService;
 use App\ServiceModuleMessagerie\SMS\TwilioClient;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -17,7 +16,6 @@ class SendSmsFallbackHandler
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly TwilioClient $twilioClient,
-        private readonly EntityManagerInterface $entityManager,
         private readonly AuditTrailService $auditTrailService,
         private readonly RequestStack $requestStack,
         private readonly int $offlineThresholdMinutes = 5,
@@ -33,21 +31,25 @@ class SendSmsFallbackHandler
         }
 
         // Check 1: Does user have a phone number?
-        $phoneNumber = $recipient->getPhoneNumber();
+        $preferences = $recipient->getPreferences() ?? [];
+        $profile = is_array($preferences['profile'] ?? null) ? $preferences['profile'] : [];
+        $phoneNumber = trim((string) ($profile['phoneNumber'] ?? ''));
         if (empty($phoneNumber)) {
             $this->recordSkip($recipient, 'no_phone');
             return;
         }
 
-        // Check 2: Is user online?
-        $presence = $recipient->getPresence();
-        if ($presence && !$presence->isOffline($this->offlineThresholdMinutes)) {
-            $this->recordSkip($recipient, 'online');
-            return;
+        // Check 2: Approximate online state from recent activity.
+        $lastLogin = $recipient->getLastLogin();
+        if ($lastLogin instanceof \DateTimeInterface) {
+            $cutoff = (new \DateTimeImmutable())->modify(sprintf('-%d minutes', $this->offlineThresholdMinutes));
+            if ($lastLogin >= $cutoff) {
+                $this->recordSkip($recipient, 'online');
+                return;
+            }
         }
 
         // Check 3: Is SMS channel enabled in notification matrix?
-        $preferences = $recipient->getPreferences() ?? [];
         $channels = $preferences['communication']['channels'] ?? [];
         if (!in_array('sms', $channels, true)) {
             $this->recordSkip($recipient, 'disabled');
